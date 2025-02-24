@@ -1,0 +1,227 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.resetBtn{
+    margin-top: 10px;
+}
+.error {
+    border: 1px solid red;
+}
+
+.error-message {
+    color: red;
+    font-size: 12px;
+}
+.container {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px 20px  rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    
+    width: 100%;
+    max-width: 500px;
+    min-width: 480px;
+    margin: 0 auto; 
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.password-field{
+    margin-bottom: 25px;
+}
+#registrationForm{
+    width: 100%;
+    height: 18rem;
+    display: grid;
+    align-content: space-between;
+    transition: height 0.3s ease-in-out;
+}
+#registrationForm.login {
+    height: 18rem;
+  }
+  
+  #registrationForm.send-email {
+    height: 12rem;
+  }
+  
+  #registrationForm.reset-password {
+    height: 25rem;
+  }
+  .fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .forgot-password-btn {
+    background: none;
+    border: none;
+    color: #4D9EC8;
+    cursor: pointer;
+    font-size: 1rem;
+    text-decoration: none;
+  }
+  
+  .forgot-password-btn:hover {
+    color: #5b21b6;
+  }
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: #e5e7eb;
+    border-radius: 2px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0;
+    background: #7c3aed;
+    transition: width 0.3s ease;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.form-header h2 {
+    color: #1f2937;
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.form-header p {
+    color: #6b7280;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #374151;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    padding-right: 2.5rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+}
+
+.form-group input:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+/* High contrast focus indicator for accessibility */
+.password-toggle {
+    position: absolute;
+    right: 1rem;
+    top: 2.5rem;
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0.25rem;
+}
+
+.password-toggle:focus-visible {
+    outline: 2px solid #2563eb;
+    border-radius: 4px;
+}
+
+.password-requirements {
+    margin-top: 0.75rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 0.5rem;
+}
+
+
+button[type="submit"] {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    background: #636167;
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+button[type="submit"]:hover {
+    background: #c8c8ca;
+    color:#374151;
+}
+
+button[type="submit"]:focus-visible {
+    outline: 3px solid #c7c6c9;
+    outline-offset: 2px;
+}
+
+.sign-up p {
+    margin-right: 5px;
+}
+.optional, .sign-up{
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.optional a, .sign-up a, .forgot-password a{
+    text-decoration: none;
+    color: #4D9EC8;
+}
+
+/* Micro-interactions */
+.form-group input:focus + label {
+    transform: translateY(-2px);
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.shake {
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
