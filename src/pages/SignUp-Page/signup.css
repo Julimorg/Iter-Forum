@@ -48,7 +48,7 @@ body {
     transition: height 0.3s ease-in-out;
 }
 #registrationForm.create-account {
-    height: 32rem; 
+    height: 34rem; 
 }
 
 #registrationForm.verify-email {
@@ -67,8 +67,6 @@ body {
         opacity: 1;
     }
 }
-
-  
   .forgot-password-btn {
     background: none;
     border: none;

@@ -97,7 +97,14 @@ const SignUp = () => {
                     </>
                 ) : (
                     <>
-                        {/* Email input */}
+                        {/* Username input */}
+                        <TextField
+                            label="User Name"
+                            type="name"
+                            id="name"
+                            required={true}
+                            autoComplete="name"
+                        />
                         <TextField
                             label="Email"
                             type="email"
