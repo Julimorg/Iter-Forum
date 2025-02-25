@@ -49,3 +49,20 @@ export default tseslint.config({
 })
 ```
 # Download Package
+- Router
+```js
+npm install react-router-dom
+```
+- Bootstrap
+```js
+npm install bootstrap
+```
+- MUI UI
+```js
+npm install @mui/material @emotion/react @emotion/styled
+npm install @mui/material @mui/styled-engine-sc styled-components
+```
+- FontAwesome
+```js
+npm i font-awesome
+``` 
