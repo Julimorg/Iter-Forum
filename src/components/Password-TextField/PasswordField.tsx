@@ -9,6 +9,11 @@ interface PasswordFieldProps {
 
 const PasswordField: React.FC<PasswordFieldProps> = ({ id, label }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [value, setValue] = useState("");
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(event.target.value);
+  };
 
   return (
     <div className={styles.formGroup}>
@@ -17,6 +22,8 @@ const PasswordField: React.FC<PasswordFieldProps> = ({ id, label }) => {
         <input
           type={showPassword ? "text" : "password"}
           id={id}
+          value={value}
+          onChange={handleChange}
           required
           aria-required="true"
           aria-describedby={`${id}-description ${id}-requirements ${id}-error`}
