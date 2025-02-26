@@ -4,10 +4,12 @@ import { Link } from 'react-router-dom'
 import './signup.css'
 import TextField from '../../components/TexField/Textfield';
 import PasswordField from '../../components/Password-TextField/PasswordField';
-
+import InputNum from '../../components/TextFieldOnlyNumber/TextField-NumberOnly';
 const SignUp = () => {
     const [isVerify, setIsVerify] = useState(false);
     const [email, setEmail] = useState("");
+    const [age, setAge] = useState<number>(0);
+    const [ageError, setAgeError] = useState("");
 
     const handleSignUp = (e: React.FormEvent) => {
         e.preventDefault();
@@ -24,6 +26,16 @@ const SignUp = () => {
         const password = passwordInput.value;
         const confirmPassword = confirmPasswordInput.value;
         let isValid = true;
+
+        const ageNumber = Number(age);
+
+        // Kiểm tra tuổi khi bấm Sign Up
+        if (isNaN(ageNumber) || ageNumber < 13 || ageNumber > 101) {
+            setAgeError("Age must be between 13 and 101.");
+            isValid = false;
+        } else {
+            setAgeError("");
+        }
 
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailPattern.test(emailValue)) {
@@ -62,7 +74,7 @@ const SignUp = () => {
     const handleVerify = (e: React.FormEvent) => {
         e.preventDefault();
         alert("Email Verified Successfully!");
-      };
+    };
     return (
         <div className="container">
             <div
@@ -97,14 +109,27 @@ const SignUp = () => {
                     </>
                 ) : (
                     <>
-                        {/* Username input */}
-                        <TextField
-                            label="User Name"
-                            type="name"
-                            id="name"
-                            required={true}
-                            autoComplete="name"
-                        />
+                        <div className="field">
+                            {/* Username input */}
+                            <TextField
+                                label="User Name"
+                                type="name"
+                                id="name"
+                                required={true}
+                                autoComplete="name"
+                            />
+                            {/* Age input */}
+                            <InputNum
+                                label="User Age"
+                                id="age"
+                                required
+                                value={age}
+                                onChange={(num) => setAge(num)}
+                            />
+                        </div>
+                        <span id="ageError" className="error-message">{ageError}</span>
+
+                        {/* Email input */}
                         <TextField
                             label="Email"
                             type="email"

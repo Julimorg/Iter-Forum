@@ -17,7 +17,10 @@ body {
 .error {
     border: 1px solid red;
 }
-
+.field {
+    display: flex;
+    margin-top: 1rem;
+}
 .error-message {
     color: red;
     font-size: 12px;
@@ -48,7 +51,7 @@ body {
     transition: height 0.3s ease-in-out;
 }
 #registrationForm.create-account {
-    height: 37rem; 
+    height: 40rem; 
 }
 
 #registrationForm.verify-email {
@@ -95,50 +98,6 @@ body {
     transition: width 0.3s ease;
 }
 
-.form-header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.form-header h2 {
-    color: #1f2937;
-    font-size: 1.875rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.form-header p {
-    color: #6b7280;
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-    position: relative;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #374151;
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    padding-right: 2.5rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    outline: none;
-}
-
-.form-group input:focus {
-    border-color: #7c3aed;
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
-}
 
 /* High contrast focus indicator for accessibility */
 .password-toggle {

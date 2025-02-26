@@ -1,0 +1,22 @@
+/* form-group.module.css */
+
+.formGroup {
+    margin-bottom: 1rem;
+    margin-left: 2rem;
+}
+
+.formGroup input {
+    width: 80%;
+    padding: 0.75rem 1rem;
+    padding-right: 2.5rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+}
+
+.formGroup input:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
