@@ -1,18 +1,18 @@
 import React from 'react';
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import './login.css'
-import TextField from '../../components/TexField/Textfield';
+import styles from './login.module.css'
+import TextField from '../../components/TextField-LoginSignUp/Textfield';
 import PasswordField from '../../components/Password-TextField/PasswordField';
 
 
 
 const Login = () => {
-    const [step, setStep] = useState<"login" | "send-email" | "reset-password">(
+    const [step, setStep] = useState<"login" | "sendEmail" | "resetPassword">(
         "login"
     );
     const handleForgotPassword = () => {
-        setStep("send-email");
+        setStep("sendEmail");
     };
 
     const handleSendEmail = (e: React.FormEvent) => {
@@ -31,7 +31,7 @@ const Login = () => {
         emailError!.textContent = "";
         emailInput.classList.remove("error");
 
-        setStep("reset-password");
+        setStep("resetPassword");
     };
 
     const handleBackToLogin = (e: React.FormEvent) => {
@@ -72,30 +72,30 @@ const Login = () => {
     };
 
     return (
-        <div className="container">
+        <div className = {styles.containerLogin}>
+        <div className = {styles.container}>
             <div
-                className="progress-bar"
+                className = {styles.progressBar}
                 role="progressbar"
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={0}
             >
             </div>
-            <div className="form-header">
-                <h2 id="form-title">
+            <div className="formHeader">
+                <h2 id="formTitle">
                     {
                         step === "login" ? "Log In"
-                            : step === "send-email" ? "Send Email"
+                            : step === "sendEmail" ? "Send Email"
                                 : "Reset Password"
                     }
                 </h2>
             </div>
             <form
-                id="registrationForm"
-                className={`fade-in ${step}`}
-                aria-labelledby="form-title"
+                className={`${styles.registrationFormLogin} ${styles.fadeIn} ${step}`}  
+                aria-labelledby="formTitle"
                 aria-describedby="form-description">
-                {step === "login" && (
+                    {step === "login" && (
                     <>
                         {/* Username input */}
                         <TextField
@@ -106,29 +106,29 @@ const Login = () => {
                             autoComplete="name"
                         />
                         {/* Password */}
-                        <div className="password-field">
+                        <div className = {styles.passwordField}>
                             <PasswordField id="password" label="Password" />
                         </div>
                         <button type="submit" aria-describedby="submit-description">
                             Log in
                         </button>
-                        <div className="optional">
-                            <div className="sign-up">
+                        <div className={styles.optional}>
+                            <div className={styles.signUp}>
                                 <p>New to IT-er?</p>
                                 <Link to="/sign-up">Sign-Up</Link>
                             </div>
-                            <div className="forgot-password">
+                            <div className= {styles.forgotPassword}>
                                 <button
                                     type="button"
                                     onClick={handleForgotPassword}
-                                    className="forgot-password-btn">
+                                    className={styles.forgotPasswordBtn}>
                                     Forgot Password?
                                 </button>
                             </div>
                         </div>
                     </>
                 )}
-                {step === "send-email" && (
+                {step === "sendEmail" && (
                     <>
                         {/* Email  input */}
                         <TextField
@@ -138,24 +138,24 @@ const Login = () => {
                             required={true}
                             autoComplete="email"
                         />
-                        <span id="emailError" className="error-message"></span>
+                        <span id="emailError" className={styles.errorMessage}></span>
 
                         <button type="submit" onClick={handleSendEmail}>
                             Send
                         </button>
                     </>
                 )}
-                {step === "reset-password" && (
+                {step === "resetPassword" && (
                     <>
                         <PasswordField id="new-password" label="New Password" />
-                        <span id="passwordError" className="error-message"></span>
+                        <span id="passwordError" className={styles.errorMessage}></span>
 
                         <PasswordField id="confirm-password" label="Confirm Password" />
-                        <span id="confirmPasswordError" className="error-message"></span>
+                        <span id="confirmPasswordError" className={styles.errorMessage}></span>
 
                         <div
                             id="password-requirements"
-                            className="password-requirements"
+                            className={styles.passwordRequirements}
                             aria-live="polite"
                         >
                             <div className="requirement" data-requirement="length">
@@ -181,6 +181,7 @@ const Login = () => {
 
 
             </form>
+        </div>
         </div>
 
     )

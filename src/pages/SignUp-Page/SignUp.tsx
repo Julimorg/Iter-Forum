@@ -1,8 +1,8 @@
 import React from 'react';
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import './signup.css'
-import TextField from '../../components/TexField/Textfield';
+import styles from './signup.module.css'
+import TextField from '../../components/TextField-LoginSignUp/Textfield';
 import PasswordField from '../../components/Password-TextField/PasswordField';
 import InputNum from '../../components/TextFieldOnlyNumber/TextField-NumberOnly';
 const SignUp = () => {
@@ -76,23 +76,24 @@ const SignUp = () => {
         alert("Email Verified Successfully!");
     };
     return (
-        <div className="container">
+        <div className = {styles.containerBodySignUp}>
+        <div className = {styles.container}>
             <div
-                className="progress-bar"
+                className = {styles.progressBar}
                 role="progressbar"
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={0}
             >
             </div>
-            <div className="form-header">
-                <h2 id="form-title">{isVerify ? "Verify Your Email" : "Create an Account"}</h2>
+            <div className = {styles.formHeader}>
+                <h2 id="formTitle">{isVerify ? "Verify Your Email" : "Create an Account"}</h2>
             </div>
             <form
-                id="registrationForm"
+                id={styles.registrationForm}
                 aria-labelledby="form-title"
                 aria-describedby="form-description"
-                className={`fade-in ${isVerify ? "verify-email" : "create-account"}`}
+                className={`${styles.fadeIn} ${isVerify ? styles.verifyEmail : styles.createAccount}`}
             >
                 {isVerify ? (
                     <>
@@ -103,13 +104,13 @@ const SignUp = () => {
                             id="verification-code"
                             required={true}
                         />
-                        <button type="submit" onClick={handleVerify}>
+                        <button type="submit" onClick={handleVerify}  className={styles.verifyBtn}>
                             Verify Email
                         </button>
                     </>
                 ) : (
                     <>
-                        <div className="field">
+                        <div className={styles.field}>
                             {/* Username input */}
                             <TextField
                                 label="User Name"
@@ -127,7 +128,7 @@ const SignUp = () => {
                                 onChange={(num) => setAge(num)}
                             />
                         </div>
-                        <span id="ageError" className="error-message">{ageError}</span>
+                        <span id="ageError" className={styles.errorMessage}>{ageError}</span>
 
                         {/* Email input */}
                         <TextField
@@ -137,33 +138,33 @@ const SignUp = () => {
                             required={true}
                             autoComplete="email"
                         />
-                        <span id="emailError" className="error-message"></span>
+                        <span id="emailError" className={styles.errorMessage}></span>
 
                         {/* Password input */}
                         <PasswordField id="password" label="Password" />
-                        <span id="passwordError" className="error-message"></span>
+                        <span id="passwordError" className = {styles.errorMessage}></span>
 
                         {/* Confirm Password input */}
                         <PasswordField id="confirm-password" label="Confirm Password" />
-                        <span id="confirmPasswordError" className="error-message"></span>
+                        <span id="confirmPasswordError" className={styles.errorMessage}></span>
                         <div
                             id="password-requirements"
-                            className="password-requirements"
+                            className={styles.passwordRequirements}
                             aria-live="polite"
                         >
-                            <div className="requirement" data-requirement="length">
+                            <div className={styles.requirement} data-requirement="length">
                                 <span className="requirement-icon">✓</span>
                                 <span>At least 8 characters</span>
                             </div>
-                            <div className="requirement" data-requirement="uppercase">
+                            <div className={styles.requirement} data-requirement="uppercase">
                                 <span className="requirement-icon">✓</span>
                                 <span>One uppercase letter</span>
                             </div>
-                            <div className="requirement" data-requirement="number">
+                            <div className={styles.requirement} data-requirement="number">
                                 <span className="requirement-icon">✓</span>
                                 <span>One number</span>
                             </div>
-                            <div className="requirement" data-requirement="special">
+                            <div className={styles.requirement} data-requirement="special">
                                 <span className="requirement-icon">✓</span>
                                 <span>One special character</span>
                             </div>
@@ -172,13 +173,14 @@ const SignUp = () => {
                             Sign Up
                         </button>
 
-                        <div className="optional">
+                        <div className={styles.optional}>
                             <p>Already have an account?</p>
                             <Link to="/login">Log In</Link>
                         </div>
                     </>
                 )}
             </form>
+        </div>
         </div>
 
     )

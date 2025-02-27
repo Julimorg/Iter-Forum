@@ -1,80 +1,69 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
 
-body {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 .resetBtn{
     margin-top: 10px;
 }
 .error {
     border: 1px solid red;
 }
-
-.error-message {
+.field {
+    display: flex;
+    margin-top: 1rem;
+}
+.errorMessage {
     color: red;
     font-size: 12px;
 }
 
+.containerBodySignUp {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.verifyBtn{
+    margin-top: 5rem;
+}
 .container {
-    background: white;
-    padding: 2rem;
-    border-radius: 1rem;
-    box-shadow: 0 20px 25px 20px  rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    
-    width: 100%;
-    max-width: 500px;
-    min-width: 480px;
-    margin: 0 auto; 
-
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px 20px  rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 500px;
+    min-width: 480px;
+    margin: 0 auto; 
 }
-.password-field{
-    margin-bottom: 25px;
-}
+
 #registrationForm{
     width: 100%;
     height: 18rem;
-    display: grid;
     align-content: space-between;
     transition: height 0.3s ease-in-out;
 }
-#registrationForm.login {
-    height: 18rem;
-  }
-  
-  #registrationForm.send-email {
-    height: 12rem;
-  }
-  
-  #registrationForm.reset-password {
-    height: 25rem;
-  }
-  .fade-in {
+#registrationForm.createAccount {
+    height: 36rem; 
+}
+
+#registrationForm.verifyEmail {
+    height: 15rem; 
+}
+.fadeIn {
     animation: fadeIn 0.3s ease-in-out;
-  }
-  
-  @keyframes fadeIn {
+    position: relative !important;
+
+}
+@keyframes fadeIn {
     from {
-      opacity: 0;
-      transform: translateY(-50px);
+        opacity: 0;
     }
     to {
-      opacity: 1;
-      transform: translateY(0);
+        opacity: 1;
     }
-  }
-  
+}
   .forgot-password-btn {
     background: none;
     border: none;
@@ -87,7 +76,7 @@ body {
   .forgot-password-btn:hover {
     color: #5b21b6;
   }
-.progress-bar {
+.progressBar {
     width: 100%;
     height: 4px;
     background: #e5e7eb;
@@ -103,7 +92,7 @@ body {
     transition: width 0.3s ease;
 }
 
-/* High contrast focus indicator for accessibility */
+
 .password-toggle {
     position: absolute;
     right: 1rem;
@@ -120,7 +109,7 @@ body {
     border-radius: 4px;
 }
 
-.password-requirements {
+.passwordRequirements {
     margin-top: 0.75rem;
     padding: 1rem;
     background: #f9fafb;
@@ -152,21 +141,21 @@ button[type="submit"]:focus-visible {
     outline: 3px solid #c7c6c9;
     outline-offset: 2px;
 }
+
 .sign-up p {
     margin-right: 5px;
 }
-.optional, .sign-up{
+.optional{
     padding: 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
-.optional a, .sign-up a, .forgot-password a{
+.optional a{
     text-decoration: none;
     color: #4D9EC8;
 }
 
-/* Micro-interactions */
 .form-group input:focus + label {
     transform: translateY(-2px);
 }
