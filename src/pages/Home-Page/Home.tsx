@@ -2,14 +2,16 @@ import React from 'react';
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import styles from './home.module.css'
+import BlurText from '../../components/BlurText/BlurText';
 
 
 const Home = () => {
     return (
         <>
             <div className={styles.header}>
-                <img src="#" alt="#" className='logo' />
-                <p>Input here!</p>
+                <div className="logoName">
+                    <BlurText text = "Iter-Forum"/>
+                </div>
                 <div className="selectionHeader">
 
                 </div>
