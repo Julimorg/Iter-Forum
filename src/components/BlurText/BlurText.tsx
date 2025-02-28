@@ -7,8 +7,9 @@ interface BlurTextProps {
 const BlurText: React.FC<BlurTextProps> = ({ text }) => {
     return (
         <>
-            <div className={styles.loader}>
-                <span className={styles.loaderText}>{text}</span>
+            <div className={styles.spliTtextContainer}>
+                <span className={`${styles.textPart} ${styles.left}`}>{text}</span>
+                {/* <span className={`${styles.textPart} ${styles.right}`}></span> */}
             </div>
         </>
     )

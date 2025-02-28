@@ -9,6 +9,37 @@
     z-index: 1000;
     height: 4rem;
 }
+.headerContent{
+    width: 100%;
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: flex;
+    line-height: 3.5rem;
+    justify-content: space-between;
+}
+.headerSelectionButton{
+    display: flex;
+    padding-top: 5px;
+    gap: 1rem;
+    right: 0;
+}
+.inputSearch {
+  width: 40rem;
+  border: none;
+  outline: none;
+  border-radius: 15px;
+  padding: 1em;
+  background-color: #ccc;
+  box-shadow: inset 2px 5px 10px rgba(0,0,0,0.3);
+  transition: 300ms ease-in-out;
+}
+
+.inputSearch:focus {
+  background-color: white;
+  transform: scale(1.05);
+  box-shadow: 13px 13px 100px #969696,
+             -13px -13px 100px #ffffff;
+}
 .sidebar {
     position: sticky;
     top: 4rem; 
@@ -60,6 +91,5 @@
     text-align: center;
     padding: 1rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-
     height: 13rem;
 }

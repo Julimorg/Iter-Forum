@@ -65,6 +65,11 @@ npm install @mui/material @mui/styled-engine-sc styled-components
 - FontAwesome
 ```js
 npm i font-awesome
+npm install react-icons 
+```
+- Styled-Components
+```js
+npm i styled-components
 ```
 # Library Used 
 https://docs.google.com/spreadsheets/d/1rnxHeDqpRxoIWLvTzT1x4gP69FN40is0hbAjuaW0bB0/edit?gid=0#gid=0
