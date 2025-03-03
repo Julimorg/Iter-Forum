@@ -40,6 +40,54 @@
   box-shadow: 13px 13px 100px #969696,
              -13px -13px 100px #ffffff;
 }
+.notificationContainer , .userProfileContainer{
+    position: relative;
+}
+.notiModel {
+    position: absolute;
+    top: 4rem;
+    right: -3rem;
+    z-index: 100;
+    width: 20rem;
+    height: 16rem;
+    border-radius: 30px;
+    box-shadow: rgba(0, 0, 0, 0.3) 4px 9px 27px 7px;
+    background-color: #ffffff;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    pointer-events: none; 
+}
+.userModel{
+    position: absolute;
+    top: 4rem;
+    right: 0;
+    z-index: 100;
+    width: 190px;
+    height: 254px;
+    border-radius: 30px;
+    box-shadow: rgba(0, 0, 0, 0.3) 4px 9px 27px 7px;
+    background-color: #ffffff;
+
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    pointer-events: none; 
+}
+
+.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.hide {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+}
+
+/* =============== BODY ================= */
 .sidebar {
     position: sticky;
     top: 4rem; 
@@ -82,6 +130,9 @@
     padding-bottom: 1rem;
     /* background-color: #333; */
 }
+
+
+/* ================= FOOTER ==================== */
 .footer{
     bottom: 0;
     left: 0;
@@ -92,4 +143,32 @@
     padding: 1rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     height: 13rem;
+}
+.cursor{
+    margin-top: 2rem;
+    position: relative;
+    width: 24em;
+    border-right: 2px solid rgba(255,255,255,.75);
+    font-size: 30px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    transform: translateY(-50%);    
+}
+.typewriterAnimation {
+  animation: 
+    typewriter 5s steps(50) 1s 1 normal both, 
+    blinkingCursor 500ms steps(50) infinite normal;
+}
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+@keyframes blinkingCursor{
+  from { border-right-color: rgba(255,255,255,.75); }
+  to { border-right-color: transparent; }
+}
+
+.createdBy {
+    margin-top: 6rem;
 }
