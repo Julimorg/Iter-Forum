@@ -2,8 +2,8 @@ import React from 'react';
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import styles from './signup.module.css'
-import TextField from '../../components/TextField-LoginSignUp/Textfield';
-import PasswordField from '../../components/Password-TextField/PasswordField';
+import TextField from '../../components/TextField_LoginSignUp/Textfield';
+import PasswordField from '../../components/Password_TextField/PasswordField';
 import InputNum from '../../components/TextFieldOnlyNumber/TextField-NumberOnly';
 const SignUp = () => {
     const [isVerify, setIsVerify] = useState(false);
