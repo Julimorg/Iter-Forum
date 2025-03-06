@@ -53,11 +53,11 @@ const Header = () => {
         const handleClickOutside = (event: MouseEvent) => {
             if (notiRef.current && !notiRef.current.contains(event.target as Node)) {
                 setIsNotiOpen(false);
-                console.log(notiRef.current)
+                // console.log(notiRef.current)
             }
             if (userRef.current && !userRef.current.contains(event.target as Node)) {
                 setIstUserModelOpen(false);
-                console.log(userRef.current)
+                // console.log(userRef.current)
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
@@ -83,7 +83,7 @@ const Header = () => {
                 <div className="headerSelectionButton">
                     {/* Create Post Button */}
                     <div className="createPostBtn">
-                        <ButtonIconLeft Icon={FaPlus} size={20} color="#333"/>
+                        <ButtonIconLeft Icon={FaPlus} size={20} color="#333" title={<Link to = "create-post">Create Post</Link>}/>
                     </div>
                     {/* Icon Button */}
                     <div className="notificationContainer" ref={notiRef}>

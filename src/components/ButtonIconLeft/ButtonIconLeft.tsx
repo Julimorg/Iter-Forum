@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import styled from "styled-components";
 
@@ -6,6 +6,7 @@ interface ButtonIconLeftProps {
   Icon: React.ElementType;
   size?: number;
   color?: string;
+  title: string | ReactNode;
   onclick?: () => void;
 }
 
@@ -13,6 +14,7 @@ const ButtonIconLeft: React.FC<ButtonIconLeftProps> = ({
   Icon,
   size = 24,
   color = "#ffffff",
+  title,
   onclick,
 }) => {
   return (
@@ -20,7 +22,7 @@ const ButtonIconLeft: React.FC<ButtonIconLeftProps> = ({
       <div className='buttonIconRight'>
         <button className="btn" onClick={onclick}>
           <IconStyled as={Icon} size={size} color={color} />
-          <p><Link to = "create-post">Create Post</Link></p>
+          <p> {typeof title === "string" ? <span>{title}</span> : title}</p>
         </button>
       </div>
     </StyleWrapper>
@@ -32,12 +34,12 @@ export default ButtonIconLeft
 
 const StyleWrapper = styled.div`
   .btn{
+  border: 2px solid #f0f0f0;
+  // border: none;
   background-color: #fff;
-  border: none;
-  width: 6.8rem;
+  width: 7.8rem;
   height: 3rem;
-  border-radius: 13%;
-  box-shadow: 0 0px 3px gray;
+  border-radius: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -46,7 +48,6 @@ const StyleWrapper = styled.div`
   padding: 0;
   overflow: hidden;
 }
-
 p{
   font-size: 15px;
   font-weight: 500;
@@ -55,12 +56,10 @@ p a{
   color: #333;
   text-decoration: none;
 }
-   &:hover {
-    background-color: #f0f0f0;
+&:hover {
+   border-radius: 1rem;
   }
-
-  &:active {
-    box-shadow: 0 0 2px darkslategray;
+&:active {
     transform: translateY(2px);
   }
 `

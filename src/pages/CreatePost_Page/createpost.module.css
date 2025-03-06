@@ -1,0 +1,135 @@
+.createPost{
+    margin: 1rem;
+    height: 50rem;
+    width: 80rem;
+}
+.createPost h1{
+    padding: 1rem 0 1rem 0;
+}
+.createPostBody{
+    display: flex;
+    gap: 5rem;
+}
+.postViewData{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.createPostMainFunction{ 
+    height: 46rem;
+    /* border: 1px solid #333; */
+    width: 44rem;
+}
+.addMedia, .addTag{
+    height: 8rem;
+    /* border: 1px solid #333; */
+    width: 44rem;
+    display: flex
+;
+}
+.mediaContainer{
+    margin-left: 1rem;
+    margin-right: 1rem;
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto; 
+    white-space: nowrap;
+    max-width: 100%;
+    border: 0.5px solid #ccc;
+    padding: 10px;
+}
+.mediaImage {
+    width: 100px; 
+    height: 100px;
+    object-fit: cover;
+    border-radius: 5px;
+  }
+  
+  
+.addTitleField {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 1em 0 1em 0;
+    max-width: 190px;
+    position: relative;
+  }
+  
+.addTitleField input {
+    font-size: 100%;
+    padding: 0.8em;
+    outline: none;
+    border: 2px solid rgb(200, 200, 200);
+    background-color: transparent;
+    border-radius: 20px;
+    width: 44rem;
+  }
+.addDescription textarea{
+    font-size: 100%;
+    padding: 0.8em;
+    outline: none;
+    border: 2px solid rgb(200, 200, 200);
+    background-color: transparent;
+    border-radius: 20px;
+    width: 44rem;
+    height: 10rem;
+}
+  
+.addTitleField, .addDescription, .addMedia, .addTag p {
+    font-size: 20px;
+    left: 0;
+    padding: 0.8rem 0 0.8rem 0;
+    color: rgb(100, 100, 100);
+}
+  
+.addTitleField :is(input:focus, input:valid)~label {
+    transform: translateY(-50%) scale(.9);
+    margin: 0em;
+    margin-left: 1.3em;
+    padding: 0.4em;
+    background-color: #fff;
+  }
+  
+.addTitleField :is(input:focus, input:valid) {
+    border-color: rgb(150, 150, 200);
+}
+.cardData {
+    /* --bg: #e8e8e8;
+    --contrast: #e2e0e0;
+    --grey: #93a1a1; */
+    position: relative;
+    padding: 9px;
+    background-color: var(--bg);
+    border-radius: 35px;
+    height: 40rem;
+    width: 30rem;
+
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px,
+                rgba(0, 0, 0, 0.3) 0px 30px 60px -30px,
+                rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;
+  }
+  
+.cardDataOverlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-conic-gradient(var(--bg) 0.0000001%, var(--grey) 0.000104%) 60% 60%/600% 600%;
+    filter: opacity(10%) contrast(105%);
+  }
+  
+.cardDataInner {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    width: 190px;
+    height: 254px;
+    background-color: var(--contrast);
+    border-radius: 30px;
+    /* Content style */
+    font-size: 30px;
+    font-weight: 900;
+    color: #c7c4c4;
+    text-align: center;
+    font-family: monospace;
+  }

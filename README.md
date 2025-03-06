@@ -71,5 +71,9 @@ npm install react-icons
 ```js
 npm i styled-components
 ```
+- React-Quill ( Rich text editor)
+```js
+npm install react-quill
+```
 # Library Used 
 https://docs.google.com/spreadsheets/d/1rnxHeDqpRxoIWLvTzT1x4gP69FN40is0hbAjuaW0bB0/edit?gid=0#gid=0

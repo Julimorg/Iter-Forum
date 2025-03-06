@@ -17,6 +17,7 @@
     "@mui/material": "^6.4.5",
     "@mui/styled-engine-sc": "^6.4.3",
     "boostrap": "^2.0.0",
+    "draft-js": "^0.11.7",
     "font-awesome": "^4.7.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
