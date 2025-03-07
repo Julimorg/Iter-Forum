@@ -3,7 +3,10 @@ import ButtonIconLeft from "../../components/ButtonIconLeft/ButtonIconLeft";
 import styles from "./createpost.module.css";
 import { useState } from "react";
 import ButtonTextComponent from "../../components/ButtonTextOnly/ButtonText";
-
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import { Navigation, Pagination } from 'swiper/modules';
 
 const CreatePost = () => {
     const DESCRIP_MAX_LENGTH = 500;
@@ -31,11 +34,10 @@ const CreatePost = () => {
     const handleAddTag = () => {
         if (textTag.trim() !== "") {
             setTags([...tags, textTag.trim()]);
-            setTextTag(""); 
-        }else{
+            setTextTag("");
+        } else {
             alert("Tag cannot be empty!");
         }
-        console.log(tags);
     };
 
     const handleRemoveTag = (index: number) => {
@@ -56,7 +58,6 @@ const CreatePost = () => {
     const openFilePicker = () => {
         document.getElementById("fileInput")?.click();
     };
-    // Xử lý gửi form
     const handleSubmit = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
         if (!title.trim()) {
@@ -110,7 +111,8 @@ const CreatePost = () => {
                                         (
                                             images.map((image, index) => (
                                                 <img key={index} src={image} alt={`uploaded ${index}`} />
-                                                //    Chỗ này dùng để xóa image nhưng để tính sau                                         <div key={index} className={styles.imageWrapper}>
+                                                //    Chỗ này dùng để xóa image nhưng để tính sau                                       
+                                                //   <div key={index} className={styles.imageWrapper}>
                                                 //     <img src={image} alt={`uploaded ${index}`} />
                                                 //     <button onClick={() => removeImage(index)}>X</button>
                                                 // </div>
@@ -153,22 +155,22 @@ const CreatePost = () => {
                                         onclick={handleAddTag}
                                     />
                                 </div>
-                                <div className={styles.addTagContent}>
-                                    {tags.length > 0 && (
-                                        <div className={styles.addTagContent}>
-                                        <div className={styles.tagAdded}>
-                                            {tags.map((tag, index) => (
-                                                <div key={index} className={styles.tagAdded}>
-                                                    <button onClick={() => handleRemoveTag(index)} className={styles.removeTag}>
-                                                        <FaTimes size={14} />
-                                                    </button>
-                                                    <p>{tag}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        </div>
+                                {/* <div className={styles.addTagContent}> */}
+                                {tags.length > 0 && (
+                                    <div className={styles.addTagContent}>
+                                        {/* <div className={styles.tagAdded}> */}
+                                        {tags.map((tag, index) => (
+                                            <div key={index} className={styles.tagAdded}>
+                                                <button onClick={() => handleRemoveTag(index)} className={styles.removeTag}>
+                                                    <FaTimes size={14} />
+                                                </button>
+                                                <p>/{tag}</p>
+                                            </div>
+                                        ))}
+                                        {/* </div> */}
+                                    </div>
                                 )}
-                                </div>
+                                {/* </div> */}
                             </div>
                             {/* Policiy*/}
                             <div className={styles.policyTerm}>
@@ -195,9 +197,74 @@ const CreatePost = () => {
                         {/* Display Data from Create Post in Card */}
                         <div className={styles.postViewData}>
                             <div className={styles.cardData}>
-                                <p>Your Post View </p>
-                                <div className="cardOverlay"></div>
-                                <div className="cardInner">YOUR<br />CONTENT<br />HERE</div>
+                                <div className={styles.cardOverlay}>
+                                    <p>Your Post View Here!</p>
+                                </div>
+                                <span />
+                                <div className={styles.cardDataInner}>
+                                    {
+                                        title.length > 0 ? (
+                                            <h2>{title}</h2>
+                                        ) : (
+                                            <h2>Your Title Here!</h2>
+                                        )
+                                    }
+                                     {/* {tags.map((tag, index) => (
+                                            <div key={index} className={styles.tagAdded}>
+                                                <button onClick={() => handleRemoveTag(index)} className={styles.removeTag}>
+                                                    <FaTimes size={14} />
+                                                </button>
+                                                <p>{tag}</p>
+                                            </div>
+                                        ))} */}
+                                    <div className={styles.displayTag}>
+                                        Your Tags:
+                                        <div className={styles.displayTagContainer}>
+                                        {tags.map((tag, index) => (
+                                            <div key={index} className={styles.displayTagAdded}>
+                                                 <h5> /{tag} </h5>
+                                            </div>
+                                           
+                                        ))}
+                                    </div>
+                                    </div>
+                                    {
+                                        textDescripLimit.length > 0 ? (
+                                            <p> {textDescripLimit.length < 300
+                                                ? textDescripLimit
+                                                : `${textDescripLimit.slice(0, 300)}... view more`}</p>
+                                        ) : (
+                                            <p>Your Description Here!</p>
+                                        )
+                                    }
+                                    <div className={styles.imgDisplay}>
+                                        {images.length === 1 ? (
+                                            <img src={images[0]} alt="uploaded image" />
+                                        ) : (
+                                            <Swiper
+                                            modules={[Navigation, Pagination]}
+                                            spaceBetween={10}
+                                            slidesPerView={1}
+                                            navigation = {true}
+                                            pagination={{ clickable: true }}
+                                            className={styles.swiper}
+                                        >
+                                            {images.map((img, index) => (
+                                                <SwiperSlide key={index} className={styles.swiperSlide}>
+                                                    <img src={img} alt={`uploaded image ${index}`} />
+                                                </SwiperSlide>
+                                            ))}
+                                        </Swiper>
+                                        )
+                                    }
+                                    </div>
+                                   
+                                    {/* <div className={styles.tags}>
+                                        {tags.map((tag, index) => (
+                                            <span key={index}>{tag} </span>
+                                        ))}
+                                    </div> */}
+                                </div>
                             </div>
                         </div>
                     </div>
