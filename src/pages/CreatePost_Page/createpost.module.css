@@ -1,3 +1,5 @@
+
+/** Create Post Module */
 .createPost{
     margin: 1rem;
     height: 50rem;
@@ -20,32 +22,7 @@
     /* border: 1px solid #333; */
     width: 44rem;
 }
-.addMedia, .addTag{
-    height: 8rem;
-    /* border: 1px solid #333; */
-    width: 44rem;
-    display: flex
-;
-}
-.mediaContainer{
-    margin-left: 1rem;
-    margin-right: 1rem;
-    display: flex;
-    gap: 1rem;
-    overflow-x: auto; 
-    white-space: nowrap;
-    max-width: 100%;
-    border: 0.5px solid #ccc;
-    padding: 10px;
-}
-.mediaImage {
-    width: 100px; 
-    height: 100px;
-    object-fit: cover;
-    border-radius: 5px;
-  }
-  
-  
+/** Create Title Module */
 .addTitleField {
     font-family: 'Segoe UI', sans-serif;
     margin: 1em 0 1em 0;
@@ -61,7 +38,8 @@
     background-color: transparent;
     border-radius: 20px;
     width: 44rem;
-  }
+}
+/** Create Description Module  */
 .addDescription textarea{
     font-size: 100%;
     padding: 0.8em;
@@ -73,7 +51,74 @@
     height: 10rem;
 }
   
-.addTitleField, .addDescription, .addMedia, .addTag p {
+/** Create Media Module */
+.mediaContainer{
+    margin-left: 1rem;
+    margin-right: 1rem;
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto; 
+    white-space: nowrap;
+    max-width: 100%;
+    border: 0.5px solid #ccc;
+    padding: 10px;
+}
+.mediaContainerHide{
+    display: none;
+}
+.mediaImage {
+    width: 100px; 
+    height: 100px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+/** Create Tag Module  */
+.addTagContent {
+    display: flex;
+    gap: 2rem ;
+    max-width: 300px; 
+    overflow-x: auto; 
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    white-space: nowrap; 
+}
+.tagAdded {
+    display: flex;
+    align-items: center;
+    background: #e0f7fa;
+    padding: 5px 10px;
+    border-radius: 15px;
+    gap: 5px;
+}
+.tagAddedHide{
+    display: none;
+}
+
+.removeTag {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: red;
+}
+.addTagContainer input {
+    font-size: 100%;
+    padding: 0.8em;
+    outline: none;
+    border: 2px solid rgb(200, 200, 200);
+    background-color: transparent;
+    border-radius: 20px;
+    width: 8rem;
+    height: 4em;
+}
+.addMedia, .addTagContainer{
+    height: 8rem;
+    /* border: 1px solid #333; */
+    width: 44rem;
+    gap: 1rem;
+    display: flex;
+}
+.addTitleField, .addDescription, .addMedia , .addTagContainer p {
     font-size: 20px;
     left: 0;
     padding: 0.8rem 0 0.8rem 0;
@@ -91,6 +136,18 @@
 .addTitleField :is(input:focus, input:valid) {
     border-color: rgb(150, 150, 200);
 }
+.policyTerm{
+    display: flex;
+    gap: 1rem
+}
+.requestCreatePost{
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+/** Card Display Data module */
 .cardData {
     /* --bg: #e8e8e8;
     --contrast: #e2e0e0;
