@@ -3,13 +3,13 @@ import styled from "styled-components";
 interface ButtonTextProps {
     $color?: string;
     $fontSize?: string;
-    $height?: number;
-    $width?: number;
+    $height?: number | string;
+    $width?: number | string;
     $backgroundColor?: string;
     $hoverColor?: string;
     $hoverFontSize?: string;
-    $hoverHeight?: number;
-    $hoverWidth?: number;
+    $hoverHeight?: number | string;
+    $hoverWidth?: number | string;
     $hoverBackgroundColor?: string;
     title: string | React.ReactNode;
     onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;

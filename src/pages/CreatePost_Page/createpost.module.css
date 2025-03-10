@@ -10,7 +10,7 @@
 }
 .createPostBody{
     display: flex;
-    gap: 10rem;
+    gap: 5rem;
 }
 .postViewData{
     display: flex;

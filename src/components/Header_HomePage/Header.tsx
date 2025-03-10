@@ -44,7 +44,6 @@ const fakeAvatar: string = "https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e
 const Header = () => {
     const [isNotiModelOpen, setIsNotiOpen] = useState(false);
     const [isUserModel, setIstUserModelOpen] = useState(false);
-
     const notiRef = useRef<HTMLDivElement>(null);
     const userRef = useRef<HTMLDivElement>(null);
 
