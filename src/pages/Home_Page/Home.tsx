@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, Outlet } from 'react-router-dom';
 import styles from './home.module.css';
 import Header from '../../components/Header_HomePage/Header';
-import Footer from '../../components/Footer_HomePage/Footer';
+// import Footer from '../../components/Footer_HomePage/Footer';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import Post_Card from '../../components/Post_Card/postcard';
 import RecentPost from '../../components/Recent_Post_Card/recent_post_card';

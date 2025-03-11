@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+// import React, { useEffect } from "react";
+import { Routes, Route,} from "react-router-dom";
 import Welcome from "../pages/Welcome_Page/Welcome";
 import Login from "../pages/Login_Page/Login";
 import SignUp from "../pages/SignUp_Page/SignUp";
@@ -11,14 +11,6 @@ import Popular from "../pages/Popular/Popular"; // Create this page
 import Explore from "../pages/Explore/Explore"; // Create this page
 
 function App() {
-  const location = useLocation();
-
-  useEffect(() => {
-    console.log("Triggered scroll to top");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [location.pathname]);
-  
-
   return (
     <div>
       <Routes>

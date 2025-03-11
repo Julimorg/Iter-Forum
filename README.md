@@ -77,3 +77,11 @@ npm install react-quill
 ```
 # Library Used 
 https://docs.google.com/spreadsheets/d/1rnxHeDqpRxoIWLvTzT1x4gP69FN40is0hbAjuaW0bB0/edit?gid=0#gid=0
+
+# API Documentations
+https://docs.google.com/document/d/1hIGZgL8ud8hDSC00pZqT5zkhUP9D2dSzK0Q6ejeN4lo/edit?tab=t.0
+https://docs.google.com/spreadsheets/d/1UOjSial58mQEcCUgzPTpOiOrMUoFYCV4-sP69BjWpTM/edit?gid=0#gid=0
+https://docs.google.com/document/d/1MviKbWSPneuW-D7vGgan5lqtSiUrMDXgf6Q-G4CPaDg/edit?tab=t.0
+
+# Figma Layout of our Website
+https://www.figma.com/design/JjojkUhaEudClRawLs94oS/Education?node-id=0-1&p=f&t=jidVGTFoMmyy0BBR-0
