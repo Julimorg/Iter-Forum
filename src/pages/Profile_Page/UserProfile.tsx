@@ -42,7 +42,7 @@ const UserProfile = () => {
             return;
         }
 
-        setError(""); // Xóa lỗi nếu hợp lệ
+        setError("");
         alert("Thông tin hợp lệ!");
     };
 
@@ -79,126 +79,146 @@ const UserProfile = () => {
         // if (!isOpen) return null;
         return (
             <>
+                {/* <div className={isOpen ? `${styles.editModel} ${styles.show}` : `${styles.editModel} ${styles.hide}`}> */}
                 <div className={isOpen ? `${styles.editModel} ${styles.show}` : `${styles.editModel} ${styles.hide}`}>
-                    <div className="userEditForm">
-                        <div className={styles.editFormHeader}>
-                            <h2>Edit Profile</h2>
-                            <IconButton
-                                Icon={FaXmark}
-                                size={20}
-                                color="#333"
-                                onClick={
-                                    () => setProfileEditModel(false)
-                                } />
-                        </div>
-                        <div className={styles.editFormBody}>
-                            {/* Edit Text */}
-                            <div className={styles.fillTextForm}>
-                                {/* User Name */}
-                                <div className={styles.editUserName}>
-                                    <p>Your Name</p>
-                                    <input
-                                        ref={userNameRef}
-                                        className={styles.userNameInput}
-                                        type="text"
-                                        placeholder="Your user name..."
-                                    />
-                                </div>
-
-                                {/* User Email */}
-                                <div className={styles.editUserEmail}>
-                                    <p>Your Email</p>
-                                    <input
-                                        ref={userEmailRef}
-                                        className={styles.userEmailInput}
-                                        type="email"
-                                        placeholder="Your email..."
-                                    />
-                                </div>
-
-                                {/* User Phone */}
-                                <div className={styles.editUserPhone}>
-                                    <p>Your Phone Number</p>
-                                    <input
-                                        ref={userPhoneRef}
-                                        className={styles.userPhoneInput}
-                                        type="text"
-                                        placeholder="Your phone number..."
-                                    />
-                                </div>
-
-                                {/* User Age */}
-                                <div className={styles.editUserAge}>
-                                    <p>Your Age</p>
-                                    <input
-                                        ref={userAgeRef}
-                                        className={styles.userAgeInput}
-                                        type="number"
-                                        placeholder="Your Age..."
-                                    />
-                                </div>
-
-                                {/* Hiển thị lỗi nếu có */}
-                                {error &&
-                                    <p className={styles.errorText}>
-                                        Alert: <br />
-                                        - All fields must not be empty <br />
-                                        - User name limit 20 chars <br />
-                                        - Email validation <br />
-                                        - Age limit from 13 to 100 <br />
-                                    </p>
+                    <div className={styles.editFormHeader}>
+                        <h2>Edit Profile</h2>
+                        <IconButton
+                            Icon={FaXmark}
+                            size={20}
+                            color="#333"
+                            onClick={
+                                () => setProfileEditModel(false)
+                            } />
+                    </div>
+                    <div className={styles.editFormBody}>
+                        {/* Edit Text */}
+                        <div className={styles.fillTextForm}>
+                            {/* User Name */}
+                            <div className={styles.editUserName}>
+                                {error ?
+                                    (
+                                        <p className={styles.errorText}>
+                                            User name limit 20 chars or  empty
+                                        </p>
+                                    ) : (
+                                        <p>Your User Name</p>
+                                    )
                                 }
+                                <input
+                                    ref={userNameRef}
+                                    className={styles.userNameInput}
+                                    type="text"
+                                    placeholder="Your user name..."
+                                />
                             </div>
-                            {/* Edit Img Avatar */}
-                            <div className={styles.editAvartar}>
-                                <div className={styles.userEditAvatar}>
-                                    <div className={styles.userImageInput}>
-                                        <img src={selectedImage || fakeAvatar} alt="Avatar" />
-                                    </div>
 
+                            {/* User Email */}
+                            <div className={styles.editUserEmail}>
+                                {error ?
+                                    (
+                                        <p className={styles.errorText}>
+                                            Email is unvalid or empty
+                                        </p>
+                                    ) : (
+                                        <p>Your User Name</p>
+                                    )
+                                }
+                                <input
+                                    ref={userEmailRef}
+                                    className={styles.userEmailInput}
+                                    type="email"
+                                    placeholder="Your email..."
+                                />
+                            </div>
+
+                            {/* User Phone */}
+                            <div className={styles.editUserPhone}>
+                                {error ?
+                                    (
+                                        <p className={styles.errorText}>
+                                            Phone is unvalid or empty
+                                        </p>
+                                    ) : (
+                                        <p>Your User Name</p>
+                                    )
+                                }
+                                <input
+                                    ref={userPhoneRef}
+                                    className={styles.userPhoneInput}
+                                    type="text"
+                                    placeholder="Your phone number..."
+                                />
+                            </div>
+                            {/* User Age */}
+                            <div className={styles.editUserAge}>
+                                {error ?
+                                    (
+                                        <p className={styles.errorText}>
+                                            Age limit from 13 to 100 or empty
+                                        </p>
+                                    ) : (
+                                        <p>Your User Name</p>
+                                    )
+                                }
+                                <input
+                                    ref={userAgeRef}
+                                    className={styles.userAgeInput}
+                                    type="number"
+                                    placeholder="Your Age..."
+                                />
+                            </div>
+                        </div>
+                        {/* Edit Img Avatar */}
+                        <div className={styles.editAvartar}>
+                            <div className={styles.userEditAvatar}>
+                                <div className={styles.userImageInput}>
+                                    <img src={selectedImage || fakeAvatar} alt="Avatar" />
                                 </div>
-                                <div className={styles.inputImgAvatarBtn}>
-                                    {/* Input File Hidden */}
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        style={{ display: "none" }}
-                                        id="avatarUpload"
-                                        onChange={handleImageChange}
-                                    />
+
+                            </div>
+                            <div className={styles.inputImgAvatarBtn}>
+                                {/* Input File Hidden */}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    style={{ display: "none" }}
+                                    id="avatarUpload"
+                                    onChange={handleImageChange}
+                                />
+                                <ButtonTextComponent
+                                    $backgroundColor="rgb(200, 200, 200)"
+                                    $hoverBackgroundColor="C5F6FF"
+                                    $hoverColor="#333"
+                                    title="Input image"
+                                    onClick={eventClickOpenFile}
+                                />
+                                {selectedImage && (
                                     <ButtonTextComponent
                                         $backgroundColor="rgb(200, 200, 200)"
                                         $hoverBackgroundColor="C5F6FF"
                                         $hoverColor="#333"
-                                        title="Input image"
-                                        onClick={eventClickOpenFile}
+                                        title="Remove image"
+                                        onClick={handleRemoveImage}
                                     />
-                                    {selectedImage && (
-                                        <ButtonTextComponent
-                                            $backgroundColor="rgb(200, 200, 200)"
-                                            $hoverBackgroundColor="C5F6FF"
-                                            $hoverColor="#333"
-                                            title="Remove image"
-                                            onClick={handleRemoveImage}
-                                        />
-                                    )}
-                                </div>
+                                )}
                             </div>
-
                         </div>
-                        <div className={styles.confirmBtn}>
-                            <ButtonTextComponent
-                                $backgroundColor="rgb(200, 200, 200)"
-                                $hoverBackgroundColor="C5F6FF"
-                                $hoverColor="#333"
-                                title="Confirm new information"
-                                $width="15em"
-                                onClick={handleSubmit}
-                            />
 
-                        </div>
+                    </div>
+                    <div className={styles.confirmBtn}>
+                        <ButtonTextComponent
+                            $backgroundColor="rgb(200, 200, 200)"
+                            $hoverBackgroundColor="C5F6FF"
+                            $hoverColor="#333"
+                            title="Confirm new information"
+                            $width="15em"
+                            onClick={handleSubmit}
+                        />
+
                     </div>
                 </div>
+                {/* </div > */}
             </>
         )
     }

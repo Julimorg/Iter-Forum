@@ -74,7 +74,7 @@
     transform: translate(-50%, -50%);
     z-index: 100;
     width: 40rem;
-    height: 45rem;
+    height: 80%;
     border-radius: 30px;
     background-color: #fff;
     opacity: 0;
@@ -110,19 +110,22 @@
     border-bottom: 1px solid rgb(200, 200, 200);
 }
 .editFormBody{
+     /* border: 1px solid #333; */
     margin-top: 10px;
     display: flex;
     width: 100%;
-    /* border: 1px solid #333; */
     height: 33rem;
+    height: 55vh;
 }
 .fillTextForm{
     border-right: 1px solid rgb(200, 200, 200);
     width: 50%;
+    max-height: 50vh;
 }
 .editAvartar{
     /* border: 1px solid; */
     width: 50%;
+    max-height: 50vh;
 }
 .userImageInput{
     background-color: #fff;
@@ -163,7 +166,7 @@
     justify-content: center;
 }
 .errorText{
-    margin-left: 10px;
+    /* margin-left: 10px; */
     color: red;
 }
 :is(.editUserName, 

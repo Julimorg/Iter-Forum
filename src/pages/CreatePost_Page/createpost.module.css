@@ -10,7 +10,7 @@
 }
 .createPostBody{
     display: flex;
-    gap: 5rem;
+    gap: 2rem;
 }
 .postViewData{
     display: flex;
@@ -191,7 +191,7 @@
     gap: 1rem;
     margin-top: 2rem;
 }
-/** Card Display Data module */
+/** ====================== Card Display Data module ===================== */
 .cardData {
     /* --bg: #e8e8e8;
     --contrast: #e2e0e0;
@@ -201,8 +201,7 @@
     background-color: var(--bg);
     border-radius: 35px;
     height: 46rem;
-    width: 35rem;
-
+    width: 32rem;
     box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px,
                 rgba(0, 0, 0, 0.3) 0px 30px 60px -30px,
                 rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;
@@ -230,7 +229,7 @@
 }
 .cardData span{
     display: block;
-    width: 33.5rem;
+    width: 30.5rem;
     height: 1px;
     background-color: #c7c4c4;
 }
@@ -239,7 +238,7 @@
     font-weight: 700;
     font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin-top: 2rem;
-    margin-left: 2rem;
+    margin-left: 1rem;
 }
 .cardDataInner p {
     height: 10rem;
@@ -249,14 +248,14 @@
     /* font-weight: 700; */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin-top: 0.5rem;
-    margin-left: 2rem;
+    margin-left: 1rem;
     white-space: normal;
     word-wrap: break-word;
     overflow-wrap: break-word;
 }
 .displayTag{
     gap: 1rem;
-    margin: 1.5rem 0 1rem 2rem;
+    margin: 1.5rem 0 1rem 1rem;
     height: 4rem;
     align-items: center;
     /* border: 1px solid #333; */
@@ -340,7 +339,6 @@
 }
 .swiperSlide img {
     /* overflow: hidden; */
-
     width: 100%;
     max-height: 16rem;
     object-fit: cover;

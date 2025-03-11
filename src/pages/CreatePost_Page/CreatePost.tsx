@@ -269,7 +269,6 @@ const CreatePost = () => {
                         </div>
                     </div>
                 </div>
-
                 <div className="postViewBanner">
 
                 </div>
