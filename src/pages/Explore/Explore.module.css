@@ -1,0 +1,82 @@
+/* Container Styles */
+.popular-container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+/* Title at the Top */
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Section Wrapping Each Tag Group */
+.section-tags {
+  margin-bottom: 40px;
+}
+
+/* Heading for Each Section */
+.section-tags h2 {
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+  color: #444;
+}
+
+/* Tag Row Styles */
+.tags {
+  display: flex; /* Căn các phần tử trên cùng một hàng */
+  align-items: center; /* Căn giữa theo trục dọc */
+  justify-content: flex-start; /* Canh trái cho các tag và nút */
+  flex-wrap: nowrap; /* Ngăn không cho phần tử xuống dòng */
+  gap: 10px; /* Khoảng cách giữa các thẻ */
+  overflow-x: auto; /* Thêm cuộn ngang nếu thẻ vượt quá chiều rộng */
+  padding-bottom: 8px;
+}
+
+.tags::-webkit-scrollbar {
+  height: 8px; /* Chiều cao của thanh cuộn */
+}
+
+.tags::-webkit-scrollbar-thumb {
+  background-color: #ccc; /* Màu của thanh cuộn */
+  border-radius: 4px; /* Bo tròn thanh cuộn */
+}
+
+.tags::-webkit-scrollbar-track {
+  background-color: #f0f0f0; /* Màu nền của thanh cuộn */
+}
+
+
+
+/* Individual Tag Styles */
+.post-tag {
+  background-color: #eee; /* Light background for tags */
+  border: 1px solid #ccc; /* Subtle border around each tag */
+  border-radius: 8px; /* Rounded corners for tags */
+  padding: 5px 10px; /* Internal padding for tags */
+  font-size: 0.8rem;
+  color: #555; /* Muted text color */
+  white-space: nowrap; /* Prevent text from breaking to the next line */
+  text-align: center; /* Center text inside the tag */
+  flex-shrink: 0; /* Prevent shrinking when the container is limited */
+}
+
+/* Button for "See More Tags" */
+
+
+.see-more {
+  background: none; /* Loại bỏ màu nền */
+  color: #007bff; /* Văn bản màu xanh dương */
+  border: none; /* Loại bỏ viền nút */
+  padding: 0; /* Loại bỏ khoảng cách thừa */
+  font-size: 0.8rem; /* Kích thước phù hợp với thẻ tag */
+  text-decoration: underline; /* Gạch chân văn bản */
+  cursor: pointer; /* Biểu tượng con trỏ để chỉ ra tính tương tác */
+  flex-shrink: 0; /* Ngăn bị co lại khi không gian hẹp */
+}
+
+.see-more:hover {
+  background-color: #f0f0f0; /* Nền xám nhạt khi hover */
+}

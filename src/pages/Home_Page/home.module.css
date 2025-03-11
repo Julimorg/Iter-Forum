@@ -34,6 +34,7 @@
 }
 .mainContent {
     display: flex;
+    margin-left: 100px;
     width: 90rem;
     gap: 10rem;
 }
@@ -41,8 +42,9 @@
     flex: 1;
     max-width: 800px; 
     min-height: 100rem; 
-    background-color: #333;
+    /* background-color: #333; */
     padding: 20px;
+    overflow: hidden;
 }
 .homeBody {
     display: flex;
@@ -68,3 +70,53 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     height: 13rem;
 }
+
+
+.homeBody {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 4rem;
+  max-width: 100%;
+  padding-bottom: 1rem;
+  height: calc(100vh - 4rem); /* Đặt chiều cao toàn màn hình trừ chiều cao header */
+  overflow-y: auto; /* Thêm thanh cuộn dọc ngoài cùng */
+}
+
+  
+  .recentPostHeader {
+    display: flex;
+    justify-content: space-between; /* Title on the left, button on the right */
+    align-items: center; /* Center vertically */
+    margin-bottom: 16px; /* Space between header and content */
+  }
+  
+  .recentPostHeader h2 {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+  }
+  
+  .clearButton {
+    background-color: none;
+    color: rgb(5, 108, 177);
+    text-decoration: underline;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .clearButton:hover {
+    background-color: #a09e9e70; /* Change color on hover */
+  }
+  
+  .recentPostContent {
+    display: flex;
+    flex-direction: column;
+    gap: 16px; /* Space between recent posts */
+  }
+  
