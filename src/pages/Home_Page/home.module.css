@@ -1,122 +1,127 @@
 .header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background: #fff;
-    border-bottom: 2px solid #F2F2F2;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    z-index: 1000;
-    height: 4rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border-bottom: 2px solid #F2F2F2;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 1000;
+  height: 4rem;
 }
 
-/* =============== BODY ================= */
-.sidebar {
-    position: sticky;
-    top: 4rem; 
-    left: 0px;
-    width: 14rem;
-    max-width: 33.3%;
-    height: calc(100vh - 80px);
-    background: #f4f4f4;
-    /* border-radius: 10px; */   
-}
-.recentPost {
-    position: sticky;
-    top: 5rem; 
-    right: 2.5rem;
-    max-width: 33.3%;
-    width: 25rem;
-    height: calc(100vh - 80px);
-    background: #f4f4f4;
-    border-radius: 10px;
-    padding: 20px;
-}
-.mainContent {
-    display: flex;
-    /* margin-left: 100px; */
-    width: 90rem;
-    gap: 10rem;
-}
-.content {
-    flex: 1;
-    max-width: 800px; 
-    min-height: 100rem; 
-    /* background-color: #333; */
-    padding: 20px;
-    overflow: hidden;
-}
-.homeBody {
-    display: flex;
-    justify-content:flex-start;
-    align-items: flex-start;
-    gap: 4rem; 
-    padding-top: 4rem;
-    max-width: 100%;
-    padding-bottom: 1rem;
-    /* background-color: #333; */
-}
-
-
-/* ================= FOOTER ==================== */
-.footer{
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: #333;
-    color: #fff;
-    text-align: center;
-    padding: 1rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    height: 13rem;
-}
-
-
+/** ========================== BODY ========================== **/
 .homeBody {
   display: flex;
-  justify-content: flex-start;
   align-items: flex-start;
   gap: 4rem;
   max-width: 100%;
+  padding-top: 4rem; 
   padding-bottom: 1rem;
-  height: calc(100vh - 4rem); /* Đặt chiều cao toàn màn hình trừ chiều cao header */
-  overflow-y: auto; /* Thêm thanh cuộn dọc ngoài cùng */
+  height: calc(100vh - 4rem);
+}
+.sidebar {
+  position: sticky;
+  top: 4rem;
+  width: 14rem;
+  background: #f4f4f4;
+  height: calc(100vh - 4rem);
+}
+.mainContent {
+  /* border: 1px solid; */
+  margin-left: 16.5%;
+}
+.flexContainer {
+  display: flex;
+  gap: 2rem;
+  width: 65rem;
+}
+.content {
+  /* flex: 1; */ /*? --> Cái quần què gì đây???? [1] */
+  /* max-width: 800px; */  /*? --> Cái quần què gì đây???? [2] */
+  /* border: 1px solid #333; */ /*? --> Mốt Tuấn Anh mà không chắc mình set đúng hay không ấy
+                                /*? Thì bật cái border lên canh cho dễ */
+   width: 100%;
+   padding: 20px;
+   overflow: hidden;
 }
 
-  
-  .recentPostHeader {
-    display: flex;
-    justify-content: space-between; /* Title on the left, button on the right */
-    align-items: center; /* Center vertically */
-    margin-bottom: 16px; /* Space between header and content */
-  }
-  
-  .recentPostHeader h2 {
-    font-size: 18px;
-    font-weight: bold;
-    color: #333;
-    margin: 0;
-  }
-  
-  .clearButton {
-    background-color: none;
-    color: rgb(5, 108, 177);
-    text-decoration: underline;
-    border: none;
-    border-radius: 4px;
-    padding: 6px 12px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
-  }
-  
-  .clearButton:hover {
-    background-color: #a09e9e70; /* Change color on hover */
-  }
-  
-  .recentPostContent {
-    display: flex;
-    flex-direction: column;
-    gap: 16px; /* Space between recent posts */
-  }
-  
+.recentPost {
+  right: 2rem;
+  width: 25rem;
+  background: #f4f4f4;
+  border-radius: 10px;
+  padding: 20px;
+  height: auto;
+  max-height: 70%;
+  position: fixed;
+  top: 12.5%;
+  overflow-y: auto; ;
+}
+.recentPost::-webkit-scrollbar {
+  height: 5px; 
+  width: 5px;
+}
+
+.recentPost::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.recentPost::-webkit-scrollbar-thumb {
+  background: #888; 
+  border-radius: 10px;
+}
+
+.recentPost::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+/* Recent Post Header & Content */
+.recentPostHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.recentPostHeader h2 {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+.clearButton {
+  background-color: transparent;
+  color: rgb(5, 108, 177);
+  text-decoration: underline;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+.clearButton:hover {
+  background-color: #a09e9e70;
+}
+.recentPostContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: auto;
+  min-height: 50vh;
+  max-height: 100vh;
+}
+
+/* Footer, nếu cần */
+.footer {
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #333;
+  color: #fff;
+  text-align: center;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  height: 13rem;
+}

@@ -1,40 +1,38 @@
-// import React, { useEffect } from "react";
-import { Routes, Route,} from "react-router-dom";
+import React from "react";
+import { Routes, Route, Outlet } from "react-router-dom";
 import Welcome from "../pages/Welcome_Page/Welcome";
 import Login from "../pages/Login_Page/Login";
 import SignUp from "../pages/SignUp_Page/SignUp";
 import Home from "../pages/Home_Page/Home";
 import UserProfile from "../pages/Profile_Page/UserProfile";
 import CreatePost from "../pages/CreatePost_Page/CreatePost";
-import Sidebar from "../components/Sidebar/Sidebar";
-import Popular from "../pages/Popular/Popular"; // Create this page
-import Explore from "../pages/Explore/Explore"; // Create this page
+import Popular from "../pages/Popular/Popular";
+import Explore from "../pages/Explore_Page/Explore";
+import PostDetail from "../pages/Post_Detail/post_detail";
 
+
+//! TUYỆT ĐỐI KHÔNG ĐƯỢC ADD STYLE VÀO ĐÂY
+//! VÌ ĐÂY LÀ FILE ROUTES CHÍNH, NÓ CHỈ ĐỂ QUẢN LÝ CÁC ROUTES, KHÔNG ĐỂ QUẢN LÝ STYLE
+//! ADD VÀO LÀ TAO CHÉM
+//! --- Fong ---
 function App() {
   return (
-    <div>
+    <>
       <Routes>
         <Route path="/" element={<Welcome />} />
         <Route path="/login" element={<Login />} />
         <Route path="/sign-up" element={<SignUp />} />
 
-        {/* Home Layout with Sidebar */}
-        <Route
-          path="/home"
-          element={
-            <div style={{ display: "flex" }}>
-              <Sidebar /> {/* Sidebar remains static */}
-              <Home /> {/* Main content area */}
-            </div>
-          }
-        >
+        {/* Nested Routes in Home */}
+        <Route path="/home" element={<Home />}>
           <Route path="profile" element={<UserProfile />} />
           <Route path="create-post" element={<CreatePost />} />
           <Route path="popular" element={<Popular />} />
           <Route path="explore" element={<Explore />} />
+          <Route path="post-detail" element={<PostDetail />} />
         </Route>
-      </Routes>
-    </div>
+      </Routes >
+    </>
   );
 }
 

@@ -1,5 +1,12 @@
 
 /** Create Post Module */
+.createContainer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
 .createPost{
     margin: 1rem;
     height: 50rem;
