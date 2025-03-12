@@ -1,5 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Home from '../../assets/home.png';
+import Popular from '../../assets/popular.png';
+import Explore from '../../assets/explore.png';
 
 const Sidebar: React.FC = () => {
   // Function to scroll to the top
@@ -15,21 +18,22 @@ const Sidebar: React.FC = () => {
 
           body {
             font-family: 'Lexend', sans-serif;
-            display: flex;
             margin: 0;
-            height: 100vh;
-            overflow: hidden;
           }
 
+          /* Dùng viewport height cho phần khoảng trắng ở đầu */
           .blank {
             margin: 0;
-            height: 60px;
+            height: 5vh; /* Ví dụ: 5% chiều cao màn hình */
           }
 
           .sidebar {
-            width: 250px;
+            /* Sidebar responsive: width dựa trên viewport nhưng có min-width và max-width */
+            width: 20vw;
+            min-width: 250px;
+            max-width: 300px;
             background-color: #f8f9fa;
-            padding: 20px;
+            padding: 2vh 2vw;
             position: fixed;
             left: 0;
             top: 0;
@@ -63,10 +67,12 @@ const Sidebar: React.FC = () => {
             color: #000;
             display: flex;
             align-items: center;
-            padding: 10px;
+            /* Sử dụng padding dựa trên vh và vw */
+            padding: 1vh 1vw;
             border-radius: 4px;
             transition: background-color 0.3s;
-            justify-content: space-between;
+            justify-content: flex-start;
+            gap: 20px;
           }
 
           .sidebar .subscribed-tags ul li a {
@@ -84,8 +90,9 @@ const Sidebar: React.FC = () => {
           .sidebar .subscribed-tags ul li {
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            min-height: 60px;
+            justify-content: flex-start;
+            gap: 0.5 rem;
+            min-height: 6vh;
           }
 
           .sidebar .subscribed-tags ul li .tag-name {
@@ -105,9 +112,10 @@ const Sidebar: React.FC = () => {
             background-color: #e9ecef;
           }
 
+          /* Nếu component main-content cần điều chỉnh, ta dùng margin-left dựa theo kích thước của sidebar */
           .main-content {
-            margin-left: 270px;
-            padding: 20px;
+            margin-left: calc(20vw + 2vw);
+            padding: 2vh 2vw;
             flex-grow: 1;
           }
         `}
@@ -116,9 +124,24 @@ const Sidebar: React.FC = () => {
         <div className="blank"></div>
         <nav>
           <ul>
-            <li><Link to="/home" onClick={scrollToTop}>Home</Link></li>
-            <li><Link to="/home/popular" onClick={scrollToTop}>Popular</Link></li>
-            <li><Link to="/home/explore" onClick={scrollToTop}>Explore</Link></li>
+            <li>
+              <Link to="/home" onClick={scrollToTop}>
+              <img src={Home} alt="Home" />
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link to="/home/popular" onClick={scrollToTop}>
+              <img src={Popular} alt="Popular" />
+                Popular
+              </Link>
+            </li>
+            <li>
+              <Link to="/home/explore" onClick={scrollToTop}>
+              <img src={Explore} alt="Explore" />
+                Explore
+              </Link>
+            </li>
           </ul>
         </nav>
         <div className="subscribed-tags">
@@ -137,22 +160,44 @@ const Sidebar: React.FC = () => {
               </Link>
             </li>
             <li>
-              <Link to="/all-tags"><span className="tag-name">All Subscribed tags</span></Link>
+              <Link to="/all-tags">
+                <span className="tag-name">All Subscribed tags</span>
+              </Link>
             </li>
           </ul>
         </div>
         <div className="about-us">
           <h3>ABOUT US</h3>
           <ul>
-            <li><Link to="/about"><i className="fas fa-info-circle"></i> About</Link></li>
-            <li><Link to="/rules"><i className="fas fa-gavel"></i> Rules</Link></li>
-            <li><Link to="/privacy-policy"><i className="fas fa-shield-alt"></i> Privacy Policy</Link></li>
-            <li><Link to="/user-agreement"><i className="fas fa-file-contract"></i> User Agreement</Link></li>
+            <li>
+              <Link to="/about">
+                <i className="fas fa-info-circle"></i> About
+              </Link>
+            </li>
+            <li>
+              <Link to="/rules">
+                <i className="fas fa-gavel"></i> Rules
+              </Link>
+            </li>
+            <li>
+              <Link to="/privacy-policy">
+                <i className="fas fa-shield-alt"></i> Privacy Policy
+              </Link>
+            </li>
+            <li>
+              <Link to="/user-agreement">
+                <i className="fas fa-file-contract"></i> User Agreement
+              </Link>
+            </li>
           </ul>
         </div>
         <div className="advanced">
           <ul>
-            <li><Link to="/logout"><i className="fas fa-sign-out-alt"></i> Log out</Link></li>
+            <li>
+              <Link to="/logout">
+                <i className="fas fa-sign-out-alt"></i> Log out
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

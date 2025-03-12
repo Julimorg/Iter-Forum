@@ -26,18 +26,12 @@ const UserInfo = styled.div`
   gap: 10px;
 `;
 
+/* Avatar mới: không load hình, chỉ hiển thị một div xám kích thước 40x40 */
 const ProfilePic = styled.div`
   width: 40px;
   height: 40px;
   background-color: #ccc;
   border-radius: 50%;
-  overflow: hidden;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
 `;
 
 const UserName = styled.div`
@@ -71,15 +65,13 @@ const Divider = styled.hr`
 `;
 
 // Component Logic
-const RecentPost: React.FC<{ avatarUrl: string }> = ({ avatarUrl }) => {
+const RecentPost: React.FC<{}> = () => {
   return (
     <>
       <RecentPostContainer>
         <PostContent>
           <UserInfo>
-            <ProfilePic>
-              <img src={avatarUrl} alt="User Avatar" />
-            </ProfilePic>
+            <ProfilePic />
             <UserName>User Name</UserName>
           </UserInfo>
           <Caption>This is the recent post caption</Caption>
