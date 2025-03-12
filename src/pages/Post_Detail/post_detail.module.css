@@ -1,0 +1,198 @@
+.container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+  }
+  
+  .header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .profilePic {
+    width: 40px;
+    height: 40px;
+    background-color: #ccc;
+    border-radius: 50%;
+    margin-right: 8px;
+  }
+  
+  .name {
+    font-weight: bold;
+  }
+  
+  .caption {
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+  
+  /* Trending section */
+  .trending {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    color: orange;
+    font-weight: bold;
+  }
+  
+  /* Container cho các tag của bài post */
+  .postTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  
+  /* Style cho button tag */
+  .tagButton {
+    background-color: #e9ecef;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .tagButton:hover {
+    background-color: #d6d6d6;
+  }
+  
+  .imagePlaceholder {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .interactions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  
+  .button {
+    display: flex;
+    align-items: center;
+    border: none;
+    background-color: #f0f0f0;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .button:hover {
+    background-color: #d6d6d6;
+  }
+  
+  .commentSection {
+    margin-top: 24px;
+  }
+  
+  .commentInput {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+  
+  .commentButton {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .commentButton:hover {
+    background-color: #0056b3;
+  }
+  
+  .commentList {
+    margin-top: 16px;
+  }
+  
+  .commentItem {
+    border-bottom: 1px solid #ccc;
+    padding: 8px 0;
+    margin-top: 8px;
+  }
+  
+  .commentHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  
+  /* Avatar cho comment: 40x40, màu xám, hình tròn */
+  .commentAvatar {
+    width: 40px;
+    height: 40px;
+    background-color: #ccc;
+    border-radius: 50%;
+    margin-right: 8px;
+  }
+  
+  .commentUsername {
+    font-weight: bold;
+  }
+  
+  .commentText {
+    margin-bottom: 4px;
+    font-size: 14px;
+  }
+  
+  .commentActions {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .commentActionButton {
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 13px;
+    transition: background-color 0.2s;
+  }
+  
+  .commentActionButton:hover {
+    background-color: #f0f0f0;
+  }
+  
+  /* Nút Back */
+  .backButton {
+    position: fixed;
+    left: calc(clamp(250px, 20vw, 300px) + 1rem);
+    top: 5rem;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #ccc;
+    color: #000;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .backButton:hover {
+    background-color: #aaa;
+  }
+  
