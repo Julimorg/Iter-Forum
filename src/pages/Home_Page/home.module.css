@@ -10,18 +10,16 @@
   height: 4rem;
 }
 
-/* BODY */
+/** ========================== BODY ========================== **/
 .homeBody {
   display: flex;
   align-items: flex-start;
   gap: 4rem;
   max-width: 100%;
-  padding-top: 4rem; /* Đẩy nội dung xuống dưới header */
+  padding-top: 4rem; 
   padding-bottom: 1rem;
   height: calc(100vh - 4rem);
 }
-
-/* Sidebar */
 .sidebar {
   position: sticky;
   top: 4rem;
@@ -29,40 +27,55 @@
   background: #f4f4f4;
   height: calc(100vh - 4rem);
 }
-
-/* Main Content */
 .mainContent {
-  flex: 1;
-  padding: 16px;
+  /* border: 1px solid; */
+  margin-left: 16.5%;
 }
-
-/* Flex container cho Content và Recent Post */
 .flexContainer {
   display: flex;
   gap: 2rem;
+  width: 65rem;
 }
-
-/* Content chứa danh sách post */
 .content {
-  flex: 1;
-  max-width: 800px;
-  padding: 20px;
-  overflow: hidden;
+  /* flex: 1; */ /*? --> Cái quần què gì đây???? [1] */
+  /* max-width: 800px; */  /*? --> Cái quần què gì đây???? [2] */
+  /* border: 1px solid #333; */ /*? --> Mốt Tuấn Anh mà không chắc mình set đúng hay không ấy
+                                /*? Thì bật cái border lên canh cho dễ */
+   width: 100%;
+   padding: 20px;
+   overflow: hidden;
 }
 
 .recentPost {
+  right: 2rem;
   width: 25rem;
   background: #f4f4f4;
   border-radius: 10px;
   padding: 20px;
   height: auto;
-  min-height: 50vh;
-  max-height: 100vh;
-  position: sticky;
-  bottom: 0;
+  max-height: 70%;
+  position: fixed;
+  top: 12.5%;
+  overflow-y: auto; ;
+}
+.recentPost::-webkit-scrollbar {
+  height: 5px; 
+  width: 5px;
 }
 
+.recentPost::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
 
+.recentPost::-webkit-scrollbar-thumb {
+  background: #888; 
+  border-radius: 10px;
+}
+
+.recentPost::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
 /* Recent Post Header & Content */
 .recentPostHeader {
   display: flex;
@@ -77,7 +90,6 @@
   color: #333;
   margin: 0;
 }
-
 .clearButton {
   background-color: transparent;
   color: rgb(5, 108, 177);
@@ -89,11 +101,9 @@
   font-size: 14px;
   transition: background-color 0.3s ease;
 }
-
 .clearButton:hover {
   background-color: #a09e9e70;
 }
-
 .recentPostContent {
   display: flex;
   flex-direction: column;

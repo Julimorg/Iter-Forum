@@ -72,7 +72,7 @@ const CreatePost = () => {
     };
     return (
         <div>
-            <div className="createContainer">
+            <div className={styles.createContainer}>
                 <div className={styles.createPost}>
                     <h1>Create Your Post</h1>
                     <div className={styles.createPostBody}>

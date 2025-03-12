@@ -111,6 +111,24 @@ const Home = () => {
                       <RecentPost key={post.id} />
                     ))}
                   </div>
+                  <div className={styles.recentPostHeader}>
+                    <h2>Recent Post</h2>
+                    <button
+                      className={styles.clearButton}
+                      onClick={clearRecentPosts}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  <div className={styles.recentPostContent}>
+                    {[
+                      { id: 1,},
+                      { id: 2,},
+                      { id: 3,},
+                    ].map(post => (
+                      <RecentPost key={post.id} />
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
