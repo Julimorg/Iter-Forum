@@ -82,7 +82,7 @@ const Header = () => {
                 <div className="headerSelectionButton">
                     {/* Create Post Button */}
                     <div className="createPostBtn">
-                        <ButtonIconLeft Icon={FaPlus} size={20} color="#333" title={<Link to = "create-post">Create Post</Link>}/>
+                        <ButtonIconLeft Icon={FaPlus} size={20} color="#333" title={<Link to = "socket">Create Post</Link>}/>
                     </div>
                     {/* Icon Button */}
                     <div className="notificationContainer" ref={notiRef}>
