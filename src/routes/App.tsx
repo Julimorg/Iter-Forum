@@ -9,7 +9,9 @@ import CreatePost from "../pages/CreatePost_Page/CreatePost";
 import Popular from "../pages/Popular/Popular";
 import Explore from "../pages/Explore_Page/Explore";
 import PostDetail from "../pages/Post_Detail/post_detail";
-
+// Config react-toastify
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 //! TUYỆT ĐỐI KHÔNG ĐƯỢC ADD STYLE VÀO ĐÂY
 //! VÌ ĐÂY LÀ FILE ROUTES CHÍNH, NÓ CHỈ ĐỂ QUẢN LÝ CÁC ROUTES, KHÔNG ĐỂ QUẢN LÝ STYLE
@@ -32,6 +34,7 @@ function App() {
           <Route path="post-detail" element={<PostDetail />} />
         </Route>
       </Routes >
+      <ToastContainer position="bottom-left" theme="colored" />
     </>
   );
 }

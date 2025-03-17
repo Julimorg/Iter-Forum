@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, Outlet } from 'react-router-dom';
 import styles from './home.module.css';
 import Header from '../../components/Header_HomePage/Header';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import Post_Card from '../../components/Post_Card/postcard';
 import RecentPost from '../../components/Recent_Post_Card/recent_post_card';
+import authorizedAxiosInstance from '../../services/Auth';
+import { Login_API } from '../../config/configApi';
 
 interface PostItem {
   id: string;
@@ -53,6 +55,25 @@ const Home = () => {
 
   const [posts, setPosts] = useState<PostItem[]>(initialPosts);
   const [showRecentPosts, setShowRecentPosts] = useState<boolean>(true);
+  const [user, setUser] = useState<string>("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const res = await authorizedAxiosInstance.get(`${Login_API}/v1/dashboards/access`);
+      console.log("Data From API:", res.data)
+      const userInforFromLocalStorage = localStorage.getItem('userInfo');
+      // Do ở Login page ta lưu userInfo vào local storage bằng JSON.stringify
+      // thì khi lưu vào sẽ là type string
+      // để lấy dữ liệu từ local ra ta nền parse nó thành dạng Object 
+      if (userInforFromLocalStorage) {
+        console.log("Data from local", JSON.parse(userInforFromLocalStorage));
+      } else {
+        console.log("No user info found in local storage");
+      }
+      setUser(res.data);
+    }
+    fetchData();
+  },[]);
 
   // Hàm xóa bài đăng dựa vào id
   const removePost = (id: string) => {
