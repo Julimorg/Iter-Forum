@@ -4,7 +4,11 @@ import Home from '../../assets/home.png';
 import Popular from '../../assets/popular.png';
 import Explore from '../../assets/explore.png';
 
-const Sidebar: React.FC = () => {
+interface SiderbarProps{
+  onSignOutClick?: () => void;
+}
+const Sidebar: React.FC<SiderbarProps>= ({onSignOutClick}) => {
+
   // Function to scroll to the top
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -194,9 +198,9 @@ const Sidebar: React.FC = () => {
         <div className="advanced">
           <ul>
             <li>
-              <Link to="/logout">
-                <i className="fas fa-sign-out-alt"></i> Log out
-              </Link>
+              <button onClick = {onSignOutClick}>
+              <i className="fas fa-sign-out-alt"></i> Log out
+              </button>
             </li>
           </ul>
         </div>
