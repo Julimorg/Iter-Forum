@@ -9,6 +9,7 @@ import CreatePost from "../pages/CreatePost_Page/CreatePost";
 import Popular from "../pages/Popular/Popular";
 import Explore from "../pages/Explore_Page/Explore";
 import PostDetail from "../pages/Post_Detail/post_detail";
+import TagDetail from "../pages/Tag_Detail/tag_detail";
 
 
 //! TUYỆT ĐỐI KHÔNG ĐƯỢC ADD STYLE VÀO ĐÂY
@@ -30,6 +31,7 @@ function App() {
           <Route path="popular" element={<Popular />} />
           <Route path="explore" element={<Explore />} />
           <Route path="post-detail" element={<PostDetail />} />
+          <Route path="/home/tag/:tagName" element={<TagDetail />} /> {/* Đường dẫn chung */}
         </Route>
       </Routes >
     </>

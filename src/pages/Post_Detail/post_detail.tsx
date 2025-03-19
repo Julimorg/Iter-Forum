@@ -33,8 +33,29 @@ const PostDetail: React.FC = () => {
   const [liked, setLiked] = useState<boolean>(false);
   const [disliked, setDisliked] = useState<boolean>(false);
   
+  const tagContent = {
+    ReactJS: "Learn about ReactJS, the powerful JavaScript library for building user interfaces.",
+    JavaScript: "Discover the versatility of JavaScript, the language of the web.",
+    "Web Development": "Explore the world of web development and modern technologies.",
+  };
+
   // Thêm state để kiểm soát hiển thị tag
   const [showTags, setShowTags] = useState<boolean>(true);
+
+  const [tagStatus, setTagStatus] = useState<Record<string, boolean>>({
+    "ReactJS": false, // false: "Subscribe", true: "Subscribed"
+    "JavaScript": false, // Đặt trạng thái ban đầu cho mỗi tag
+    "Web Development": true,
+  });
+  
+
+  const handleSubscribeToggle = (tag: string) => {
+    setTagStatus((prevStatus) => ({
+      ...prevStatus,
+      [tag]: !prevStatus[tag], // Đảo ngược trạng thái của tag được chọn
+    }));
+  };
+  
 
   // Hàm xử lý khi ấn "Clear"
   const handleClearTags = () => {
@@ -371,27 +392,41 @@ const handlePostReply = (index: number) => {
             <button className={styles.clearTags} onClick={handleClearTags}>Clear</button>
           </div>
 
-          <div className={styles.tagItem}>
-            <div className={styles.tagInfo}>
-              <span className={styles.tagName}>Sharing</span>
-              <span className={styles.trending}><img src={Trending} alt='Trending'/> Trending</span>
-              <button className={styles.subscribeButton}>Subscribe</button>
-            </div>
-            <span className={styles.tagPosts}>14,045 POSTS</span>
-            <p className={styles.tagDescription}>Share your knowledge for everyone!</p>
-          </div>
-
-          <div className={styles.tagItem}>
-            <div className={styles.tagInfo}>
-              <span className={styles.tagName}>Working Experience</span>
-              <button className={styles.subscribedButton}>
-                <img src={Bell} alt="Bell" />
-                Subscribed
+          {Object.entries(tagStatus).map(([tag, status]) => (
+            <div className={styles.tagItem} key={tag}>
+              <div className={styles.tagInfo}>
+                <span className={styles.tagName}>{tag}</span>
+                {status ? (
+                  <button
+                    className={styles.subscribedButton}
+                    onClick={() => handleSubscribeToggle(tag)}
+                  >
+                    <img src={Bell} alt="Bell" />
+                    Subscribed
+                  </button>
+                ) : (
+                  <button
+                    className={styles.subscribeButton}
+                    onClick={() => handleSubscribeToggle(tag)}
+                  >
+                    Subscribe
+                  </button>
+                )}
+              </div>
+              <span className={styles.tagPosts}>{"14,045 POSTS"}</span>
+              <p className={styles.tagDescription}>{tagContent[tag as keyof typeof tagContent]}</p>
+              {/* Nút điều hướng đến chi tiết tag */}
+              <button
+                className={styles.viewTagDetail}
+                onClick={() => navigate(`/home/tag/${encodeURIComponent(tag)}`)}
+              >
+                View in tag detail
               </button>
             </div>
-            <span className={styles.tagPosts}>2,345 POSTS</span>
-            <p className={styles.tagDescription}>Have something to share with new comers?</p>
-          </div>
+          ))}
+
+
+
         </div>
       )}
 
