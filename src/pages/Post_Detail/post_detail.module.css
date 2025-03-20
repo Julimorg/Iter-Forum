@@ -1,13 +1,13 @@
 .container {
-    width: 100%;
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 16px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background-color: #fff;
-  }
-  
+
+  border: 1px solid #ccc; /* Thêm viền cho nội dung */
+  padding: 1rem;
+  border-radius: 0.5rem;
+  width: 60vw;
+  max-width: 70rem;
+  background-color: #fff;
+}
+
   .header {
     display: flex;
     align-items: center;
@@ -97,28 +97,34 @@
   .commentSection {
     margin-top: 24px;
   }
+  .commentBox {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Khoảng cách giữa ô nhập và nút */
+  }
   
-  .commentInput {
+  .commentInput,
+  .replyInput {
     width: 100%;
-    padding: 8px;
+    height: 40px;
+    resize: none;
+    padding: 10px;
     border: 1px solid #ccc;
-    border-radius: 4px;
-    margin-bottom: 12px;
+    border-radius: 5px;
+    box-sizing: border-box;
   }
   
-  .commentButton {
+  .commentButton,
+  .replyButton {
+    height: 40px;
+    padding: 0 15px;
     background-color: #007bff;
-    color: #fff;
+    color: white;
     border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
+    border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
   }
   
-  .commentButton:hover {
-    background-color: #0056b3;
-  }
   
   .commentList {
     margin-top: 16px;
@@ -174,15 +180,8 @@
     background-color: #f0f0f0;
   }
   
-  /* Nút Back */
+  /* Điều chỉnh lại nút Back */
   .backButton {
-    position: fixed;
-    left: calc(clamp(250px, 20vw, 300px) + 1rem);
-    top: 5rem;
-    z-index: 1100;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
     background-color: #ccc;
     color: #000;
     border: none;
@@ -190,9 +189,231 @@
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
-  
+    
   .backButton:hover {
     background-color: #aaa;
   }
+
+  .backButton img {
+    width: 8px;  /* Đặt kích thước icon */
+    height: 16px;
+  }
   
+  
+  .replySection {
+    display: block;
+    margin-top: 8px;
+  }
+  
+  .replyList {
+    margin-top: 8px;
+    padding-left: 16px;
+    border-left: 2px solid #eee;
+  }
+  
+/* Căn chỉnh danh sách reply */
+.replyList {
+  margin-top: 12px; /* Khoảng cách từ comment */
+  padding-left: 20px; /* Căn lề để phân biệt với comment chính */
+  border-left: 2px solid #e0e0e0; /* Đường viền để nhóm reply */
+}
+
+/* Từng reply trong danh sách */
+.replyItem {
+  display: flex;
+  flex-direction: column; /* Sắp xếp các phần tử theo chiều dọc */
+  gap: 8px; /* Khoảng cách giữa các phần tử */
+  margin-bottom: 12px; /* Khoảng cách giữa các reply */
+  padding: 8px; /* Khoảng cách bên trong từng reply */
+  background-color: #f9f9f9; /* Nền nhẹ để làm nổi bật */
+  border-radius: 8px; /* Bo góc để đẹp hơn */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ */
+}
+
+/* Header của mỗi reply: avatar và tên */
+.replyHeader {
+  display: flex;
+  align-items: center; /* Căn giữa avatar và tên người dùng */
+  gap: 8px; /* Khoảng cách giữa avatar và tên */
+}
+
+/* Avatar của người reply */
+.replyAvatar {
+  width: 40px;
+  height: 40px;
+  background-color: #ccc; /* Màu xám */
+  border-radius: 50%; /* Hình tròn */
+}
+
+/* Tên người reply */
+.replyUserName {
+  font-weight: bold; /* In đậm để làm nổi bật tên */
+  font-size: 14px;
+  color: #333; /* Màu chữ sẫm */
+}
+
+/* Nội dung reply */
+.replyText {
+  font-size: 14px;
+  color: #555; /* Màu chữ trung tính */
+  line-height: 1.4; /* Tăng khoảng cách dòng cho dễ đọc */
+  margin-left: 48px; /* Tạo khoảng cách giữa nội dung và avatar bên trên */
+}
+
+.wrapper {
+  display: flex; 
+  align-items: flex-start; 
+  gap: 1rem; 
+  width: 100%;
+}
+
+/* Tag Section */
+.tagSection {
+  flex: 1;
+  width: 20vw;
+  background-color: #f9f9f9;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+}
+
+.tagHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.clearTags {
+  background-color: #ffffff00;
+  color: #007bff;
+  text-decoration: underline;
+  font-size: 0.8rem;
+  border: none;
+}
+
+.clearTags:hover {
+  border: none;
+  background-color: #aaaaaa1a;
+  cursor: pointer;
+}
+
+.tagItem {
+  padding: 1rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.tagItem:last-child {
+  border-bottom: none;
+}
+
+.tagInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+
+.tagName {
+  font-weight: bold;
+  font-size: 1rem;
+  max-width: 8vw; 
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+.trending {
+  color: orange;
+  font-size: 0.8rem;
+}
+
+.tagPosts {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.tagDescription {
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.subscribeButton,
+.subscribedButton {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 1.75rem;
+}
+
+.subscribeButton {
+  background-color: #fff;
+  border: 1px solid #000000;
+  color: #000000;
+}
+
+.subscribeButton:hover {
+  background-color: #e0f7fa;
+  color: #000000;
+}
+
+.subscribedButton {
+  background-color: #e0f7fa;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid #000000;
+}
+
+.subscribedButton img {
+  width: 16px;
+  height: 16px;
+}
+
+.viewTagDetail {
+  border: none;
+  background-color: #ffffff00;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.viewTagDetail:hover {
+  background-color: #007bff00;
+  text-decoration: underline;
+}
+
+.circularButton {
+  width: 40px; /* Đặt chiều rộng và chiều cao bằng nhau để tạo hình tròn */
+  height: 40px;
+  border: none; /* Không viền */
+  background-color: transparent; /* Nền không màu */
+  border-radius: 50%; /* Tạo góc bo tròn 100% */
+  display: flex; /* Căn giữa icon bên trong */
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Hiệu ứng mượt khi hover */
+}
+
+.circularButton:hover {
+  background-color: #f0f0f0; /* Màu nền xám nhạt khi hover */
+}
+
+.circularButton img {
+  width: 20px; /* Đặt kích thước cho icon bên trong */
+  height: 20px;
+}

@@ -7,6 +7,8 @@ interface FormGroupProps {
   id: string;
   required?: boolean;
   autoComplete?: string;
+  value?: string;
+  onChange?:  (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const TextField: React.FC<FormGroupProps> = ({
@@ -15,6 +17,8 @@ const TextField: React.FC<FormGroupProps> = ({
   id,
   required = false,
   autoComplete,
+  value,
+  onChange
 }) => {
   return (
     <div className={styles.formGroup}>
@@ -25,6 +29,8 @@ const TextField: React.FC<FormGroupProps> = ({
         required={required}
         aria-required={required}
         autoComplete={autoComplete}
+        value={value || ''}
+        onChange={onChange}
       />
     </div>
   );
