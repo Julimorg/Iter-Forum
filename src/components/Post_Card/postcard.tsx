@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import dislike from '../../assets/dislike.png';
 import like from '../../assets/like.png';
@@ -226,7 +226,9 @@ const Postcard: React.FC<PostcardProps> = ({
     <PostCardContainer $isHidden={isHidden}>
       <Header>
         <ProfilePic />
-        <Name>{user}</Name>
+        <Name>
+          <Link to = "/home/user">{user}</Link>
+        </Name>
         <DotsContainer>
           <DotsButton onClick={togglePopup}>⋮</DotsButton>
           {popupVisible && (

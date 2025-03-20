@@ -122,6 +122,20 @@ const Sidebar: React.FC<SiderbarProps>= ({onSignOutClick}) => {
             padding: 2vh 2vw;
             flex-grow: 1;
           }
+          .buttonLogOut{
+           border: none;
+           background-color: #f8f9fa;
+           display: flex;
+           align-items: center;
+          padding: 1vh 1vw;
+          transition: background-color 0.3s;
+          justify-content: flex-start;
+          gap: 20px;
+          }
+          .buttonLogOut:hover{
+            background-color: #e9ecef;
+            cursor:pointer;
+          }
         `}
       </style>
       <div className="sidebar">
@@ -198,8 +212,9 @@ const Sidebar: React.FC<SiderbarProps>= ({onSignOutClick}) => {
         <div className="advanced">
           <ul>
             <li>
-              <button onClick = {onSignOutClick}>
-              <i className="fas fa-sign-out-alt"></i> Log out
+              <button onClick = {onSignOutClick} className='buttonLogOut'>
+              <i className="fas fa-sign-out-alt"></i> 
+              <p>Log out</p>
               </button>
             </li>
           </ul>
