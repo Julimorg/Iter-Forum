@@ -9,6 +9,8 @@ import CreatePost from "../pages/CreatePost_Page/CreatePost";
 import Popular from "../pages/Popular/Popular";
 import Explore from "../pages/Explore_Page/Explore";
 import PostDetail from "../pages/Post_Detail/post_detail";
+import TagDetail from "../pages/Tag_Detail/tag_detail";
+import AllSubscribedTags from "../pages/All_Subscribed_Tags/all_subcribed_tags";
 // Config react-toastify
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -39,22 +41,16 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<Welcome />} />
-        {/* Unauthorize routes */}
-        <Route element={<UnAuthorizedRoute />}>
-          <Route path="/login" element={<Login />} />
-          <Route path="/sign-up" element={<SignUp />} />
-        </Route>
+        <Route path="/login" element={<Login />} />
+        <Route path="/sign-up" element={<SignUp />} />
 
-        {/* Authorize routes */}
-        <Route element={<AuthorizedRoute />}>
-          {/* Nested Routes in Home */}
-          <Route path="/home" element={<Home />}>
-            <Route path="profile" element={<UserProfile />} />
-            <Route path="create-post" element={<CreatePost />} />
-            <Route path="popular" element={<Popular />} />
-            <Route path="explore" element={<Explore />} />
-            <Route path="post-detail" element={<PostDetail />} />
-          </Route>
+        {/* Nested Routes in Home */}
+        <Route path="/home" element={<Home />}>
+          <Route path="profile" element={<UserProfile />} />
+          <Route path="create-post" element={<CreatePost />} />
+          <Route path="popular" element={<Popular />} />
+          <Route path="explore" element={<Explore />} />
+          <Route path="post-detail" element={<PostDetail />} />
         </Route>
       </Routes >
       <ToastContainer position="bottom-left" theme="colored" />
