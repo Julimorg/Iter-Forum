@@ -11,6 +11,7 @@ import replyFilled from '../../assets/comment.png';
 import backIcon from '../../assets/back_arrow.png';
 import Trending from '../../assets/trending.png';
 import Bell from '../../assets/bell.png';
+import sendIcon from '../../assets/send.png';
 
 interface PostState {
   user: string;
@@ -255,8 +256,13 @@ const handlePostReply = (index: number) => {
 
   // Hàm quay lại trang home (nút Back)
   const handleBack = () => {
-    navigate("/home");
-  };
+    if (window.history.length > 1) {
+        navigate(-1); // Quay lại trang trước đó
+    } else {
+        navigate("/home"); // Điều hướng đến trang mặc định
+    }
+};
+
 
   if (!user || !caption) {
     return <div className={styles.error}>Error: Missing data for the post.</div>;
@@ -316,15 +322,19 @@ const handlePostReply = (index: number) => {
   
           {/* Phần bình luận */}
           <div className={styles.commentSection}>
-            <textarea
-              className={styles.commentInput}
-              placeholder="Write a comment..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-            />
-            <button className={styles.commentButton} onClick={handleAddComment}>
-              Post
-            </button>
+            <div className={styles.commentBox}>
+              <textarea
+                className={styles.commentInput}
+                placeholder="Write a comment..."
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+              />
+              <button className={styles.circularButton} onClick={handleAddComment}>
+                <img src={sendIcon} alt="Send" />
+              </button>
+
+            </div>
+
   
             {/* Danh sách bình luận */}
             <div className={styles.commentList}>
@@ -352,18 +362,20 @@ const handlePostReply = (index: number) => {
   
                   {/* Khu vực nhập reply */}
                   {item.replied && (
-                    <div className={styles.replySection}>
+                    <div className={styles.commentBox}>
                       <textarea
                         className={styles.replyInput}
                         placeholder="Write a reply..."
                         value={item.replyText || ''}
                         onChange={(e) => handleReplyInputChange(index, e.target.value)}
                       />
-                      <button className={styles.replyButton} onClick={() => handlePostReply(index)}>
-                        Reply
+                      <button className={styles.circularButton} onClick={() => handlePostReply(index)}>
+                        <img src={sendIcon} alt="Send Reply" />
                       </button>
+
                     </div>
                   )}
+
   
                   {/* Hiển thị các reply */}
                   <div className={styles.replyList}>
@@ -384,7 +396,11 @@ const handlePostReply = (index: number) => {
         </div> {/* Kết thúc div .postContent */}
       </div> {/* Kết thúc div .container */}
   
-      {/* Chỉ hiển thị nếu showTags === true */}
+
+      {/* Phần Tag Section
+      
+      Chỉ hiển thị nếu showTags === true 
+      
       {showTags && (
         <div className={styles.tagSection}>
           <div className={styles.tagHeader}>
@@ -415,21 +431,24 @@ const handlePostReply = (index: number) => {
               </div>
               <span className={styles.tagPosts}>{"14,045 POSTS"}</span>
               <p className={styles.tagDescription}>{tagContent[tag as keyof typeof tagContent]}</p>
-              {/* Nút điều hướng đến chi tiết tag */}
+            */}
+
+              {/* Nút điều hướng đến chi tiết tag 
               <button
                 className={styles.viewTagDetail}
                 onClick={() => navigate(`/home/tag/${encodeURIComponent(tag)}`)}
               >
                 View in tag detail
               </button>
+
+
             </div>
           ))}
 
 
-
         </div>
       )}
-
+              */}
     </div>
   );
   

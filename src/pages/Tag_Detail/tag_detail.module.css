@@ -5,7 +5,7 @@
     align-items: flex-start;
     justify-content: center;
     gap: 1rem;
-    width: 70%;
+    width: 80%;
 }
 
 /* Nút Back */
@@ -130,7 +130,7 @@
 
 /* Phần bài viết trending */
 .trending-posts {
-    width: 70%;
+    width: 90%;
     display: flex;
     justify-content: center;
 }
