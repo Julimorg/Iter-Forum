@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route} from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import Welcome from "../pages/Welcome_Page/Welcome";
 import Login from "../pages/Login_Page/Login";
 import SignUp from "../pages/SignUp_Page/SignUp";
@@ -9,12 +9,33 @@ import CreatePost from "../pages/CreatePost_Page/CreatePost";
 import Popular from "../pages/Popular/Popular";
 import Explore from "../pages/Explore_Page/Explore";
 import PostDetail from "../pages/Post_Detail/post_detail";
-
+import TagDetail from "../pages/Tag_Detail/tag_detail";
+import AllSubscribedTags from "../pages/All_Subscribed_Tags/all_subcribed_tags";
+// Config react-toastify
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 //! TUYỆT ĐỐI KHÔNG ĐƯỢC ADD STYLE VÀO ĐÂY
 //! VÌ ĐÂY LÀ FILE ROUTES CHÍNH, NÓ CHỈ ĐỂ QUẢN LÝ CÁC ROUTES, KHÔNG ĐỂ QUẢN LÝ STYLE
 //! ADD VÀO LÀ TAO CHÉM
 //! --- Fong ---
+
+
+//? Xác định route cần auth tài khoản thì mới truy cập vào Home
+//? Outlet để hiện thị Child Route
+const AuthorizedRoute = () => {
+  const userInfo = localStorage.getItem('userInfo');
+  const user = userInfo ? JSON.parse(userInfo) : null;
+  if (!user) return <Navigate to='/login' replace={true} />;
+  return <Outlet />
+}
+const UnAuthorizedRoute = () => {
+  const userInfo = localStorage.getItem('userInfo');
+  const user = userInfo ? JSON.parse(userInfo) : null;
+  if (user) return <Navigate to='/home' replace={true} />;
+  return <Outlet />
+}
+
 function App() {
   return (
     <>
@@ -32,6 +53,7 @@ function App() {
           <Route path="post-detail" element={<PostDetail />} />
         </Route>
       </Routes >
+      <ToastContainer position="bottom-left" theme="colored" />
     </>
   );
 }

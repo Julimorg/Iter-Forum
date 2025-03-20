@@ -4,7 +4,7 @@
   padding: 1rem;
   border-radius: 0.5rem;
   width: 60vw;
-  max-width: 40rem;
+  max-width: 70rem;
   background-color: #fff;
 }
 
@@ -97,28 +97,34 @@
   .commentSection {
     margin-top: 24px;
   }
+  .commentBox {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Khoảng cách giữa ô nhập và nút */
+  }
   
-  .commentInput {
+  .commentInput,
+  .replyInput {
     width: 100%;
-    padding: 8px;
+    height: 40px;
+    resize: none;
+    padding: 10px;
     border: 1px solid #ccc;
-    border-radius: 4px;
-    margin-bottom: 12px;
+    border-radius: 5px;
+    box-sizing: border-box;
   }
   
-  .commentButton {
+  .commentButton,
+  .replyButton {
+    height: 40px;
+    padding: 0 15px;
     background-color: #007bff;
-    color: #fff;
+    color: white;
     border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
+    border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
   }
   
-  .commentButton:hover {
-    background-color: #0056b3;
-  }
   
   .commentList {
     margin-top: 16px;
@@ -268,6 +274,7 @@
 /* Tag Section */
 .tagSection {
   flex: 1;
+  width: 20vw;
   background-color: #f9f9f9;
   padding: 1rem;
   border-radius: 0.5rem;
@@ -317,7 +324,12 @@
 .tagName {
   font-weight: bold;
   font-size: 1rem;
+  max-width: 8vw; 
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
+
 
 .trending {
   color: orange;
@@ -368,4 +380,40 @@
 .subscribedButton img {
   width: 16px;
   height: 16px;
+}
+
+.viewTagDetail {
+  border: none;
+  background-color: #ffffff00;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.viewTagDetail:hover {
+  background-color: #007bff00;
+  text-decoration: underline;
+}
+
+.circularButton {
+  width: 40px; /* Đặt chiều rộng và chiều cao bằng nhau để tạo hình tròn */
+  height: 40px;
+  border: none; /* Không viền */
+  background-color: transparent; /* Nền không màu */
+  border-radius: 50%; /* Tạo góc bo tròn 100% */
+  display: flex; /* Căn giữa icon bên trong */
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Hiệu ứng mượt khi hover */
+}
+
+.circularButton:hover {
+  background-color: #f0f0f0; /* Màu nền xám nhạt khi hover */
+}
+
+.circularButton img {
+  width: 20px; /* Đặt kích thước cho icon bên trong */
+  height: 20px;
 }

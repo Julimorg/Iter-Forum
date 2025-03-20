@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link,useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import styles from './login.module.css';
 import TextField from '../../components/TextField_LoginSignUp/Textfield';
 import PasswordField from '../../components/Password_TextField/PasswordField';
+import authorizedAxiosInstance from '../../services/Auth';
+import { Login_API } from '../../config/configApi';
 
 // Định nghĩa type cho các bước
 type Step = "login" | "sendEmail" | "verifyOtp" | "resetPassword";
 
 const Login: React.FC = () => {
     const [step, setStep] = useState<Step>("login");
-    const [name, setName] = useState<string>("");
+    // const [name, setName] = useState<string>("");
     const [email, setEmail] = useState<string>("");
     const [otp, setOtp] = useState<string>("");
     const [password, setPassword] = useState<string>("");
@@ -20,13 +23,37 @@ const Login: React.FC = () => {
     const [error, setError] = useState<string>("");
     const emailPattern: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const passwordPattern: RegExp = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+    const navigate = useNavigate();
+    interface LoginData {
+        email: string;
+        password: string;
+    }
+    const submitLogIn = async (data: LoginData): Promise<void> => {
+        console.log("Submit login: ", data);
+        const res = await authorizedAxiosInstance.post(`${Login_API}/v1/users/login`, data);
+        console.log(res.data);
+        const userInfo = {
+            id : res.data._id,
+            email: res.data.email
+        }
+        //? Lưu thông tin vào local storage
+        localStorage.setItem("accessToken", res.data.accessToken);
+        localStorage.setItem("refreshToken", res.data.refreshToken);
+        // do userinfo là 1 kiểu Json Object nên nếu gán trực tiếp vào
+        // thì browser không nhận diện được data mà chỉ là Object Object
+        // --> Xử lý như việc fetch Api là dùng JSON.stringify để có thể
+        // lấy data raw 
+        localStorage.setItem("userInfo", JSON.stringify(userInfo));
+
+        navigate('/home');
+    }
 
     const handleForgotPassword = (): void => {
         setStep("sendEmail");
     };
-    const handleLogin = (e: React.FormEvent<HTMLFormElement>): void => {
+    const handleLogin = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
         e.preventDefault();
-        if (!emailPattern.test(email)  && password.length == 0) { 
+        if (!emailPattern.test(email) && password.length == 0) {
             setError("Enter a valid email address.");
             setPasswordError("Password must not empty!");
             console.log("error")
@@ -34,7 +61,9 @@ const Login: React.FC = () => {
         }
         setError("");
         setPasswordError("");
-        console.log("Login successful with:", name);
+        console.log("Login successful with:", email);
+        const data: LoginData = { email, password };
+        await submitLogIn(data);
     };
     const handleSendEmail = (e: React.FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
@@ -48,7 +77,7 @@ const Login: React.FC = () => {
 
     const handleVerifyOtp = (e: React.FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
-        if (otp.length!== 4) {
+        if (otp.length !== 4) {
             setError("Enter a 4-digit OTP.");
             return;
         }
@@ -92,8 +121,8 @@ const Login: React.FC = () => {
                     <h2 id="formTitle">
                         {step === "login" ? "Log In"
                             : step === "sendEmail" ? "Send Email"
-                            : step === "verifyOtp" ? "Verify OTP"
-                            : "Reset Password"}
+                                : step === "verifyOtp" ? "Verify OTP"
+                                    : "Reset Password"}
                     </h2>
                 </div>
                 <form
@@ -102,29 +131,30 @@ const Login: React.FC = () => {
                     aria-describedby="form-description"
                     onSubmit={
                         step === "login" ? handleLogin :
-                        step === "sendEmail" ? handleSendEmail :
-                        step === "verifyOtp" ? handleVerifyOtp :
-                        step === "resetPassword" ? handleBackToLogin :
-                        undefined
+                            step === "sendEmail" ? handleSendEmail :
+                                step === "verifyOtp" ? handleVerifyOtp :
+                                    step === "resetPassword" ? handleBackToLogin :
+                                        undefined
                     }
                 >
                     {step === "login" && (
                         <>
+
                             <TextField
                                 label="Email"
                                 type="email"
                                 id="name"
                                 required={true}
                                 autoComplete="email"
-                                value={name}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                                value={email}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                             />
                             <div className={styles.passwordField}>
-                                <PasswordField 
-                                id="password" 
-                                label="Password"
-                                value={password}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                                <PasswordField
+                                    id="password"
+                                    label="Password"
+                                    value={password}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                                 />
                             </div>
                             <button type="submit" aria-describedby="submit-description">
@@ -145,6 +175,7 @@ const Login: React.FC = () => {
                                     </button>
                                 </div>
                             </div>
+
                         </>
                     )}
                     {step === "sendEmail" && (
@@ -167,7 +198,7 @@ const Login: React.FC = () => {
                     {step === "verifyOtp" && (
                         <>
                             <TextField
-                                label={error ? error : "Verify Your OTP" }
+                                label={error ? error : "Verify Your OTP"}
                                 type="text"
                                 id="otp"
                                 required={true}

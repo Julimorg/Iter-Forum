@@ -11,6 +11,7 @@ import replyFilled from '../../assets/comment.png';
 import backIcon from '../../assets/back_arrow.png';
 import Trending from '../../assets/trending.png';
 import Bell from '../../assets/bell.png';
+import sendIcon from '../../assets/send.png';
 
 interface PostState {
   user: string;
@@ -33,8 +34,29 @@ const PostDetail: React.FC = () => {
   const [liked, setLiked] = useState<boolean>(false);
   const [disliked, setDisliked] = useState<boolean>(false);
   
+  const tagContent = {
+    ReactJS: "Learn about ReactJS, the powerful JavaScript library for building user interfaces.",
+    JavaScript: "Discover the versatility of JavaScript, the language of the web.",
+    "Web Development": "Explore the world of web development and modern technologies.",
+  };
+
   // Thêm state để kiểm soát hiển thị tag
   const [showTags, setShowTags] = useState<boolean>(true);
+
+  const [tagStatus, setTagStatus] = useState<Record<string, boolean>>({
+    "ReactJS": false, // false: "Subscribe", true: "Subscribed"
+    "JavaScript": false, // Đặt trạng thái ban đầu cho mỗi tag
+    "Web Development": true,
+  });
+  
+
+  const handleSubscribeToggle = (tag: string) => {
+    setTagStatus((prevStatus) => ({
+      ...prevStatus,
+      [tag]: !prevStatus[tag], // Đảo ngược trạng thái của tag được chọn
+    }));
+  };
+  
 
   // Hàm xử lý khi ấn "Clear"
   const handleClearTags = () => {
@@ -234,8 +256,13 @@ const handlePostReply = (index: number) => {
 
   // Hàm quay lại trang home (nút Back)
   const handleBack = () => {
-    navigate("/home");
-  };
+    if (window.history.length > 1) {
+        navigate(-1); // Quay lại trang trước đó
+    } else {
+        navigate("/home"); // Điều hướng đến trang mặc định
+    }
+};
+
 
   if (!user || !caption) {
     return <div className={styles.error}>Error: Missing data for the post.</div>;
@@ -295,15 +322,19 @@ const handlePostReply = (index: number) => {
   
           {/* Phần bình luận */}
           <div className={styles.commentSection}>
-            <textarea
-              className={styles.commentInput}
-              placeholder="Write a comment..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-            />
-            <button className={styles.commentButton} onClick={handleAddComment}>
-              Post
-            </button>
+            <div className={styles.commentBox}>
+              <textarea
+                className={styles.commentInput}
+                placeholder="Write a comment..."
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+              />
+              <button className={styles.circularButton} onClick={handleAddComment}>
+                <img src={sendIcon} alt="Send" />
+              </button>
+
+            </div>
+
   
             {/* Danh sách bình luận */}
             <div className={styles.commentList}>
@@ -331,18 +362,20 @@ const handlePostReply = (index: number) => {
   
                   {/* Khu vực nhập reply */}
                   {item.replied && (
-                    <div className={styles.replySection}>
+                    <div className={styles.commentBox}>
                       <textarea
                         className={styles.replyInput}
                         placeholder="Write a reply..."
                         value={item.replyText || ''}
                         onChange={(e) => handleReplyInputChange(index, e.target.value)}
                       />
-                      <button className={styles.replyButton} onClick={() => handlePostReply(index)}>
-                        Reply
+                      <button className={styles.circularButton} onClick={() => handlePostReply(index)}>
+                        <img src={sendIcon} alt="Send Reply" />
                       </button>
+
                     </div>
                   )}
+
   
                   {/* Hiển thị các reply */}
                   <div className={styles.replyList}>
@@ -363,7 +396,11 @@ const handlePostReply = (index: number) => {
         </div> {/* Kết thúc div .postContent */}
       </div> {/* Kết thúc div .container */}
   
-      {/* Chỉ hiển thị nếu showTags === true */}
+
+      {/* Phần Tag Section
+      
+      Chỉ hiển thị nếu showTags === true 
+      
       {showTags && (
         <div className={styles.tagSection}>
           <div className={styles.tagHeader}>
@@ -371,30 +408,47 @@ const handlePostReply = (index: number) => {
             <button className={styles.clearTags} onClick={handleClearTags}>Clear</button>
           </div>
 
-          <div className={styles.tagItem}>
-            <div className={styles.tagInfo}>
-              <span className={styles.tagName}>Sharing</span>
-              <span className={styles.trending}><img src={Trending} alt='Trending'/> Trending</span>
-              <button className={styles.subscribeButton}>Subscribe</button>
-            </div>
-            <span className={styles.tagPosts}>14,045 POSTS</span>
-            <p className={styles.tagDescription}>Share your knowledge for everyone!</p>
-          </div>
+          {Object.entries(tagStatus).map(([tag, status]) => (
+            <div className={styles.tagItem} key={tag}>
+              <div className={styles.tagInfo}>
+                <span className={styles.tagName}>{tag}</span>
+                {status ? (
+                  <button
+                    className={styles.subscribedButton}
+                    onClick={() => handleSubscribeToggle(tag)}
+                  >
+                    <img src={Bell} alt="Bell" />
+                    Subscribed
+                  </button>
+                ) : (
+                  <button
+                    className={styles.subscribeButton}
+                    onClick={() => handleSubscribeToggle(tag)}
+                  >
+                    Subscribe
+                  </button>
+                )}
+              </div>
+              <span className={styles.tagPosts}>{"14,045 POSTS"}</span>
+              <p className={styles.tagDescription}>{tagContent[tag as keyof typeof tagContent]}</p>
+            */}
 
-          <div className={styles.tagItem}>
-            <div className={styles.tagInfo}>
-              <span className={styles.tagName}>Working Experience</span>
-              <button className={styles.subscribedButton}>
-                <img src={Bell} alt="Bell" />
-                Subscribed
+              {/* Nút điều hướng đến chi tiết tag 
+              <button
+                className={styles.viewTagDetail}
+                onClick={() => navigate(`/home/tag/${encodeURIComponent(tag)}`)}
+              >
+                View in tag detail
               </button>
+
+
             </div>
-            <span className={styles.tagPosts}>2,345 POSTS</span>
-            <p className={styles.tagDescription}>Have something to share with new comers?</p>
-          </div>
+          ))}
+
+
         </div>
       )}
-
+              */}
     </div>
   );
   
