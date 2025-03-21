@@ -9,6 +9,9 @@ import CreatePost from "../pages/CreatePost_Page/CreatePost";
 import Popular from "../pages/Popular/Popular";
 import Explore from "../pages/Explore_Page/Explore";
 import PostDetail from "../pages/Post_Detail/post_detail";
+import TagDetail from "../pages/Tag_Detail/tag_detail";
+import AllSubscribedTags from "../pages/All_Subscribed_Tags/all_subcribed_tags";
+
 // Config react-toastify
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -46,8 +49,7 @@ function App() {
           <Route path="/sign-up" element={<SignUp />} />
         </Route>
 
-        {/* Authorize routes */}
-        <Route element={<AuthorizedRoute />}>
+        {/* <Route element={<AuthorizedRoute />}> */}
           {/* Nested Routes in Home */}
           <Route path="/home" element={<Home />}>
             <Route path="profile" element={<UserProfile />} />
@@ -55,8 +57,10 @@ function App() {
             <Route path="popular" element={<Popular />} />
             <Route path="explore" element={<Explore />} />
             <Route path="post-detail" element={<PostDetail />} />
+            <Route path="/home/tag/:tagName" element={<TagDetail />} />
+            <Route path="all-subscribed-tags" element={<AllSubscribedTags />} />
             <Route path="user" element={<ViewUser />} />
-          </Route>
+          {/* </Route> */}
         </Route>
       </Routes >
       <ToastContainer position="bottom-left" theme="colored" />

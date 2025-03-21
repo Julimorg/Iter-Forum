@@ -6,30 +6,23 @@ import like from '../../assets/like.png';
 import comment from '../../assets/comment.png';
 import dislikeFilled from '../../assets/dislike_filled.png';
 import likeFilled from '../../assets/like_filled.png';
-import hideIcon from '../../assets/hide.png';
-import reportIcon from '../../assets/report.png';
-import saveIcon from '../../assets/save_post.png';
-import seeMoreIcon from '../../assets/see_more.png';
-import seeLessIcon from '../../assets/see_less.png';
-import hideUserIcon from '../../assets/hide_all.png';
-import blockUserIcon from '../../assets/block.png';
 import TagPost from '../../components/Tag_Post/Tag_post';
 import Trending from '../../assets/trending.png';
+import ReportPopup from '../Report_Popup/Report_popup';
 
 // Sử dụng transient prop "$isHidden" để không truyền xuống DOM
-const PostCardContainer = styled.div<{ $isHidden: boolean }>`
+const PostCardContainer = styled.div`
   width: 100%;
-  margin: ${({ $isHidden }) => ($isHidden ? '0' : '16px auto')};
+  margin: 16px auto;
   border: 1px solid #ccc;
   border-radius: 8px;
-  padding: ${({ $isHidden }) => ($isHidden ? '0' : '16px')};
+  padding: 16px;
   background-color: #fff;
   overflow: hidden;
   /* Hiệu ứng chuyển đổi cho opacity, margin và height */
   transition: opacity 0.5s ease, margin 0.5s ease, height 0.5s ease, padding 0.5s ease;
-  opacity: ${({ $isHidden }) => ($isHidden ? '0' : '1')};
-  height: ${({ $isHidden }) => ($isHidden ? '0' : 'auto')};
-  pointer-events: ${({ $isHidden }) => ($isHidden ? 'none' : 'auto')};
+  height: auto;
+  pointer-events: auto;
 `;
 
 const Header = styled.div`
@@ -162,33 +155,19 @@ const Postcard: React.FC<PostcardProps> = ({
   comments,
   tags,
   isTrending,
-  onRemove,
 }) => {
   const [currentLikes, setCurrentLikes] = useState<number>(likes);
   const [currentDislikes, setCurrentDislikes] = useState<number>(dislikes);
   const [liked, setLiked] = useState<boolean>(false);
   const [disliked, setDisliked] = useState<boolean>(false);
   const [popupVisible, setPopupVisible] = useState<boolean>(false);
-  const [isHidden, setIsHidden] = useState<boolean>(false);
 
   const navigate = useNavigate();
   const popupRef = useRef<HTMLDivElement>(null);
 
   const togglePopup = () => setPopupVisible(!popupVisible);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-        setPopupVisible(false);
-      }
-    };
-    if (popupVisible) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [popupVisible]);
+
 
   const handleLike = () => {
     setLiked((prev) => !prev);
@@ -209,21 +188,13 @@ const Postcard: React.FC<PostcardProps> = ({
   };
 
   const handleCommentClick = () => {
-    // Điều hướng sang trang chi tiết bài đăng và truyền state
     navigate('/home/post-detail', {
       state: { user, caption, likes: currentLikes, dislikes: currentDislikes, tags, comments },
     });
   };
 
-  const handleHidePost = () => {
-    setIsHidden(true);
-    setTimeout(() => {
-      onRemove();
-    }, 500);
-  };
-
   return (
-    <PostCardContainer $isHidden={isHidden}>
+    <PostCardContainer>
       <Header>
         <ProfilePic />
         <Name>
@@ -232,45 +203,16 @@ const Postcard: React.FC<PostcardProps> = ({
         <DotsContainer>
           <DotsButton onClick={togglePopup}>⋮</DotsButton>
           {popupVisible && (
-            <Popup ref={popupRef}>
-              <PopupButton>
-                <img src={saveIcon} alt="Save Post" />
-                Save this post
-              </PopupButton>
-              <PopupButton>
-                <img src={seeMoreIcon} alt="See More Posts Like This" />
-                See more posts like this
-              </PopupButton>
-              <PopupButton>
-                <img src={seeLessIcon} alt="See Less Posts Like This" />
-                See less posts like this
-              </PopupButton>
-              <PopupButton onClick={handleHidePost}>
-                <img src={hideIcon} alt="Hide Post" />
-                Hide this post
-              </PopupButton>
-              <PopupButton>
-                <img src={hideUserIcon} alt="Hide All Posts from This User" />
-                Hide all posts from this user
-              </PopupButton>
-              <PopupButton>
-                <img src={blockUserIcon} alt="Block This User" />
-                Block this user
-              </PopupButton>
-              <PopupButton style={{ color: 'red' }}>
-                <img src={reportIcon} alt="Report Post" />
-                Report this post
-              </PopupButton>
-            </Popup>
+            <div ref={popupRef}>
+              <ReportPopup type='post' />
+            </div>
           )}
         </DotsContainer>
       </Header>
       <Caption>{caption}</Caption>
       <PostTags>
-        
         {tags.map((tag, index) => (
           <TagPost key={index} tag={tag} />
-          
         ))}
         {isTrending && (
           <div style={{ color: 'orange', display: 'flex', alignItems: 'center' }}>
@@ -278,7 +220,7 @@ const Postcard: React.FC<PostcardProps> = ({
             Trending
           </div>
         )}
-    </PostTags>
+      </PostTags>
 
       <ImagePlaceholder />
       <Interactions>
