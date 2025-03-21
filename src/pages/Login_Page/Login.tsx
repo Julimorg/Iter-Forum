@@ -165,7 +165,7 @@ const Login: React.FC = () => {
                                     <p>New to IT-er?</p>
                                     <Link to="/sign-up">Sign-Up</Link>
                                 </div>
-                                <div className={styles.forgotPassword}>
+                                {/* <div className={styles.forgotPassword}>
                                     <button
                                         type="button"
                                         onClick={handleForgotPassword}
@@ -173,7 +173,7 @@ const Login: React.FC = () => {
                                     >
                                         Forgot Password?
                                     </button>
-                                </div>
+                                </div> */}
                             </div>
 
                         </>

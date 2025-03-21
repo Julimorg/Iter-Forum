@@ -64,7 +64,8 @@ const SignUp: React.FC = () => {
         }
 
         if (isValid) {
-            setIsVerify(true);
+            // setIsVerify(true);
+            alert("Verify Password");
         }
     };
 

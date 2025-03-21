@@ -58,6 +58,7 @@ const Home = () => {
   const [showRecentPosts, setShowRecentPosts] = useState<boolean>(true);
   const [user, setUser] = useState<string | null>("");
 
+
   useEffect(() => {
     const fetchData = async () => {
       const res = await authorizedAxiosInstance.get(`${Login_API}/v1/dashboards/access`);
@@ -75,7 +76,14 @@ const Home = () => {
     }
     fetchData();
   }, []);
-
+  //? Fetch Posts data API
+  // useEffect(() => {
+  //   const fetchPosts = async () => {
+  //     const res = await authorizedAxiosInstance.get(`http://localhost:3000/posts`);
+  //     // setPosts(res.data);
+  //   };
+  //   fetchPosts();
+  // })
   const handleLogOut = async () => {
     // Trường hợp 1: Xóa localstorage User ở FE
     // localStorage.removeItem('accessToken');
