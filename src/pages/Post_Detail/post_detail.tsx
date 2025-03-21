@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './post_detail.module.css';
 import like from '../../assets/like.png';
@@ -12,6 +12,7 @@ import backIcon from '../../assets/back_arrow.png';
 import Trending from '../../assets/trending.png';
 import Bell from '../../assets/bell.png';
 import sendIcon from '../../assets/send.png';
+import ReportPopup from '../../components/Report_Popup/Report_popup';
 
 interface PostState {
   user: string;
@@ -33,6 +34,44 @@ const PostDetail: React.FC = () => {
   const [currentDislikes, setCurrentDislikes] = useState<number>(dislikes || 0);  
   const [liked, setLiked] = useState<boolean>(false);
   const [disliked, setDisliked] = useState<boolean>(false);
+
+  const [showPopup, setShowPopup] = useState<boolean>(false);
+
+  const [activeCommentIndex, setActiveCommentIndex] = useState<number | null>(null);
+
+
+
+  const popupRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      // Kiểm tra popup của bài post
+      if (
+        popupRefs.current[0] && // Đảm bảo popup bài đăng có ref
+        !popupRefs.current[0]?.contains(event.target as Node)
+      ) {
+        setShowPopup(false); // Đóng popup của bài đăng
+      }
+  
+      // Kiểm tra popup của bình luận
+      if (
+        activeCommentIndex !== null &&
+        popupRefs.current[activeCommentIndex] &&
+        !popupRefs.current[activeCommentIndex]?.contains(event.target as Node)
+      ) {
+        setActiveCommentIndex(null); // Đóng popup của bình luận
+      }
+    };
+  
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [activeCommentIndex, popupRefs]);
+  
+  
+
   
   const tagContent = {
     ReactJS: "Learn about ReactJS, the powerful JavaScript library for building user interfaces.",
@@ -281,9 +320,22 @@ const handlePostReply = (index: number) => {
         <div className={styles.postContent}>
           {/* Nội dung bài post */}
           <div className={styles.header}>
-            <div className={styles.profilePic}></div>
-            <div className={styles.name}>{user}</div>
+            <div className={styles.userInfo}>
+              <div className={styles.profilePic}></div>
+              <div className={styles.name}>{user}</div>
+            </div>
+            <div className={styles.dotsContainer}>
+              <button className={styles.dotsButton} onClick={() => setShowPopup(!showPopup)}>⋮</button>
+              {showPopup && (
+                <div ref={(el) => { popupRefs.current[0] = el; }}>
+                  <ReportPopup type='post'/>
+                </div>
+              )}
+            </div>
           </div>
+
+
+
           <div className={styles.caption}>{caption}</div>
   
           {isTrending && (
@@ -341,9 +393,29 @@ const handlePostReply = (index: number) => {
               {comments.map((item, index) => (
                 <div key={index} className={styles.commentItem}>
                   <div className={styles.commentHeader}>
-                    <div className={styles.commentAvatar}></div>
-                    <span className={styles.commentUsername}>User</span>
+                    <div className={styles.userInfo}>
+                      <div className={styles.commentAvatar}></div>
+                      <span className={styles.commentUsername}>User</span>
+                    </div>
+                    <div className={styles.dotsContainer}>
+                      <button
+                        className={styles.dotsButton}
+                        onClick={() => setActiveCommentIndex(index)}
+                      >
+                        ⋮
+                      </button>
+                      {activeCommentIndex === index && (
+                        <div
+                          ref={(el) => {
+                            popupRefs.current[index] = el;
+                          }}
+                        >
+                          <ReportPopup type='comment'/>
+                        </div>
+                      )}
+                    </div>
                   </div>
+
                   <div className={styles.commentText}>{item.text}</div>
                   <div className={styles.commentActions}>
                     <button className={styles.commentActionButton} onClick={() => handleCommentLike(index)}>
@@ -372,7 +444,6 @@ const handlePostReply = (index: number) => {
                       <button className={styles.circularButton} onClick={() => handlePostReply(index)}>
                         <img src={sendIcon} alt="Send Reply" />
                       </button>
-
                     </div>
                   )}
 

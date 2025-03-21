@@ -1,15 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Home from '../../assets/home.png';
 import Popular from '../../assets/popular.png';
 import Explore from '../../assets/explore.png';
 import styles from './Sidebar.module.css'; // Import CSS module
+import ExpandIcon  from '../../assets/expand.png';
+import CollapseIcon from '../../assets/collapse.png';
 
 const Sidebar: React.FC = () => {
   // Function to scroll to the top
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const [showAllTags, setShowAllTags] = useState<boolean>(false);
+
+  const subscribedTags = [
+    { name: 'JavaScript' },
+    { name: 'ReactJS' },
+    { name: 'CSS' },
+    { name: 'NodeJS' },
+    { name: 'Python' },
+    { name: 'Machine Learning' },
+    { name: 'Data Science' },
+    { name: 'Gaming' },
+    { name: 'AI' },
+    { name: 'Web Development' },
+  ];
+  
 
   return (
     <div className={styles.sidebar}>
@@ -39,43 +57,46 @@ const Sidebar: React.FC = () => {
 
       {/* Subscribed tags */}
       <div>
-        {/* Subscribed tags */}
         <div>
           <h3 className={styles.subscribedTagsHeader}>SUBSCRIBED TAGS</h3>
           <ul className={styles.tagList}>
+            {(showAllTags ? subscribedTags : subscribedTags.slice(0, 3)).map((tag, index) => (
+              <li key={index} className={styles.tagItem}>
+                <Link
+                  to={`/home/tag/${encodeURIComponent(tag.name)}`}
+                  className={styles.tagLink}
+                >
+                  <span className={styles.tagName}>{tag.name}</span>
+                </Link>
+              </li>
+            ))}
 
-            <li className={styles.tagItem}>
-              <Link to={`/home/tag/${encodeURIComponent('Web Development')}`} className={styles.tagLink}>
-                <span className={styles.tagName}>Web Development</span>
-                <span className={styles.newPosts}>5 NEW POSTS</span>
-              </Link>
-            </li>
+          {/* Nút "Show All" hoặc "Collapse" */}
+          {/* Nút "Show All" hoặc "Collapse" */}
+            {subscribedTags.length > 3 && (
+              <li className={styles.tagItem}>
+                <button
+                  className={`${styles.tagLink} ${styles.tagItemButton}`}
+                  onClick={() => setShowAllTags(!showAllTags)}
+                >
+                  <span className={styles.tagName}>
+                    <img 
+                      src={showAllTags ? CollapseIcon : ExpandIcon} 
+                      alt={showAllTags ? 'Collapse' : 'Expand'} 
+                      className={styles.tagIcon} 
+                    />
+                    {showAllTags ? 'Collapse' : 'Show All'}
+                  </span>
 
-            <li className={styles.tagItem}>
-              <Link to={`/home/tag/${encodeURIComponent('JavaScript')}`} className={styles.tagLink}>
-                <span className={styles.tagName}>JavaScript</span>
-                <span className={styles.newPosts}>16 NEW POSTS</span>
-              </Link>
-            </li>
+                </button>
+              </li>
+            )}
 
-            <li className={styles.tagItem}>
-              <Link to={`/home/tag/${encodeURIComponent('ReactJS')}`} className={styles.tagLink}>
-                <span className={styles.tagName}>ReactJS</span>
-                <span className={styles.newPosts}>1 NEW POST</span>
-              </Link>
-            </li>
-
-            {/* All Subscribed Tags */}
-            <li className={styles.tagItem}>
-              <Link to={`/home/all-subscribed-tags`} className={styles.tagLink}>
-                <span className={styles.tagName}>All Subscribed tags</span>
-              </Link>
-            </li>
+            
           </ul>
+
+          
         </div>
-
-
-
       </div>
 
       {/* About Us */}

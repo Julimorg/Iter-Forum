@@ -15,6 +15,14 @@ const Tag_Detail: React.FC = () => {
         ReactJS: "Learn about ReactJS, the powerful JavaScript library for building user interfaces.",
         JavaScript: "Discover the versatility of JavaScript, the language of the web.",
         "Web Development": "Explore the world of web development and modern technologies.",
+        CSS: "Master the art of styling with Cascading Style Sheets.",
+        NodeJS: "Build server-side applications with NodeJS.",
+        Python: "Explore Python, a versatile programming language for all needs.",
+        "Machine Learning": "Discover the future with Machine Learning techniques.",
+        "Data Science": "Analyze data effectively with Data Science skills.",
+        Gaming: "Stay updated with the latest trends in Gaming.",
+        AI: "Understand the power of Artificial Intelligence.",
+        WebDevelopment: "Create modern websites with Web Development tools.",
     };
 
     const handleBack = () => {

@@ -82,7 +82,9 @@
     border-radius: 4px; /* Bo góc */
     padding: 4px 8px; /* Khoảng cách bên trong */
     transition: background-color 0.3s; /* Hiệu ứng mượt khi hover */
-    display: inline-block; /* Đảm bảo không bị gạch dưới */
+    display: flex; 
+    align-items: center;
+    gap: 8px; /* Khoảng cách giữa icon và text */
   }
   
   
@@ -131,7 +133,7 @@
   }
   
   /* Subscribed Tags Header */
-.subscribedTagsHeader {
+.subscribedTagsHeader{
     font-size: 14px;
     color: #6c757d;
     margin-bottom: 10px;
@@ -145,11 +147,11 @@
   
   /* Each tag container */
   .tagItem {
-    margin-bottom: 15px; /* Tăng khoảng cách giữa các tag */
+    margin-bottom: 5px; /* Tăng khoảng cách giữa các tag */
   }
   
   /* Style for tag name */
-  .tagName {
+  .tagName .tagItemButton{
     font-weight: bold;
     font-size: 16px;
     color: #000; /* Màu đen */
@@ -199,4 +201,35 @@
     background-color: #e9ecef;
   }
   
-  
+  /* Gói tất cả tag */
+.tagList {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  overflow: hidden; /* Ẩn nội dung vượt quá nếu không nhấn Show All */
+}
+
+.tagList.expanded {
+  overflow: visible; /* Hiển thị đầy đủ khi mở rộng */
+}
+
+.tagItemButton {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: left;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.tagIcon {
+  width: 24px; /* Điều chỉnh chiều rộng icon */
+  height: 24px; /* Điều chỉnh chiều cao icon */
+  object-fit: contain; /* Đảm bảo icon giữ tỷ lệ gốc */
+}
+
+

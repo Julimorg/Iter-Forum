@@ -39,8 +39,11 @@ const PopupButton = styled.button`
     border-bottom: none;
   }
 `;
+interface ReportPopupProps {
+  type: string; // Prop cho nội dung động
+}
 
-const ReportPopup: React.FC = () => {
+const ReportPopup: React.FC<ReportPopupProps> = ({ type }) => {
   const [showReportPanel, setShowReportPanel] = useState<boolean>(false);
 
   const handleOpenReportPanel = () => {
@@ -59,13 +62,13 @@ const ReportPopup: React.FC = () => {
           Block this user
         </PopupButton>
         <PopupButton style={{ color: 'red' }} onClick={handleOpenReportPanel}>
-          <img src={reportIcon} alt="Report Post" />
-          Report this post
+          <img src={reportIcon} alt="Report" />
+          Report this {type}
         </PopupButton>
       </Popup>
 
       {/* Hiển thị ReportPanel nếu cần */}
-      {showReportPanel && <ReportPanel onClose={handleCloseReportPanel} />}
+      {showReportPanel && <ReportPanel onClose={handleCloseReportPanel} type={type} />}
     </>
   );
 };

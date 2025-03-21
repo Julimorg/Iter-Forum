@@ -202,7 +202,7 @@ const Postcard: React.FC<PostcardProps> = ({
           <DotsButton onClick={togglePopup}>⋮</DotsButton>
           {popupVisible && (
             <div ref={popupRef}>
-              <ReportPopup />
+              <ReportPopup type='post' />
             </div>
           )}
         </DotsContainer>
