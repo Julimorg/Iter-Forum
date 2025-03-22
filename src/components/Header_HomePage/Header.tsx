@@ -7,6 +7,7 @@ import IconButton from '../RoundButtonIcon/RoundButtonIcon';
 import { FaBell, FaPlus } from 'react-icons/fa';
 import ButtonIconLeft from '../ButtonIconLeft/ButtonIconLeft';
 import styled from "styled-components";
+import NotificationElements from '../Notification_Elements/NotificationElements';
 // ? API HANDLER LOGIC ONLY
 
 
@@ -14,29 +15,51 @@ import styled from "styled-components";
 function NotiModel({ isOpen }: { isOpen: boolean }) {
     return (
         <>
-        <StyleWrapper>
-            <div className={isOpen ? `notiModel show` : `notiModel hide`}>
-
-            </div>
-        </StyleWrapper>
+            <StyleWrapper>
+                <div className={isOpen ? `notiModel show` : `notiModel hide`}>
+                    <div className="NoticationPopUps">
+                        <NotificationElements
+                            imgSrc={fakeAvatar}
+                            title='Fong'
+                            content='hdqwdqwdqdqdiqwdqwdqdqwdqwdqdqwdqwdqd'
+                            time='1 minutes ago'
+                            onClick={() => { alert("Hello") }}
+                        />
+                        <NotificationElements
+                            imgSrc={fakeAvatar}
+                            title='Fong'
+                            content='hdqwdqwdqdqdiqwdqwdqdqwdqwdqdqwdqwdqd'
+                            time='1 minutes ago'
+                            onClick={() => { alert("Hello") }}
+                        />
+                        <NotificationElements
+                            imgSrc={fakeAvatar}
+                            title='Fong'
+                            content='hdqwdqwdqdqdiqwdqwdqdqwdqwdqdqwdqwdqd'
+                            time='1 minutes ago'
+                            onClick={() => { alert("Hello") }}
+                        />
+                    </div>
+                </div>
+            </StyleWrapper>
         </>
     );
 }
 function UserModel({ isOpen }: { isOpen: boolean }) {
     return (
         <>
-        <StyleWrapper>
-            <div className={isOpen ? `userModel show` : `userModel hide`}>
-                <div className="userModelContent">
-                    <div className="userProfile">
-                        <button className='userBtn'>
-                            <Link to="profile">User Profile</Link>
-                        </button>
-                        <div className="span"/>
+            <StyleWrapper>
+                <div className={isOpen ? `userModel show` : `userModel hide`}>
+                    <div className="userModelContent">
+                        <div className="userProfile">
+                            <button className='userBtn'>
+                                <Link to="profile">User Profile</Link>
+                            </button>
+                            <div className="span" />
+                        </div>
                     </div>
                 </div>
-            </div>
-        </StyleWrapper>
+            </StyleWrapper>
         </>
     )
 }
@@ -82,7 +105,7 @@ const Header = () => {
                 <div className="headerSelectionButton">
                     {/* Create Post Button */}
                     <div className="createPostBtn">
-                        <ButtonIconLeft Icon={FaPlus} size={20} color="#333" title={<Link to = "create-post">Create Post</Link>}/>
+                        <ButtonIconLeft Icon={FaPlus} size={20} color="#333" title={<Link to="create-post">Create Post</Link>} />
                     </div>
                     {/* Icon Button */}
                     <div className="notificationContainer" ref={notiRef}>
@@ -154,7 +177,7 @@ const StyleWrapper = styled.div`
     top: 4rem;
     right: -3rem;
     z-index: 100;
-    width: 20rem;
+    width: 25rem;
     height: 16rem;
     border-radius: 30px;
     box-shadow: rgba(0, 0, 0, 0.3) 4px 9px 27px 7px;
@@ -163,6 +186,31 @@ const StyleWrapper = styled.div`
     transform: translateY(-10px);
     transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
     pointer-events: none; 
+}
+.NoticationPopUps{
+    margin-top: 1rem;
+    overflow-y: auto;
+    width: 24.5rem;
+    height: 14.5rem;
+}
+.NoticationPopUps::-webkit-scrollbar {
+    height: 2px; 
+    width:5px;
+}
+
+.NoticationPopUps::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.NoticationPopUps::-webkit-scrollbar-thumb {
+    background: #888; 
+    border-radius: 10px;
+    height: 2px;
+}
+
+.NoticationPopUps::-webkit-scrollbar-thumb:hover {
+    background: #555; 
 }
 .userModel{
     position: absolute;

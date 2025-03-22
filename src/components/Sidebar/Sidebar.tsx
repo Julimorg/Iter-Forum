@@ -7,7 +7,11 @@ import styles from './Sidebar.module.css'; // Import CSS module
 import ExpandIcon  from '../../assets/expand.png';
 import CollapseIcon from '../../assets/collapse.png';
 
-const Sidebar: React.FC = () => {
+interface SiderbarProps{
+  onSignOutClick?: () => void;
+}
+const Sidebar: React.FC<SiderbarProps>= ({onSignOutClick}) => {
+
   // Function to scroll to the top
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -130,9 +134,9 @@ const Sidebar: React.FC = () => {
         <div>
           <ul className={styles.tagList}>
             <li>
-              <Link to="/logout" className={styles.logoutLink}>
+              <button onClick={onSignOutClick} className={styles.logoutLink}>
                 <i className="fas fa-sign-out-alt"></i> Log out
-              </Link>
+              </button>
             </li>
           </ul>
         </div>

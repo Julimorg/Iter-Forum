@@ -5,15 +5,12 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 interface PasswordFieldProps {
   id: string;
   label: string;
+  value?: string; 
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; 
 }
 
-const PasswordField: React.FC<PasswordFieldProps> = ({ id, label }) => {
+const PasswordField: React.FC<PasswordFieldProps> = ({ id, label,value, onChange }) => {
   const [showPassword, setShowPassword] = useState(false);
-  const [value, setValue] = useState("");
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(event.target.value);
-  };
 
   return (
     <div className={styles.formGroup}>
@@ -22,8 +19,8 @@ const PasswordField: React.FC<PasswordFieldProps> = ({ id, label }) => {
         <input
           type={showPassword ? "text" : "password"}
           id={id}
-          value={value}
-          onChange={handleChange}
+          value={value || ""}
+          onChange={onChange }
           required
           aria-required="true"
           aria-describedby={`${id}-description ${id}-requirements ${id}-error`}
