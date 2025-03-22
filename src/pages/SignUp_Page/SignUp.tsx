@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from './signup.module.css';
 import TextField from '../../components/TextField_LoginSignUp/Textfield';
 import PasswordField from '../../components/Password_TextField/PasswordField';
 import InputNum from '../../components/TextFieldOnlyNumber/TextField-NumberOnly';
+import { API_BE } from '../../config/configApi';
+import authorizedAxiosInstance from '../../services/Auth';
+import axios, { AxiosError } from 'axios';
+
+
 
 const SignUp: React.FC = () => {
+    const navigate = useNavigate();
     const [isVerify, setIsVerify] = useState<boolean>(false);
-    const [name, setName] = useState<string>("");
+    const [user_name, setName] = useState<string>("");
     const [email, setEmail] = useState<string>("");
     const [age, setAge] = useState<number>(0);
     const [password, setPassword] = useState<string>("");
@@ -21,7 +27,14 @@ const SignUp: React.FC = () => {
     const emailPattern: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const passwordPattern: RegExp = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
 
-    const handleSignUp = (e: React.FormEvent<HTMLFormElement>): void => {
+    interface SignUpData {
+        user_name: string;
+        email: string;
+        age: number;
+        password: string;
+    }
+    
+    const handleSignUp = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
         e.preventDefault();
         let isValid = true;
 
@@ -64,8 +77,19 @@ const SignUp: React.FC = () => {
         }
 
         if (isValid) {
-            // setIsVerify(true);
-            alert("Verify Password");
+            try {
+                const signUpData: SignUpData = {
+                    user_name,
+                    email,
+                    age,
+                    password
+                };
+                
+                await submitSignUp(signUpData);
+                setIsVerify(true); // Move to verification step
+            } catch (error) {
+                alert(error.message || 'Signup failed. Please try again.');
+            }
         }
     };
 
@@ -77,6 +101,45 @@ const SignUp: React.FC = () => {
         }
         alert("Email Verified Successfully!");
     };
+    
+    //? Hanlde Sign Up API
+    const submitSignUp = async (data: SignUpData): Promise<void> => {
+        try {
+            const response = await axios.post(
+                `${API_BE}/api/v1/auth/register`,
+                {
+                    user_name: data.user_name,
+                    email: data.email,
+                    age: data.age,
+                    password: data.password
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+    
+            console.log('Signup successful:', response.data);
+            navigate('/login');
+        } catch (error) {
+            const axiosError = error as AxiosError<{ message?: string }>;
+            console.error('Signup failed:', error);
+            // Handle specific error cases
+            if (axiosError.response) {
+                // The request was made and the server responded with a status code
+                // that falls out of the range of 2xx
+                throw new Error(axiosError.response.data.message || 'Signup failed');
+            } else if (axiosError.request) {
+                // The request was made but no response was received
+                throw new Error('No response from server');
+            } else {
+                // Something happened in setting up the request
+                throw new Error('Error setting up request');
+            }
+        }
+    };
+
 
     return (
         <div className={styles.containerBodySignUp}>
@@ -122,7 +185,7 @@ const SignUp: React.FC = () => {
                                     id="name"
                                     required={true}
                                     autoComplete="name"
-                                    value={name}
+                                    value={user_name}
                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                                 />
                                 <InputNum

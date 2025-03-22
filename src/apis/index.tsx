@@ -5,7 +5,7 @@ export const handleLogOutAPI = async () => {
     //? Trường hợp 1: Xóa localstorage User ở FE
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-    localStorage.removeItem('userInfo');
+    // localStorage.removeItem('userInfo');
     // //? Trường hợp 2:  Dùng Http OnlyCookies -> Gọi API xử lý remove Cookies
     // return await authorizedAxiosInstance.delete(`${Login_API}/v1/users/logout`);
 }

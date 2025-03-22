@@ -39,6 +39,8 @@ const Login: React.FC = () => {
             email: res.data.email
         }
         //? Lưu thông tin vào local storage
+        // localStorage.setItem("accessToken", res.data.accessToken);
+        // localStorage.setItem("refreshToken", res.data.refreshToken);
         localStorage.setItem("accessToken", res.data.data.access_token);
         localStorage.setItem("refreshToken", res.data.data.refresh_token);
         // do userinfo là 1 kiểu Json Object nên nếu gán trực tiếp vào
