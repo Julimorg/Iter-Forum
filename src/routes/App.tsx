@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import Welcome from "../pages/Welcome_Page/Welcome";
@@ -16,7 +17,6 @@ import AllSubscribedTags from "../pages/All_Subscribed_Tags/all_subcribed_tags";
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import ViewUser from "../pages/ViewUser_Page/ViewUserProfile";
-
 
 //! TUYỆT ĐỐI KHÔNG ĐƯỢC ADD STYLE VÀO ĐÂY
 //! VÌ ĐÂY LÀ FILE ROUTES CHÍNH, NÓ CHỈ ĐỂ QUẢN LÝ CÁC ROUTES, KHÔNG ĐỂ QUẢN LÝ STYLE
@@ -44,13 +44,12 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<Welcome />} />
-         {/* Unauthorize routes */}
-         <Route element={<UnAuthorizedRoute />}>
+        {/* Unauthorize routes */}
+        <Route element={<UnAuthorizedRoute />}>
           <Route path="/login" element={<Login />} />
           <Route path="/sign-up" element={<SignUp />} />
         </Route>
 
-        {/* Authorize routes */}
         <Route element={<AuthorizedRoute />}>
           {/* Nested Routes in Home */}
           <Route path="/home" element={<Home />}>
@@ -59,9 +58,9 @@ function App() {
             <Route path="popular" element={<Popular />} />
             <Route path="explore" element={<Explore />} />
             <Route path="post-detail" element={<PostDetail />} />
-            <Route path="user" element={<ViewUser />} />
-            <Route path="/home/tag/:tagName" element={<TagDetail />} /> {/* Đường dẫn chung */}
+            <Route path="/home/tag/:tagName" element={<TagDetail />} />
             <Route path="all-subscribed-tags" element={<AllSubscribedTags />} />
+            <Route path="user" element={<ViewUser />} />
           </Route>
         </Route>
       </Routes >

@@ -5,11 +5,20 @@ import { FaUserPen, FaXmark } from 'react-icons/fa6';
 import IconButton from '../../components/RoundButtonIcon/RoundButtonIcon';
 
 import ButtonTextComponent from '../../components/ButtonTextOnly/ButtonText';
+import authorizedAxiosInstance from '../../services/Auth';
 
 
 
 const fakeAvatar: string = "https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e303b9f80d10d582.jpg";
-
+interface UserDetail {
+    user_id: number;
+    user_name: string;
+    user_email: string;
+    user_avatar: string;
+    status: string;
+    user_age: string;
+    user_phone: string;
+}
 const UserProfile = () => {
     const [profileEditModel, setProfileEditModel] = useState(false);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -19,7 +28,8 @@ const UserProfile = () => {
     const userPhoneRef = useRef<HTMLInputElement>(null);
     const userAgeRef = useRef<HTMLInputElement>(null);
     const [error, setError] = useState("");
-
+    const [fetchUser, setFetchUser] = useState<UserDetail | null>(null);
+    const [loading, setLoading] = useState(true);
     //? Handle Submit Form
     const handleSubmit = () => {
         const userName = userNameRef.current?.value || "";
@@ -58,6 +68,30 @@ const UserProfile = () => {
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         }
+    }, []);
+
+    //? Fetch API Users
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                setLoading(true);
+                const res = await authorizedAxiosInstance.get(`http://localhost:3000/users`);
+                console.log("API Response:", res.data); 
+                if (res.data) {
+                    setFetchUser(res.data); 
+                } else {
+                    console.error("Dữ liệu API không đúng định dạng", res.data);
+                    setFetchUser(null);
+                }
+            } catch (error) {
+                console.error("Lỗi khi fetch API:", error);
+                setError("Không thể tải thông tin người dùng");
+                setFetchUser(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchUsers();
     }, []);
 
     //? Handle input only 1 img to avatar
@@ -223,6 +257,12 @@ const UserProfile = () => {
         )
     }
     //** Main View */
+    if (loading) {
+        return <p>Loading...</p>;
+    }
+    if (!fetchUser) {
+        return <p>Không tìm thấy thông tin người dùng</p>;
+    }
     return (
         <>
             <div className={styles.profileContainer}>
@@ -232,18 +272,21 @@ const UserProfile = () => {
                         {/* User Basic info */}
                         <div className={styles.userProfileInformation}>
                             <div className={styles.userProfileImage}>
-                                <img src={fakeAvatar} alt="unknown" />
+                                <img
+                                    src={fetchUser.user_avatar || fakeAvatar} 
+                                    alt={fetchUser.user_name || "unknown"}
+                                />
                             </div>
                             <div className={styles.userProfileName}>
-                                <h1>User Name</h1>
-                                <p>Status: Active</p>
+                                <h1>{fetchUser.user_name}</h1>
+                                <p>Status: {fetchUser.status}</p>
                             </div>
                             <div className={styles.userProfileBio}>
                                 <div className={styles.userBasicInfo}>
                                     <h1>My information</h1>
-                                    <p>Email: kienphongtran2003@gmail.com</p>
-                                    <p>Phone: 0935459488</p>
-                                    <p>Age: 22</p>
+                                    <p>Email: {fetchUser.user_email}</p>
+                                    <p>Phone: {fetchUser.user_phone}</p>
+                                    <p>Age: {fetchUser.user_age}</p>
                                 </div>
                                 {/* Ovelay khi modal hiện lên */}
                                 {profileEditModel && <div className={styles.overlay} onClick={() => setProfileEditModel(false)}></div>}

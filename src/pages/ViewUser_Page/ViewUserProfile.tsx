@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./viewuserprofile.module.css";
+import authorizedAxiosInstance from "../../services/Auth";
 
 const fakeAvatar: string = "https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e303b9f80d10d582.jpg";
 const ViewUserProfile = () => {
     return (
         <>
-             <div className={styles.profileContainer}>
+            <div className={styles.profileContainer}>
                 <div className="userProfileBody">
                     {/* Header Profile */}
                     <div className="userProfileContact">
@@ -25,7 +26,7 @@ const ViewUserProfile = () => {
                                     <p>Phone: 0935459488</p>
                                     <p>Age: 22</p>
                                 </div>
-                       
+
                             </div>
                         </div>
                     </div>

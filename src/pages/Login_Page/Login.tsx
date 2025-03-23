@@ -5,7 +5,7 @@ import styles from './login.module.css';
 import TextField from '../../components/TextField_LoginSignUp/Textfield';
 import PasswordField from '../../components/Password_TextField/PasswordField';
 import authorizedAxiosInstance from '../../services/Auth';
-import { Login_API } from '../../config/configApi';
+import { API_BE, Login_API } from '../../config/configApi';
 
 // Định nghĩa type cho các bước
 type Step = "login" | "sendEmail" | "verifyOtp" | "resetPassword";
@@ -30,15 +30,19 @@ const Login: React.FC = () => {
     }
     const submitLogIn = async (data: LoginData): Promise<void> => {
         console.log("Submit login: ", data);
-        const res = await authorizedAxiosInstance.post(`${Login_API}/v1/users/login`, data);
+        // const res = await authorizedAxiosInstance.post(`${Login_API}/v1/users/login`, data);
+        const res = await authorizedAxiosInstance.post(`${API_BE}/api/v1/auth/login`, data);
+
         console.log(res.data);
         const userInfo = {
             id : res.data._id,
             email: res.data.email
         }
         //? Lưu thông tin vào local storage
-        localStorage.setItem("accessToken", res.data.accessToken);
-        localStorage.setItem("refreshToken", res.data.refreshToken);
+        // localStorage.setItem("accessToken", res.data.accessToken);
+        // localStorage.setItem("refreshToken", res.data.refreshToken);
+        localStorage.setItem("accessToken", res.data.data.access_token);
+        localStorage.setItem("refreshToken", res.data.data.refresh_token);
         // do userinfo là 1 kiểu Json Object nên nếu gán trực tiếp vào
         // thì browser không nhận diện được data mà chỉ là Object Object
         // --> Xử lý như việc fetch Api là dùng JSON.stringify để có thể
@@ -165,7 +169,7 @@ const Login: React.FC = () => {
                                     <p>New to IT-er?</p>
                                     <Link to="/sign-up">Sign-Up</Link>
                                 </div>
-                                <div className={styles.forgotPassword}>
+                                {/* <div className={styles.forgotPassword}>
                                     <button
                                         type="button"
                                         onClick={handleForgotPassword}
@@ -173,7 +177,7 @@ const Login: React.FC = () => {
                                     >
                                         Forgot Password?
                                     </button>
-                                </div>
+                                </div> */}
                             </div>
 
                         </>
