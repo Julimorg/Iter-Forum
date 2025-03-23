@@ -8,6 +8,7 @@ import ButtonTextComponent from "../../components/ButtonTextOnly/ButtonText";
 import authorizedAxiosInstance from "../../services/Auth";
 import { API_BE } from "../../config/configApi";
 import Postcard from "../../components/Post_Card/postcard";
+import axios from "axios";
 
 const fakeAvatar: string =
   "https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e303b9f80d10d582.jpg";
@@ -37,61 +38,24 @@ interface PostItem {
 interface PostsResponse {
   data: PostItem[];
 }
+
+interface UserProfile {
+  user_name?: string;
+  email?: string;
+  ava_img_path?: string | null;
+  phone_num?: string;
+  age?: number;
+}
 const UserProfile = () => {
   const [profileEditModel, setProfileEditModel] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const profileEditModelRef = useRef<HTMLDivElement>(null);
-  const userNameRef = useRef<HTMLInputElement>(null);
-  const userEmailRef = useRef<HTMLInputElement>(null);
-  const userPhoneRef = useRef<HTMLInputElement>(null);
-  const userAgeRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const [fetchUser, setFetchUser] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<PostItem[]>([]);
   const [showRecentPosts, setShowRecentPosts] = useState<boolean>(true);
-  //? Handle Submit Form
-  const handleSubmit = () => {
-    const userName = userNameRef.current?.value || "";
-    const userEmail = userEmailRef.current?.value || "";
-    const userAge = userAgeRef.current?.value || "";
 
-    if (userName.length > 20) {
-      setError("Tên không được quá 20 ký tự");
-      return;
-    }
-
-    if (!/^\S+@\S+\.\S+$/.test(userEmail)) {
-      setError("Email không hợp lệ");
-      return;
-    }
-
-    const age = Number(userAge);
-    if (age < 13 || age > 100) {
-      setError("Tuổi phải từ 13 đến 100");
-      return;
-    }
-
-    setError("");
-    alert("Thông tin hợp lệ!");
-  };
-
-  //? Hanlde Open User Profile Edit Modal
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        profileEditModelRef.current &&
-        !profileEditModelRef.current.contains(event.target as Node)
-      ) {
-        setProfileEditModel(false);
-        // console.log(profileEditModelRef.current);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  //* ===================== FUNCTION HANDLE API ===================== **//
 
   //? Fetch API Users
   useEffect(() => {
@@ -129,7 +93,7 @@ const UserProfile = () => {
         } else {
           setError(
             error.response?.data?.message ||
-              "Không thể tải thông tin người dùng"
+            "Không thể tải thông tin người dùng"
           );
         }
         setFetchUser(null);
@@ -192,22 +156,135 @@ const UserProfile = () => {
     fetchPosts();
   }, [fetchUser]);
 
-  //? Handle input only 1 img to avatar
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]; // --> Chỉ lấy 1 file duy nhất
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setSelectedImage(imageUrl);
-    }
-  };
-  const eventClickOpenFile = () => {
-    document.getElementById("avatarUpload")?.click();
-  };
-  const handleRemoveImage = () => {
-    setSelectedImage(null);
-  };
+  //* ===================== VIEW ===================== **//
+
   //? Handle Open User Profile Edit Modal
-  function UserProfileEditForm({ isOpen }: { isOpen: boolean }) {
+  function UserProfileEditForm({ isOpen, onClose }: { isOpen: boolean, onClose: () => void  }) {
+    const [error, setError] = useState<string | null>(null);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const userNameRef = useRef<HTMLInputElement>(null);
+    const userEmailRef = useRef<HTMLInputElement>(null);
+    const userPhoneRef = useRef<HTMLInputElement>(null);
+    const userAgeRef = useRef<HTMLInputElement>(null);
+    const accessToken = localStorage.getItem("accessToken");
+
+    //? Handle Edit Profile - Patch API
+    useEffect(() => {
+      const fetchAndUpdateProfile = async () => {
+        if (!isOpen || !accessToken) return;
+    
+        try {
+          // Fetch user data
+          const response = await authorizedAxiosInstance.get<ProfileResponse>(
+            `${API_BE}/api/v1/users/profile`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
+          const userData = response.data.data;
+          console.log('Fetched user data:', userData);
+    
+          if (userNameRef.current) userNameRef.current.value = userData.user_name || '';
+          if (userEmailRef.current) userEmailRef.current.value = userData.email || '';
+          if (userPhoneRef.current) userPhoneRef.current.value = userData.phone_num || '';
+          if (userAgeRef.current) userAgeRef.current.value = userData.age || '';
+          if (userData.ava_img_path) setSelectedImage(userData.ava_img_path);
+    
+          if (isSubmitting) {
+            const userName = userNameRef.current?.value || '';
+            const email = userEmailRef.current?.value || '';
+            const phoneNum = userPhoneRef.current?.value || '';
+            const age = userAgeRef.current?.value ? parseInt(userAgeRef.current.value) : undefined;
+    
+            if (userName && userName.length > 20) {
+              setError('User name limit 20 chars');
+              return;
+            }
+            if (email && !/^\S+@\S+\.\S+$/.test(email)) {
+              setError('Email is invalid');
+              return;
+            }
+            if (phoneNum && !/^\d{10}$/.test(phoneNum)) {
+              setError('Phone is invalid');
+              return;
+            }
+            if (age && (age < 13 || age > 100)) {
+              setError('Age limit from 13 to 100');
+              return;
+            }
+    
+            const profileData: UserProfile = {};
+            if (userName && userName !== userData.user_name) profileData.user_name = userName;
+            if (email && email !== userData.email) profileData.email = email;
+            if (selectedImage !== userData.ava_img_path) profileData.ava_img_path = selectedImage;
+            if (phoneNum && phoneNum !== userData.phone_num) profileData.phone_num = phoneNum;
+            if (age && age.toString() !== userData.age) profileData.age = age;
+    
+            if (Object.keys(profileData).length === 0) {
+              setError('No changes to update');
+              return;
+            }
+    
+            console.log('Sending PATCH request with data:', profileData);
+            const updateResponse = await authorizedAxiosInstance.patch(
+              `${API_BE}/api/v1/users/profile/${userData.user_id}`,
+              profileData,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  'Content-Type': 'application/json',
+                },
+              }
+            );
+    
+            console.log('Profile updated successfully:', updateResponse.data);
+            alert('Profile updated successfully!');
+            setError(null);
+            onClose();
+          }
+        } catch (error) {
+          console.error('Request failed:', error);
+          if (axios.isAxiosError(error)) {
+            setError(error.response?.data?.message || 'Failed to process request');
+            console.log('Error response:', error.response);
+          } else {
+            setError('An unexpected error occurred');
+          }
+        } finally {
+          setIsSubmitting(false);
+        }
+      };
+    
+      fetchAndUpdateProfile();
+    }, [isOpen, isSubmitting, accessToken, onClose]);
+
+    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        const imageUrl = URL.createObjectURL(file);
+        setSelectedImage(imageUrl);
+      }
+    };
+  
+    const eventClickOpenFile = () => {
+      document.getElementById("avatarUpload")?.click();
+    };
+  
+    const handleRemoveImage = () => {
+      setSelectedImage(null);
+    };
+  
+    const handleSubmit = () => {
+      if (!accessToken) {
+        setError('Please login first');
+        return;
+      }
+      setIsSubmitting(true);
+    };
+  
     // if (!isOpen) return null;
     return (
       <>
@@ -357,19 +434,19 @@ const UserProfile = () => {
       <>
         {posts.length > 0
           ? posts.map((post, index) => (
-              <Post_Card
-                key={post.post_id}
-                // id={post.post_id}
-                user={post.user_name}
-                caption={post.post_content}
-                likes={post.upvote}
-                dislikes={post.downvote}
-                comments={post.comments_num}
-                tags={[]}
-                onRemove={() => removePost(post.post_id)}
-                isTrending={index === 0}
-              />
-            ))
+            <Post_Card
+              key={post.post_id}
+              // id={post.post_id}
+              user={post.user_name}
+              caption={post.post_content}
+              likes={post.upvote}
+              dislikes={post.downvote}
+              comments={post.comments_num}
+              tags={[]}
+              onRemove={() => removePost(post.post_id)}
+              isTrending={index === 0}
+            />
+          ))
           : null}
       </>
     );
@@ -413,17 +490,18 @@ const UserProfile = () => {
                     onClick={() => setProfileEditModel(false)}
                   ></div>
                 )}
-                <div className="editUserProfile" ref={profileEditModelRef}>
-                  <ButtonIconLeft
-                    Icon={FaUserPen}
-                    size={20}
-                    color="#333"
-                    title="Edit Profile"
-                    onclick={() => {
-                      setProfileEditModel(!profileEditModel);
-                    }}
-                  />
-                  <UserProfileEditForm isOpen={profileEditModel} />
+                <div className="editUserProfile" >
+                <ButtonIconLeft
+                  Icon={FaUserPen}
+                  size={20}
+                  color="#333"
+                  title="Edit Profile"
+                  onclick={() => setProfileEditModel(true)}
+                />
+                <UserProfileEditForm
+                  isOpen={profileEditModel}
+                  onClose={() => setProfileEditModel(false)}
+                />
                 </div>
               </div>
             </div>
