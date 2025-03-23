@@ -8,8 +8,15 @@ import { FaBell, FaPlus } from 'react-icons/fa';
 import ButtonIconLeft from '../ButtonIconLeft/ButtonIconLeft';
 import styled from "styled-components";
 import NotificationElements from '../Notification_Elements/NotificationElements';
-// ? API HANDLER LOGIC ONLY
+import authorizedAxiosInstance from '../../services/Auth';
+import { API_BE } from '../../config/configApi';
 
+interface avatarHeader{
+    ava_img_path: string | null;
+}
+interface avatarResponse {
+    data: avatarHeader[];
+  }
 
 //? VIEW ONLY
 function NotiModel({ isOpen }: { isOpen: boolean }) {
@@ -53,7 +60,7 @@ function UserModel({ isOpen }: { isOpen: boolean }) {
                     <div className="userModelContent">
                         <div className="userProfile">
                             <button className='userBtn'>
-                                <Link to="profile">User Profile</Link>
+                                <Link to="profile">My Profile</Link>
                             </button>
                             <div className="span" />
                         </div>
@@ -67,8 +74,55 @@ const fakeAvatar: string = "https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e
 const Header = () => {
     const [isNotiModelOpen, setIsNotiOpen] = useState(false);
     const [isUserModel, setIstUserModelOpen] = useState(false);
+    const [avatar, setAvatar] = useState<string | null>(null);
     const notiRef = useRef<HTMLDivElement>(null);
     const userRef = useRef<HTMLDivElement>(null);
+    const [error, setError] = useState("");
+    
+    // //? Fetch API Users
+    // useEffect(() => {
+    //     const fetchUsers = async () => {
+    //         try {
+    //             const accessToken = localStorage.getItem("accessToken");
+    //             if (!accessToken) {
+    //                 setError("Vui lòng đăng nhập để xem thông tin profile");
+    //                 return;
+    //             }
+    //             const res = await authorizedAxiosInstance.get<avatarResponse>(
+    //                 `${API_BE}/api/v1/users/profile`,
+    //                 {
+    //                     headers: {
+    //                         Authorization: `Bearer ${accessToken}`,
+    //                     },
+    //                 }
+    //             );
+    //             console.log("Users API Response:", res.data);
+
+    //             if (res.data && res.data.data) {
+    //                 setFetchUser(res.data.data); // Gán phần data bên trong
+    //             } else {
+    //                 console.error("Dữ liệu API không đúng định dạng", res.data);
+    //                 setFetchUser(null);
+    //                 setError("Dữ liệu trả về không hợp lệ");
+    //             }
+    //         } catch (error: any) {
+    //             console.error("Lỗi khi fetch API Users:", error);
+    //             if (error.response?.status === 404) {
+    //                 setError("Không tìm thấy thông tin profile.");
+    //             } else {
+    //                 setError(
+    //                     error.response?.data?.message ||
+    //                     "Không thể tải thông tin người dùng"
+    //                 );
+    //             }
+    //             setFetchUser(null);
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     };
+
+    //     fetchUsers();
+    // }, []);
 
     //? Handle click outside for model
     useEffect(() => {

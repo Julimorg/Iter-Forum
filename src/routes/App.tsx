@@ -50,7 +50,7 @@ function App() {
           <Route path="/sign-up" element={<SignUp />} />
         </Route>
 
-        <Route element={<AuthorizedRoute />}>
+        {/* <Route element={<AuthorizedRoute />}> */}
           {/* Nested Routes in Home */}
           <Route path="/home" element={<Home />}>
             <Route path="profile" element={<UserProfile />} />
@@ -62,7 +62,7 @@ function App() {
             <Route path="all-subscribed-tags" element={<AllSubscribedTags />} />
             <Route path="user" element={<ViewUser />} />
           </Route>
-        </Route>
+        {/* </Route> */}
       </Routes >
       <ToastContainer position="bottom-left" theme="colored" />
     </>

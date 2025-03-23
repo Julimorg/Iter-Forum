@@ -59,23 +59,23 @@ const Home = () => {
   const [user, setUser] = useState<string | null>("");
 
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const res = await authorizedAxiosInstance.get(`${Login_API}/v1/dashboards/access`);
-      console.log("Data From API:", res.data)
-      const userInforFromLocalStorage = localStorage.getItem('userInfo');
-      // Do ở Login page ta lưu userInfo vào local storage bằng JSON.stringify
-      // thì khi lưu vào sẽ là type string
-      // để lấy dữ liệu từ local ra ta nền parse nó thành dạng Object 
-      if (userInforFromLocalStorage) {
-        console.log("Data from local", JSON.parse(userInforFromLocalStorage));
-      } else {
-        console.log("No user info found in local storage");
-      }
-      setUser(res.data);
-    }
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     const res = await authorizedAxiosInstance.get(`${Login_API}/v1/dashboards/access`);
+  //     console.log("Data From API:", res.data)
+  //     const userInforFromLocalStorage = localStorage.getItem('userInfo');
+  //     // Do ở Login page ta lưu userInfo vào local storage bằng JSON.stringify
+  //     // thì khi lưu vào sẽ là type string
+  //     // để lấy dữ liệu từ local ra ta nền parse nó thành dạng Object 
+  //     if (userInforFromLocalStorage) {
+  //       console.log("Data from local", JSON.parse(userInforFromLocalStorage));
+  //     } else {
+  //       console.log("No user info found in local storage");
+  //     }
+  //     setUser(res.data);
+  //   }
+  //   fetchData();
+  // }, []);
   //? Fetch Posts data API
   // useEffect(() => {
   //   const fetchPosts = async () => {

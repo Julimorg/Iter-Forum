@@ -85,3 +85,12 @@ https://docs.google.com/document/d/1MviKbWSPneuW-D7vGgan5lqtSiUrMDXgf6Q-G4CPaDg/
 
 # Figma Layout of our Website
 https://www.figma.com/design/JjojkUhaEudClRawLs94oS/Education?node-id=0-1&p=f&t=jidVGTFoMmyy0BBR-0
+
+# TODO ListTask
+http://localhost:3000/api/v1/auth/register (DONE)
+http://localhost:3000/api/v1/auth/log-in (DONE)
+http://localhost:3000/api/v1/auth/log-out (DONE)
+http://localhost:3000/api/v1/auth/refresh-token (DONE)
+http://localhost:3000/api/v1/users/profile (DONE)
+http://localhost:3000/api/v1/posts/user_posts/${userId} (DONE)
+http://localhost:3000/api/v1/users/profile (DONE)

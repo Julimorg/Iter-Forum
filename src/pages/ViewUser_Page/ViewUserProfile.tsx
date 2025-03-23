@@ -4,6 +4,11 @@ import authorizedAxiosInstance from "../../services/Auth";
 
 const fakeAvatar: string = "https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e303b9f80d10d582.jpg";
 const ViewUserProfile = () => {
+    const messageRef = useRef();
+    const handleSave = async (e) => {
+        e.preventDefault();
+        console.log(messageRef.current.value);
+    }
     return (
         <>
             <div className={styles.profileContainer}>
