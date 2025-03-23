@@ -25,32 +25,40 @@ const Login: React.FC = () => {
     const passwordPattern: RegExp = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
     const navigate = useNavigate();
     interface LoginData {
+        data: {
+            access_token: string;
+            refresh_token: string;
+        };
+    }
+    interface LoginCredentials {
         email: string;
         password: string;
     }
-    const submitLogIn = async (data: LoginData): Promise<void> => {
-        console.log("Submit login: ", data);
-        // const res = await authorizedAxiosInstance.post(`${Login_API}/v1/users/login`, data);
-        const res = await authorizedAxiosInstance.post(`${API_BE}/api/v1/auth/login`, data);
+    const submitLogIn = async (data: LoginCredentials): Promise<void> => {
+        try {
+            console.log("Submit login: ", data);
+    
+            // Gửi request POST đến API login
+            const response = await authorizedAxiosInstance.post<LoginData>(
+                `${API_BE}/api/v1/auth/login`,
+                data
+            );
+    
+            console.log("Login response: ", response.data);
 
-        console.log(res.data);
-        const userInfo = {
-            id : res.data._id,
-            email: res.data.email
+            // Lấy access_token và refresh_token từ response
+            const { access_token, refresh_token } = response.data.data;
+    
+            // Lưu thông tin vào localStorage
+            localStorage.setItem("accessToken", access_token);
+            localStorage.setItem("refreshToken", refresh_token);
+    
+            navigate('/home');
+        } catch (error: any) {
+            console.error("Login error: ", error);
+            throw error; // Ném lỗi để xử lý ở nơi gọi hàm
         }
-        //? Lưu thông tin vào local storage
-        // localStorage.setItem("accessToken", res.data.accessToken);
-        // localStorage.setItem("refreshToken", res.data.refreshToken);
-        localStorage.setItem("accessToken", res.data.data.access_token);
-        localStorage.setItem("refreshToken", res.data.data.refresh_token);
-        // do userinfo là 1 kiểu Json Object nên nếu gán trực tiếp vào
-        // thì browser không nhận diện được data mà chỉ là Object Object
-        // --> Xử lý như việc fetch Api là dùng JSON.stringify để có thể
-        // lấy data raw 
-        localStorage.setItem("userInfo", JSON.stringify(userInfo));
-
-        navigate('/home');
-    }
+    };
 
     const handleForgotPassword = (): void => {
         setStep("sendEmail");

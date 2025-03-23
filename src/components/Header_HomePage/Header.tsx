@@ -53,7 +53,7 @@ function UserModel({ isOpen }: { isOpen: boolean }) {
                     <div className="userModelContent">
                         <div className="userProfile">
                             <button className='userBtn'>
-                                <Link to="profile">User Profile</Link>
+                                <Link to="profile">My Profile</Link>
                             </button>
                             <div className="span" />
                         </div>
