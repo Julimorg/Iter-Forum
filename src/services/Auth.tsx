@@ -16,6 +16,7 @@ authorizedAxiosInstance.interceptors.request.use((config) => {
     // Do something before request is sent
     // Lấy accessToken từ localStorage và đính kèm vào header
     const accessToken = localStorage.getItem('accessToken');
+    // const refreshToken = localStorage.getItem('refreshToken');
     // Tại sao cần Bearer?
     // --> Nên tuân thủ theo tiêu chuẩn OAuth 2.0 trong việc xác định loại token đang sử dụng
     // --> Bearer là định nghĩa loại token dành cho việc xác thực và ủy quyền, tham khảo các loại token khác như:
@@ -67,7 +68,10 @@ authorizedAxiosInstance.interceptors.response.use((response) => {
                     .then((res) => {
                         // Lấy và gán lại access token vào local
                         const { accessToken } = res.data;
+                        const {refreshToken} = res.data;
                         console.log("new AccessToken: ", accessToken);
+                        console.log("new refreshToken: ", refreshToken);
+
                         localStorage.setItem('accessToken', accessToken);
                         authorizedAxiosInstance.defaults.headers.Authorization = `Bearer ${accessToken}`
                     })

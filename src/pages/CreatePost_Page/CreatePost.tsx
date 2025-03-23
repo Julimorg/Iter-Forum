@@ -19,11 +19,12 @@ const CreatePost = () => {
     const [textTag, setTextTag] = useState("");
     const [isChecked, setIsChecked] = useState(false);
     const [images, setImages] = useState<string[]>([]);
+    const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [tags, setTags] = useState<string[]>([]);
     const [textDescripLimit, setTextDescripLimit] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
+    
     const handleTextLimit = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         if (e.target.value.length <= DESCRIP_MAX_LENGTH) {
             setTextDescripLimit(e.target.value);
@@ -49,13 +50,17 @@ const CreatePost = () => {
     };
     const handleAddImage = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files[0]) {
-            const newImage = URL.createObjectURL(event.target.files[0]);
-            setImages((prevImages) => [...prevImages, newImage]);
-            // Giải phóng bộ nhớ khi ảnh không còn sử dụng
-            return () => URL.revokeObjectURL(newImage);
-
+          const file = event.target.files[0];
+          const newImageUrl = URL.createObjectURL(file); // Blob URL cho preview
+    
+          // Cập nhật state
+          setImages((prevImages) => [...prevImages, newImageUrl]); // Preview
+          setImageFiles((prevFiles) => [...prevFiles, file]); // File để upload
+    
+          // Giải phóng bộ nhớ khi component unmount hoặc ảnh bị xóa
+          return () => URL.revokeObjectURL(newImageUrl);
         }
-    };
+      };
     // const removeImage = (index: number) => {
     //     setImages((prevImages) => prevImages.filter((_, i) => i !== index));
     // };
@@ -67,54 +72,73 @@ const CreatePost = () => {
     //? Create Post API
     useEffect(() => {
         const submitPost = async () => {
-            if (!isSubmitting) return;
-
-
-            try {
-                const postData = {
-                    post_title: title,
-                    post_content: textDescripLimit,
-                    img_url: images,
-                    tags: tags
-                };
-
-                const response = await authorizedAxiosInstance.post(
-                    `${API_BE}/api/v1/posts/`,
-                    postData,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${accessToken}`,
-                            'Content-Type': 'application/json',
-                        },
-                    }
-                );
-
-                console.log('Post created successfully:', response.data);
-                alert('Post created successfully!');
-
-                // Reset form
-                setTitle("");
-                setTextDescripLimit("");
-                setImages([]);
-                setTags([]);
-                setIsChecked(false);
-                setError(null);
-
-            } catch (error) {
-                console.error('Error creating post:', error);
-                if (axios.isAxiosError(error)) {
-                    setError(error.response?.data?.message || 'Failed to create post');
-                } else {
-                    setError('An unexpected error occurred');
-                }
-                alert('Failed to create post. Please try again.');
-            } finally {
-                setIsSubmitting(false);
+          if (!isSubmitting || !accessToken) return;
+      
+          // Kiểm tra dữ liệu trước khi gửi
+          if (!title || !textDescripLimit) {
+            setError("Title and content are required");
+            setIsSubmitting(false);
+            return;
+          }
+      
+          try {
+            // Tạo FormData để gửi dữ liệu
+            const formData = new FormData();
+            formData.append("post_title", title);
+            formData.append("post_content", textDescripLimit);
+            
+            // Thử với key 'images' thay vì 'img_url'
+            imageFiles.forEach((file) => {
+              formData.append("img_file", file); // Đổi thành 'images'
+            });
+      
+            formData.append("tags", JSON.stringify(tags));
+      
+            // Log dữ liệu gửi lên để debug
+            console.log("Sending POST request with FormData:");
+            for (const [key, value] of formData.entries()) {
+              console.log(`${key}: ${value}`);
             }
+      
+            // Gửi request POST với FormData
+            const response = await authorizedAxiosInstance.post(
+              `${API_BE}/api/v1/posts/`,
+              formData,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "Content-Type": "multipart/form-data",
+                },
+              }
+            );
+      
+            console.log("Post created successfully:", response.data);
+            alert("Post created successfully!");
+      
+            // Reset form sau khi thành công
+            setTitle("");
+            setTextDescripLimit("");
+            setImages([]);
+            setImageFiles([]);
+            setTags([]);
+            setIsChecked(false);
+            setError(null);
+          } catch (error) {
+            console.error("Error creating post:", error);
+            if (axios.isAxiosError(error)) {
+              setError(error.response?.data?.message || "Failed to create post");
+              console.log("Error response:", error.response?.data); // Log chi tiết lỗi
+            } else {
+              setError("An unexpected error occurred");
+            }
+            alert("Failed to create post. Please try again.");
+          } finally {
+            setIsSubmitting(false);
+          }
         };
-
+      
         submitPost();
-    }, [isSubmitting, title, textDescripLimit, images, tags, accessToken]);
+      }, [isSubmitting, title, textDescripLimit, imageFiles, tags, accessToken]);
 
     const handleSubmit = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
@@ -151,7 +175,6 @@ const CreatePost = () => {
                                     autoComplete="off"
                                     onChange={(e) => {
                                         setTitle(e.target.value)
-
                                     }}
                                     value={title}
                                     required

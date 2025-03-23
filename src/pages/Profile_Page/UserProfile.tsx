@@ -48,12 +48,11 @@ interface UserProfile {
 }
 const UserProfile = () => {
   const [profileEditModel, setProfileEditModel] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [fetchUser, setFetchUser] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<PostItem[]>([]);
-  const [showRecentPosts, setShowRecentPosts] = useState<boolean>(true);
+
 
   //* ===================== FUNCTION HANDLE API ===================== **//
 
@@ -156,95 +155,110 @@ const UserProfile = () => {
     fetchPosts();
   }, [fetchUser]);
 
-  //* ===================== VIEW ===================== **//
-
   //? Handle Open User Profile Edit Modal
-  function UserProfileEditForm({ isOpen, onClose }: { isOpen: boolean, onClose: () => void  }) {
+  function UserProfileEditForm({
+    isOpen,
+    onClose,
+    setFetchUser,
+  }: {
+    isOpen: boolean;
+    onClose: () => void;
+    setFetchUser: React.Dispatch<React.SetStateAction<UserDetail | null>>;
+  }) {
     const [error, setError] = useState<string | null>(null);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    
     const [isSubmitting, setIsSubmitting] = useState(false);
     const userNameRef = useRef<HTMLInputElement>(null);
     const userEmailRef = useRef<HTMLInputElement>(null);
     const userPhoneRef = useRef<HTMLInputElement>(null);
     const userAgeRef = useRef<HTMLInputElement>(null);
     const accessToken = localStorage.getItem("accessToken");
-
-    //? Handle Edit Profile - Patch API
+  
+    // Fetch dữ liệu khi form mở
     useEffect(() => {
-      const fetchAndUpdateProfile = async () => {
+      const fetchProfile = async () => {
         if (!isOpen || !accessToken) return;
-    
+  
         try {
-          // Fetch user data
           const response = await authorizedAxiosInstance.get<ProfileResponse>(
             `${API_BE}/api/v1/users/profile`,
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
-            }
+            { headers: { Authorization: `Bearer ${accessToken}` } }
           );
           const userData = response.data.data;
           console.log('Fetched user data:', userData);
-    
-          if (userNameRef.current) userNameRef.current.value = userData.user_name || '';
-          if (userEmailRef.current) userEmailRef.current.value = userData.email || '';
-          if (userPhoneRef.current) userPhoneRef.current.value = userData.phone_num || '';
-          if (userAgeRef.current) userAgeRef.current.value = userData.age || '';
+  
+          // Chỉ set giá trị ban đầu khi form mở, không ghi đè liên tục
+          if (userNameRef.current && !userNameRef.current.value) userNameRef.current.value = userData.user_name || '';
+          if (userEmailRef.current && !userEmailRef.current.value) userEmailRef.current.value = userData.email || '';
+          if (userPhoneRef.current && !userPhoneRef.current.value) userPhoneRef.current.value = userData.phone_num || '';
+          if (userAgeRef.current && !userAgeRef.current.value) userAgeRef.current.value = userData.age || '';
           if (userData.ava_img_path) setSelectedImage(userData.ava_img_path);
-    
-          if (isSubmitting) {
-            const userName = userNameRef.current?.value || '';
-            const email = userEmailRef.current?.value || '';
-            const phoneNum = userPhoneRef.current?.value || '';
-            const age = userAgeRef.current?.value ? parseInt(userAgeRef.current.value) : undefined;
-    
-            if (userName && userName.length > 20) {
-              setError('User name limit 20 chars');
-              return;
-            }
-            if (email && !/^\S+@\S+\.\S+$/.test(email)) {
-              setError('Email is invalid');
-              return;
-            }
-            if (phoneNum && !/^\d{10}$/.test(phoneNum)) {
-              setError('Phone is invalid');
-              return;
-            }
-            if (age && (age < 13 || age > 100)) {
-              setError('Age limit from 13 to 100');
-              return;
-            }
-    
-            const profileData: UserProfile = {};
-            if (userName && userName !== userData.user_name) profileData.user_name = userName;
-            if (email && email !== userData.email) profileData.email = email;
-            if (selectedImage !== userData.ava_img_path) profileData.ava_img_path = selectedImage;
-            if (phoneNum && phoneNum !== userData.phone_num) profileData.phone_num = phoneNum;
-            if (age && age.toString() !== userData.age) profileData.age = age;
-    
-            if (Object.keys(profileData).length === 0) {
-              setError('No changes to update');
-              return;
-            }
-    
-            console.log('Sending PATCH request with data:', profileData);
-            const updateResponse = await authorizedAxiosInstance.patch(
-              `${API_BE}/api/v1/users/profile/${userData.user_id}`,
-              profileData,
-              {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`,
-                  'Content-Type': 'application/json',
-                },
-              }
-            );
-    
-            console.log('Profile updated successfully:', updateResponse.data);
-            alert('Profile updated successfully!');
-            setError(null);
-            onClose();
+        } catch (error) {
+          console.error('Fetch failed:', error);
+          setError('Failed to load profile');
+        }
+      };
+  
+      fetchProfile();
+    }, [isOpen, accessToken]);
+  
+    useEffect(() => {
+      const updateProfile = async () => {
+        if (!isSubmitting || !accessToken) return;
+  
+        try {
+          const userName = userNameRef.current?.value || '';
+          const email = userEmailRef.current?.value || '';
+          const phoneNum = userPhoneRef.current?.value || '';
+          const age = userAgeRef.current?.value ? parseInt(userAgeRef.current.value) : undefined;
+  
+          // Validation
+          if (userName && userName.length > 20) {
+            setError('User name limit 20 chars');
+            return;
           }
+          if (email && !/^\S+@\S+\.\S+$/.test(email)) {
+            setError('Email is invalid');
+            return;
+          }
+          if (phoneNum && !/^\d{10}$/.test(phoneNum)) {
+            setError('Phone is invalid');
+            return;
+          }
+          if (age && (age < 13 || age > 100)) {
+            setError('Age limit from 13 to 100');
+            return;
+          }
+  
+          // Lấy dữ liệu hiện tại để so sánh và gửi toàn bộ profile
+          const response = await authorizedAxiosInstance.get<ProfileResponse>(
+            `${API_BE}/api/v1/users/profile`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          );
+          const userData = response.data.data;
+  
+          const profileData: UserProfile = {
+            user_name: userName || userData.user_name || '',
+            email: email || userData.email || '',
+            ava_img_path: selectedImage !== null ? selectedImage : userData.ava_img_path,
+            phone_num: phoneNum || userData.phone_num || '',
+            age: age !== undefined ? age : (userData.age ? parseInt(userData.age) : undefined),
+          };
+  
+          console.log('Sending PUT request with data:', profileData);
+  
+          const updateResponse = await authorizedAxiosInstance.put(
+            `${API_BE}/api/v1/users/profile/${userData.user_id}`,
+            profileData,
+            { headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' } }
+          );
+  
+          console.log('Profile updated successfully:', updateResponse.data);
+          alert('Profile updated successfully!');
+          setError(null);
+          setFetchUser(updateResponse.data.data);
+          onClose();
         } catch (error) {
           console.error('Request failed:', error);
           if (axios.isAxiosError(error)) {
@@ -257,9 +271,9 @@ const UserProfile = () => {
           setIsSubmitting(false);
         }
       };
-    
-      fetchAndUpdateProfile();
-    }, [isOpen, isSubmitting, accessToken, onClose]);
+  
+      updateProfile();
+    }, [isSubmitting, accessToken, onClose, setFetchUser]); 
 
     const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
@@ -285,143 +299,91 @@ const UserProfile = () => {
       setIsSubmitting(true);
     };
   
-    // if (!isOpen) return null;
+    if (!isOpen) return null;
+  
     return (
-      <>
-        {/* <div className={isOpen ? `${styles.editModel} ${styles.show}` : `${styles.editModel} ${styles.hide}`}> */}
-        <div
-          className={
-            isOpen
-              ? `${styles.editModel} ${styles.show}`
-              : `${styles.editModel} ${styles.hide}`
-          }
-        >
-          <div className={styles.editFormHeader}>
-            <h2>Edit Profile</h2>
-            <IconButton
-              Icon={FaXmark}
-              size={20}
-              color="#333"
-              onClick={() => setProfileEditModel(false)}
-            />
+      <div className={`${styles.editModel} ${isOpen ? styles.show : styles.hide}`}>
+        {error && <div className={styles.errorMessage}>{error}</div>}
+        <div className={styles.editFormHeader}>
+          <h2>Edit Profile</h2>
+          <IconButton Icon={FaXmark} size={20} color="#333" onClick={onClose} />
+        </div>
+        {/* Form content giữ nguyên */}
+        <div className={styles.editFormBody}>
+          <div className={styles.fillTextForm}>
+            <div className={styles.editUserName}>
+              {error?.includes('User name') ? (
+                <p className={styles.errorText}>User name limit 20 chars</p>
+              ) : (
+                <p>Your User Name</p>
+              )}
+              <input ref={userNameRef} className={styles.userNameInput} type="text" placeholder="Your user name..." />
+            </div>
+            <div className={styles.editUserEmail}>
+              {error?.includes('Email') ? (
+                <p className={styles.errorText}>Email is invalid</p>
+              ) : (
+                <p>Your Email</p>
+              )}
+              <input ref={userEmailRef} className={styles.userEmailInput} type="email" placeholder="Your email..." />
+            </div>
+            <div className={styles.editUserPhone}>
+              {error?.includes('Phone') ? (
+                <p className={styles.errorText}>Phone is invalid</p>
+              ) : (
+                <p>Your Phone</p>
+              )}
+              <input ref={userPhoneRef} className={styles.userPhoneInput} type="text" placeholder="Your phone number..." />
+            </div>
+            <div className={styles.editUserAge}>
+              {error?.includes('Age') ? (
+                <p className={styles.errorText}>Age limit from 13 to 100</p>
+              ) : (
+                <p>Your Age</p>
+              )}
+              <input ref={userAgeRef} className={styles.userAgeInput} type="number" placeholder="Your Age..." />
+            </div>
           </div>
-          <div className={styles.editFormBody}>
-            {/* Edit Text */}
-            <div className={styles.fillTextForm}>
-              {/* User Name */}
-              <div className={styles.editUserName}>
-                {error ? (
-                  <p className={styles.errorText}>
-                    User name limit 20 chars or empty
-                  </p>
-                ) : (
-                  <p>Your User Name</p>
-                )}
-                <input
-                  ref={userNameRef}
-                  className={styles.userNameInput}
-                  type="text"
-                  placeholder="Your user name..."
-                />
-              </div>
-
-              {/* User Email */}
-              <div className={styles.editUserEmail}>
-                {error ? (
-                  <p className={styles.errorText}>Email is unvalid or empty</p>
-                ) : (
-                  <p>Your Email </p>
-                )}
-                <input
-                  ref={userEmailRef}
-                  className={styles.userEmailInput}
-                  type="email"
-                  placeholder="Your email..."
-                />
-              </div>
-
-              {/* User Phone */}
-              <div className={styles.editUserPhone}>
-                {error ? (
-                  <p className={styles.errorText}>Phone is unvalid or empty</p>
-                ) : (
-                  <p>Your Phone</p>
-                )}
-                <input
-                  ref={userPhoneRef}
-                  className={styles.userPhoneInput}
-                  type="text"
-                  placeholder="Your phone number..."
-                />
-              </div>
-              {/* User Age */}
-              <div className={styles.editUserAge}>
-                {error ? (
-                  <p className={styles.errorText}>
-                    Age limit from 13 to 100 or empty
-                  </p>
-                ) : (
-                  <p>Your Age</p>
-                )}
-                <input
-                  ref={userAgeRef}
-                  className={styles.userAgeInput}
-                  type="number"
-                  placeholder="Your Age..."
-                />
+          <div className={styles.editAvartar}>
+            <div className={styles.userEditAvatar}>
+              <div className={styles.userImageInput}>
+                <img src={selectedImage || fakeAvatar} alt="Avatar" />
               </div>
             </div>
-            {/* Edit Img Avatar */}
-            <div className={styles.editAvartar}>
-              <div className={styles.userEditAvatar}>
-                <div className={styles.userImageInput}>
-                  <img src={selectedImage || fakeAvatar} alt="Avatar" />
-                </div>
-              </div>
-              <div className={styles.inputImgAvatarBtn}>
-                {/* Input File Hidden */}
-                <input
-                  type="file"
-                  accept="image/*"
-                  style={{ display: "none" }}
-                  id="avatarUpload"
-                  onChange={handleImageChange}
-                />
+            <div className={styles.inputImgAvatarBtn}>
+              <input type="file" accept="image/*" style={{ display: "none" }} id="avatarUpload" onChange={handleImageChange} />
+              <ButtonTextComponent
+                $backgroundColor="rgb(200, 200, 200)"
+                $hoverBackgroundColor="C5F6FF"
+                $hoverColor="#333"
+                title="Input image"
+                onClick={eventClickOpenFile}
+              />
+              {selectedImage && (
                 <ButtonTextComponent
                   $backgroundColor="rgb(200, 200, 200)"
                   $hoverBackgroundColor="C5F6FF"
                   $hoverColor="#333"
-                  title="Input image"
-                  onClick={eventClickOpenFile}
+                  title="Remove image"
+                  onClick={handleRemoveImage}
                 />
-                {selectedImage && (
-                  <ButtonTextComponent
-                    $backgroundColor="rgb(200, 200, 200)"
-                    $hoverBackgroundColor="C5F6FF"
-                    $hoverColor="#333"
-                    title="Remove image"
-                    onClick={handleRemoveImage}
-                  />
-                )}
-              </div>
+              )}
             </div>
           </div>
-          <div className={styles.confirmBtn}>
-            <ButtonTextComponent
-              $backgroundColor="rgb(200, 200, 200)"
-              $hoverBackgroundColor="C5F6FF"
-              $hoverColor="#333"
-              title="Confirm new information"
-              $width="15em"
-              onClick={handleSubmit}
-            />
-          </div>
         </div>
-        {/* </div > */}
-      </>
+        <div className={styles.confirmBtn}>
+          <ButtonTextComponent
+            $backgroundColor="rgb(200, 200, 200)"
+            $hoverBackgroundColor="C5F6FF"
+            $hoverColor="#333"
+            title="Confirm new information"
+            $width="15em"
+            onClick={handleSubmit}
+          />
+        </div>
+      </div>
     );
   }
-
   const DisplayPostComponent: React.FC<{
     posts: PostItem[];
     setPosts: React.Dispatch<React.SetStateAction<PostItem[]>>;
@@ -501,6 +463,7 @@ const UserProfile = () => {
                 <UserProfileEditForm
                   isOpen={profileEditModel}
                   onClose={() => setProfileEditModel(false)}
+                  setFetchUser={setFetchUser}
                 />
                 </div>
               </div>
