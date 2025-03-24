@@ -1,36 +1,63 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Home from '../../assets/home.png';
 import Popular from '../../assets/popular.png';
 import Explore from '../../assets/explore.png';
-import styles from './Sidebar.module.css';
 import ExpandIcon from '../../assets/expand.png';
 import CollapseIcon from '../../assets/collapse.png';
-interface SiderbarProps{
+import styles from './Sidebar.module.css';
+import axios from 'axios';
+import { API_BE } from '../../config/configApi';
+
+interface TagSubscribed {
+  tag_title: string;
+  post_count: number;
+}
+
+interface SidebarProps {
   onSignOutClick?: () => void;
 }
-const Sidebar: React.FC<SiderbarProps>= ({onSignOutClick}) => {
+
+const Sidebar: React.FC<SidebarProps> = ({ onSignOutClick }) => {
+  const [subscribedTags, setSubscribedTags] = useState<TagSubscribed[]>([]);
+  const [showAllTags, setShowAllTags] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Function to scroll to the top
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const [showAllTags, setShowAllTags] = useState<boolean>(false);
+  useEffect(() => {
+    const fetchSubscribedTags = async () => {
+      const accessToken = localStorage.getItem('accessToken');
 
-  const subscribedTags = [
-    { name: 'JavaScript' },
-    { name: 'ReactJS' },
-    { name: 'CSS' },
-    { name: 'NodeJS' },
-    { name: 'Python' },
-    { name: 'Machine Learning' },
-    { name: 'Data Science' },
-    { name: 'Gaming' },
-    { name: 'AI' },
-    { name: 'Web Development' },
-  ];
-  
+      if (!accessToken) {
+        console.error('No access token found in localStorage');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const response = await axios.get(`${API_BE}/api/v1/recommend`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const subscribedTagsData = response.data.data.subscribed_tags;
+        setSubscribedTags(subscribedTagsData);
+      } catch (error) {
+        console.error('Error fetching subscribed tags:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSubscribedTags();
+  }, []);
 
   return (
     <>
@@ -43,14 +70,12 @@ const Sidebar: React.FC<SiderbarProps>= ({onSignOutClick}) => {
             margin: 0;
           }
 
-          /* Dùng viewport height cho phần khoảng trắng ở đầu */
           .blank {
             margin: 0;
-            height: 5vh; /* Ví dụ: 5% chiều cao màn hình */
+            height: 5vh;
           }
 
           .sidebar {
-            /* Sidebar responsive: width dựa trên viewport nhưng có min-width và max-width */
             width: 20vw;
             min-width: 250px;
             max-width: 300px;
@@ -89,7 +114,6 @@ const Sidebar: React.FC<SiderbarProps>= ({onSignOutClick}) => {
             color: #000;
             display: flex;
             align-items: center;
-            /* Sử dụng padding dựa trên vh và vw */
             padding: 1vh 1vw;
             border-radius: 4px;
             transition: background-color 0.3s;
@@ -113,7 +137,7 @@ const Sidebar: React.FC<SiderbarProps>= ({onSignOutClick}) => {
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
-            gap: 0.5 rem;
+            gap: 0.5rem;
             min-height: 6vh;
           }
 
@@ -134,25 +158,24 @@ const Sidebar: React.FC<SiderbarProps>= ({onSignOutClick}) => {
             background-color: #e9ecef;
           }
 
-          /* Nếu component main-content cần điều chỉnh, ta dùng margin-left dựa theo kích thước của sidebar */
           .main-content {
             margin-left: calc(20vw + 2vw);
             padding: 2vh 2vw;
             flex-grow: 1;
           }
-          .buttonLogOut{
-           border: none;
-           background-color: #f8f9fa;
-           display: flex;
-           align-items: center;
-          padding: 1vh 1vw;
-          transition: background-color 0.3s;
-          justify-content: flex-start;
-          gap: 20px;
+          .buttonLogOut {
+            border: none;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            padding: 1vh 1vw;
+            transition: background-color 0.3s;
+            justify-content: flex-start;
+            gap: 20px;
           }
-          .buttonLogOut:hover{
+          .buttonLogOut:hover {
             background-color: #e9ecef;
-            cursor:pointer;
+            cursor: pointer;
           }
         `}
       </style>
@@ -162,70 +185,66 @@ const Sidebar: React.FC<SiderbarProps>= ({onSignOutClick}) => {
           <ul>
             <li>
               <Link to="/home" onClick={scrollToTop}>
-              <img src={Home} alt="Home" />
-              Home
-            </Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link to="/home/popular" onClick={scrollToTop} className={styles.navLink}>
-              <img src={Popular} alt="Popular" />
-              Popular
-            </Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link to="/home/explore" onClick={scrollToTop} className={styles.navLink}>
-              <img src={Explore} alt="Explore" />
-              Explore
-            </Link>
-          </li>
-        </ul>
-      </nav>
+                <img src={Home} alt="Home" />
+                Home
+              </Link>
+            </li>
+            <li className={styles.navItem}>
+              <Link to="/home/popular" onClick={scrollToTop} className={styles.navLink}>
+                <img src={Popular} alt="Popular" />
+                Popular
+              </Link>
+            </li>
+            <li className={styles.navItem}>
+              <Link to="/home/explore" onClick={scrollToTop} className={styles.navLink}>
+                <img src={Explore} alt="Explore" />
+                Explore
+              </Link>
+            </li>
+          </ul>
+        </nav>
 
-      {/* Subscribed tags */}
-      <div>
+        {/* Subscribed tags */}
         <div>
           <h3 className={styles.subscribedTagsHeader}>SUBSCRIBED TAGS</h3>
-          <ul className={styles.tagList}>
-            {(showAllTags ? subscribedTags : subscribedTags.slice(0, 3)).map((tag, index) => (
-              <li key={index} className={styles.tagItem}>
-                <Link
-                  to={`/home/tag/${encodeURIComponent(tag.name)}`}
-                  className={styles.tagLink}
-                >
-                  <span className={styles.tagName}>{tag.name}</span>
-                </Link>
-              </li>
-            ))}
+          {isLoading ? (
+            <div>Loading subscribed tags...</div>
+          ) : (
+            <ul className={styles.tagList}>
+              {(showAllTags ? subscribedTags : subscribedTags.slice(0, 3)).map((tag, index) => (
+                <li key={index} className={styles.tagItem}>
+                  <Link
+                    to={`/home/tag/${encodeURIComponent(tag.tag_title)}`}
+                    className={styles.tagLink}
+                  >
+                    <span className={styles.tagName}>{tag.tag_title} {tag.post_count} </span>
+                  </Link>
+                </li>
+              ))}
 
-          {/* Nút "Show All" hoặc "Collapse" */}
-          {/* Nút "Show All" hoặc "Collapse" */}
-            {subscribedTags.length > 3 && (
-              <li className={styles.tagItem}>
-                <button
-                  className={`${styles.tagLink} ${styles.tagItemButton}`}
-                  onClick={() => setShowAllTags(!showAllTags)}
-                >
-                  <span className={styles.tagName}>
-                    <img 
-                      src={showAllTags ? CollapseIcon : ExpandIcon} 
-                      alt={showAllTags ? 'Collapse' : 'Expand'} 
-                      className={styles.tagIcon} 
-                    />
-                    {showAllTags ? 'Collapse' : 'Show All'}
-                  </span>
-
-                </button>
-              </li>
-            )}
-
-            
-          </ul>
-
-          
+              {/* Nút "Show All" hoặc "Collapse" */}
+              {subscribedTags.length > 3 && (
+                <li className={styles.tagItem}>
+                  <button
+                    className={`${styles.tagLink} ${styles.tagItemButton}`}
+                    onClick={() => setShowAllTags(!showAllTags)}
+                  >
+                    <span className={styles.tagName}>
+                      <img
+                        src={showAllTags ? CollapseIcon : ExpandIcon}
+                        alt={showAllTags ? 'Collapse' : 'Expand'}
+                        className={styles.tagIcon}
+                      />
+                      {showAllTags ? 'Collapse' : 'Show All'}
+                    </span>
+                  </button>
+                </li>
+              )}
+            </ul>
+          )}
         </div>
-      </div>
 
-      {/* About Us */}
+        {/* About Us */}
         <div>
           <h3 className={styles.aboutUsHeader}>ABOUT US</h3>
           <ul className={styles.tagList}>
@@ -256,15 +275,14 @@ const Sidebar: React.FC<SiderbarProps>= ({onSignOutClick}) => {
         <div>
           <ul className={styles.tagList}>
             <li>
-              <button onClick = {onSignOutClick} className='buttonLogOut'>
-              <i className="fas fa-sign-out-alt"></i> 
-              <p>Log out</p>
+              <button onClick={onSignOutClick} className="buttonLogOut">
+                <i className="fas fa-sign-out-alt"></i>
+                <p>Log out</p>
               </button>
             </li>
           </ul>
         </div>
-
-    </div>
+      </div>
     </>
   );
 };

@@ -18,7 +18,7 @@ const CreatePost = () => {
     const [title, setTitle] = useState("");
     const [textTag, setTextTag] = useState("");
     const [isChecked, setIsChecked] = useState(false);
-    const [images, setImages] = useState<string[]>([]);
+    const [img_file, setImages] = useState<string[]>([]);
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [tags, setTags] = useState<string[]>([]);
     const [textDescripLimit, setTextDescripLimit] = useState("");
@@ -89,7 +89,7 @@ const CreatePost = () => {
     
                 // Gửi file ảnh (giả định key là 'images' dựa trên 'img_url' trong response)
                 imageFiles.forEach((file) => {
-                    formData.append("images", file); // Đổi từ 'img_file' sang 'images'
+                    formData.append("img_file", file); // Đổi từ 'img_file' sang 'images'
                 });
     
                 // Gửi tags dưới dạng tags[0], tags[1], v.v.
@@ -198,10 +198,10 @@ const CreatePost = () => {
                             {/* Adding Media */}
                             <div className={styles.addMedia}>
                                 <p>Add Media: </p>
-                                <div className={images.length === 0 ? `${styles.meidaContainerHide}` : `${styles.mediaContainer}`}>
+                                <div className={img_file.length === 0 ? `${styles.meidaContainerHide}` : `${styles.mediaContainer}`}>
                                     {
                                         (
-                                            images.map((image, index) => (
+                                            img_file.map((image, index) => (
                                                 <img key={index} src={image} alt={`uploaded ${index}`} />
                                                 //    Chỗ này dùng để xóa image nhưng để tính sau                                       
                                                 //   <div key={index} className={styles.imageWrapper}>
@@ -330,8 +330,8 @@ const CreatePost = () => {
                                         )
                                     }
                                     <div className={styles.imgDisplay}>
-                                        {images.length === 1 ? (
-                                            <img src={images[0]} alt="uploaded image" />
+                                        {img_file.length === 1 ? (
+                                            <img src={img_file[0]} alt="uploaded image" />
                                         ) : (
                                             <Swiper
                                                 modules={[Navigation, Pagination]}
@@ -341,7 +341,7 @@ const CreatePost = () => {
                                                 pagination={{ clickable: true }}
                                                 className={styles.swiper}
                                             >
-                                                {images.map((img, index) => (
+                                                {img_file.map((img, index) => (
                                                     <SwiperSlide key={index} className={styles.swiperSlide}>
                                                         <img src={img} alt={`uploaded image ${index}`} />
                                                     </SwiperSlide>

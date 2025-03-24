@@ -2,7 +2,7 @@ import React, { CSSProperties } from 'react';
 import Trending from '../../assets/trending.png';
 import Follow from '../../assets/see_more.png';
 
-const Tag_Card: React.FC<{ title: string; posts: string; isTrending: boolean }> = ({ title, posts, isTrending }) => {
+const Tag_Card: React.FC<{ title: string; posts: number; isTrending: boolean }> = ({ title, posts, isTrending }) => {
   // CSS styles with explicit typing using CSSProperties
   const styles: { [key: string]: CSSProperties } = {
     tagCard: {
