@@ -8,22 +8,10 @@ import RecentPost from '../../components/Recent_Post_Card/recent_post_card';
 import authorizedAxiosInstance from '../../services/Auth';
 import { handleLogOutAPI } from '../../apis';
 
-
-interface PostItem {
-  id: string;
-  user: string;
-  caption: string;
-  likes: number;
-  dislikes: number;
-  comments: number;
-  tags: string[];
-  images?: string[];
-  isTrending?: boolean;
-}
-interface Posts {
+interface Post {
   user_id: string;
   user_name: string;
-  ava_img_path: string;
+  ava_img_path: string | null;
   post_id: string;
   post_title: string;
   post_content: string;
@@ -34,10 +22,11 @@ interface Posts {
   comments_num: number;
   tags: string[];
 }
-interface RecentPost{
+
+interface RecentPost {
   user_id: string;
   user_name: string;
-  ava_img_path: string;
+  ava_img_path: string | null;
   post_id: string;
   post_title: string;
   post_content: string;
@@ -45,15 +34,17 @@ interface RecentPost{
   date_updated: string;
   comments_num: number;
 }
+
 interface PostsResponse {
   data: {
-    recommend_posts: Posts[];
-    recent_posts: Posts[];
+    recommend_posts: Post[];
+    recent_posts: Post[];
   };
 }
+
 function PostDisplayComponent() {
-  const [posts, setPosts] = useState<Posts[]>([]);
-  const [recentPosts, setRecentPosts] = useState<Posts[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [recentPosts, setRecentPosts] = useState<Post[]>([]);
   const [showRecentPosts, setShowRecentPosts] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -122,17 +113,17 @@ function PostDisplayComponent() {
           posts.map((post) => (
             <Post_Card
               key={post.post_id}
-              post_id={post.post_id} // Đã có post_id
+              post_id={post.post_id}
               user={post.user_name}
               user_id={post.user_id}
-              title={post.post_title} // Thêm title, map với post_title
-              caption={post.post_content} // Đã có caption, map với post_content
+              title={post.post_title}
+              caption={post.post_content}
               likes={post.upvote}
               dislikes={post.downvote}
               comments={post.comments_num}
               tags={post.tags}
               images={post.img_url}
-              avatar={post.ava_img_path} // Thêm avatar để hiển thị ảnh đại diện nếu có
+              avatar={post.ava_img_path}
               onRemove={() => removePost(post.post_id)}
               isTrending={false}
             />
@@ -156,7 +147,8 @@ function PostDisplayComponent() {
                   key={post.post_id}
                   user={post.user_name}
                   user_id={post.user_id}
-                  title={post.post_title} // Thêm title
+                  post_id={post.post_id} // Thêm post_id
+                  title={post.post_title}
                   comments={post.comments_num}
                   image={post.img_url && post.img_url.length > 0 ? post.img_url[0] : undefined}
                   likes={post.upvote}

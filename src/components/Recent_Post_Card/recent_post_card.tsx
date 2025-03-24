@@ -43,9 +43,9 @@ const UserName = styled.div`
   font-weight: bold;
   font-size: 16px;
   color: #333;
-  cursor: pointer; /* Thêm con trỏ để báo hiệu có thể click */
+  cursor: pointer;
   &:hover {
-    text-decoration: underline; /* Hiệu ứng hover */
+    text-decoration: underline;
   }
 `;
 
@@ -96,8 +96,9 @@ const Divider = styled.hr`
 `;
 
 interface RecentPostProps {
-  user: string; // Tên người dùng
-  user_id: string; // Thêm user_id vào props
+  user: string;
+  user_id: string;
+  post_id: string; // Thêm post_id
   title: string;
   comments: number;
   image?: string;
@@ -110,7 +111,8 @@ interface RecentPostProps {
 
 const RecentPost: React.FC<RecentPostProps> = ({
   user,
-  user_id, // Nhận user_id từ props
+  user_id,
+  post_id, // Nhận post_id từ props
   title,
   comments,
   image,
@@ -123,23 +125,11 @@ const RecentPost: React.FC<RecentPostProps> = ({
   const navigate = useNavigate();
 
   const handlePostNavigation = () => {
-    navigate('/home/post-detail', {
-      state: {
-        user,
-        user_id,
-        title,
-        likes,
-        dislikes,
-        tags,
-        comments,
-        images,
-        isTrending,
-      },
-    });
+    navigate(`/home/post-detail/${post_id}`); // Sửa lại URL
   };
 
   const handleUserNavigation = () => {
-    navigate(`home/user-detail/${user_id}`);
+    navigate(`/home/user-detail/${user_id}`); // Sửa lại URL
   };
 
   const safeImages = Array.isArray(images) ? images : [];
@@ -151,10 +141,14 @@ const RecentPost: React.FC<RecentPostProps> = ({
         <PostContent>
           <UserInfo>
             <ProfilePic />
-            <UserName onClick={(e) => {
-              e.stopPropagation(); // Ngăn click vào container kích hoạt handlePostNavigation
-              handleUserNavigation();
-            }}>{user}</UserName>
+            <UserName
+              onClick={(e) => {
+                e.stopPropagation();
+                handleUserNavigation();
+              }}
+            >
+              {user}
+            </UserName>
           </UserInfo>
           <Title>{title}</Title>
           <CommentCount>{comments} comments</CommentCount>
