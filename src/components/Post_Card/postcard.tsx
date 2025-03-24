@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import dislike from '../../assets/dislike.png';
 import like from '../../assets/like.png';
@@ -47,6 +47,10 @@ const ProfilePic = styled.div`
 const Name = styled.div`
   font-weight: bold;
   flex-grow: 1;
+  cursor: pointer;
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const DotsContainer = styled.div`
@@ -74,6 +78,14 @@ const Popup = styled.div`
   flex-direction: column;
   padding: 8px;
   min-width: 180px;
+`;
+
+// Thêm styled component cho Title
+const Title = styled.div`
+  font-size: 18px; /* To hơn một chút so với Caption */
+  font-weight: bold;
+  margin-bottom: 8px; /* Khoảng cách với Caption bên dưới */
+  cursor: pointer;
 `;
 
 const Caption = styled.div`
@@ -105,7 +117,14 @@ const SwiperContainer = styled.div`
   margin-bottom: 16px;
   .swiper {
     width: 100%;
+    height: 100%;
     aspect-ratio: 16 / 9;
+  }
+  .swiper-slide {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
   }
   .swiper-slide img {
     width: 100%;
@@ -142,28 +161,49 @@ const ImageCount = styled.div`
   margin-bottom: 8px;
 `;
 
+const PlaceholderImage = styled.div`
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 16 / 9;
+  background-color: #eee;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  color: #666;
+  font-size: 14px;
+`;
+
 interface PostcardProps {
+  post_id: string;
   user: string;
-  caption: string;
+  user_id: string;
+  title: string; // Thêm title để map với post_title
+  caption: string; // Map với post_content
   likes: number;
   dislikes: number;
   comments: number;
   tags: string[];
   isTrending?: boolean;
   onRemove: () => void;
-  images?: string[] | null; // Cập nhật type để chấp nhận null
+  images?: string[] | null;
+  avatar?: string | null; // Thêm avatar nếu muốn dùng ava_img_path
 }
 
 const Postcard: React.FC<PostcardProps> = ({
+  post_id,
   user,
-  caption,
+  user_id,
+  title, // Map với post_title
+  caption, // Map với post_content
   likes,
   dislikes,
   comments,
   tags,
   isTrending,
   onRemove,
-  images = [], // Giá trị mặc định là mảng rỗng
+  images = [],
+  avatar,
 }) => {
   const [currentLikes, setCurrentLikes] = useState<number>(likes);
   const [currentDislikes, setCurrentDislikes] = useState<number>(dislikes);
@@ -171,14 +211,15 @@ const Postcard: React.FC<PostcardProps> = ({
   const [disliked, setDisliked] = useState<boolean>(false);
   const [popupVisible, setPopupVisible] = useState<boolean>(false);
   const [imageCount, setImageCount] = useState<number>(0);
+  const [imageErrors, setImageErrors] = useState<boolean[]>([]);
 
   const navigate = useNavigate();
   const popupRef = useRef<HTMLDivElement>(null);
 
-  // Cập nhật số lượng hình ảnh khi images thay đổi
   useEffect(() => {
-    // Nếu images là null hoặc undefined, gán imageCount là 0, ngược lại lấy length
-    setImageCount(Array.isArray(images) ? images.length : 0);
+    const count = Array.isArray(images) ? images.length : 0;
+    setImageCount(count);
+    setImageErrors(new Array(count).fill(false));
   }, [images]);
 
   const togglePopup = () => setPopupVisible(!popupVisible);
@@ -201,22 +242,31 @@ const Postcard: React.FC<PostcardProps> = ({
     }
   };
 
-  const handleNavigation = () => {
-    navigate('/home/post-detail', {
-      state: { user, caption, likes: currentLikes, dislikes: currentDislikes, tags, comments, images, isTrending },
-    });
+  const handlePostNavigation = () => {
+    console.log("Navigating to post detail with post_id:", post_id);
+    navigate(`/home/post-detail/${post_id}`);
   };
 
-  // Đảm bảo images luôn là mảng để tránh lỗi khi truy cập length
+  const handleUserNavigation = () => {
+    navigate(`/home/user-detail/${user_id}`);
+  };
+
   const safeImages = Array.isArray(images) ? images : [];
+
+  const handleImageError = (index: number) => (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error('Error loading image:', e.currentTarget.src);
+    setImageErrors((prev) => {
+      const newErrors = [...prev];
+      newErrors[index] = true;
+      return newErrors;
+    });
+  };
 
   return (
     <PostCardContainer>
       <Header>
-        <ProfilePic />
-        <Name>
-          <Link to="/home/user">{user}</Link>
-        </Name>
+        <ProfilePic style={avatar ? { backgroundImage: `url(${avatar})`, backgroundSize: 'cover' } : {}} />
+        <Name onClick={handleUserNavigation}>{user}</Name>
         <DotsContainer>
           <DotsButton onClick={togglePopup}>⋮</DotsButton>
           {popupVisible && (
@@ -226,7 +276,8 @@ const Postcard: React.FC<PostcardProps> = ({
           )}
         </DotsContainer>
       </Header>
-      <Caption onClick={handleNavigation}>{caption}</Caption>
+      <Title onClick={handlePostNavigation}>{title}</Title> {/* Hiển thị title in đậm */}
+      <Caption onClick={handlePostNavigation}>{caption}</Caption> {/* Hiển thị caption bên dưới */}
       <PostTags>
         {tags.map((tag, index) => (
           <TagPost key={index} tag={tag} />
@@ -239,10 +290,8 @@ const Postcard: React.FC<PostcardProps> = ({
         )}
       </PostTags>
 
-      {/* Hiển thị số lượng hình ảnh */}
       {imageCount > 0 && <ImageCount>{imageCount} image{imageCount > 1 ? 's' : ''}</ImageCount>}
 
-      {/* Hiển thị hình ảnh nếu safeImages có ít nhất 1 phần tử */}
       {safeImages.length > 0 && (
         safeImages.length > 1 ? (
           <SwiperContainer>
@@ -255,13 +304,33 @@ const Postcard: React.FC<PostcardProps> = ({
             >
               {safeImages.map((image, index) => (
                 <SwiperSlide key={index}>
-                  <img src={image} alt={`Post image ${index + 1}`} onClick={handleNavigation} />
+                  {imageErrors[index] ? (
+                    <PlaceholderImage>Image failed to load</PlaceholderImage>
+                  ) : (
+                    <img
+                      src={image}
+                      alt={`Post image ${index + 1}`}
+                      onClick={handlePostNavigation}
+                      onError={handleImageError(index)}
+                      loading="lazy"
+                    />
+                  )}
                 </SwiperSlide>
               ))}
             </Swiper>
           </SwiperContainer>
         ) : (
-          <SingleImage src={safeImages[0]} alt="Post image" onClick={handleNavigation} />
+          imageErrors[0] ? (
+            <PlaceholderImage>Image failed to load</PlaceholderImage>
+          ) : (
+            <SingleImage
+              src={safeImages[0]}
+              alt="Post image"
+              onClick={handlePostNavigation}
+              onError={handleImageError(0)}
+              loading="lazy"
+            />
+          )
         )
       )}
 
@@ -274,7 +343,7 @@ const Postcard: React.FC<PostcardProps> = ({
           <img src={disliked ? dislikeFilled : dislike} alt="Dislike" />
           {currentDislikes}
         </Button>
-        <Button onClick={handleNavigation}>
+        <Button onClick={handlePostNavigation}>
           <img src={comment} alt="Comment" />
           {comments}
         </Button>
