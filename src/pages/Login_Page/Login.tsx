@@ -5,7 +5,7 @@ import styles from './login.module.css';
 import TextField from '../../components/TextField_LoginSignUp/Textfield';
 import PasswordField from '../../components/Password_TextField/PasswordField';
 import authorizedAxiosInstance from '../../services/Auth';
-import { API_BE, Login_API } from '../../config/configApi';
+import { API_BE } from '../../config/configApi';
 
 // Định nghĩa type cho các bước
 type Step = "login" | "sendEmail" | "verifyOtp" | "resetPassword";

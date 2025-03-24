@@ -1,6 +1,6 @@
 .profileContainer{
     /* border: 1px solid #333; */
-    width: 100%;
+    width: 89%;
     height: 51.8rem;
     margin-left: 10rem
 }
@@ -14,6 +14,13 @@
     /* margin: 1rem; */
     display: flex
 ;
+}
+.userProfileBody{
+    /* border: 1px solid #333; */
+    /* width: 70%; */
+}
+.postContainer{
+    width: 70rem;
 }
 /** ============ Profile Header Content ========= */
 .userProfileImage {

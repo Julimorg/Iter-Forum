@@ -30,10 +30,11 @@ interface PostItem {
   ava_img_path: string | null;
   post_id: string;
   post_content: string;
-  img_url: string;
+  img_url: string[];
   upvote: number;
   downvote: number;
   comments_num: number;
+  
 }
 interface PostsResponse {
   data: PostItem[];
@@ -110,16 +111,16 @@ const UserProfile = () => {
       if (!fetchUser?.user_id) return; // Chỉ chạy khi fetchUser có giá trị
       try {
         setLoading(true);
-        const accessToken = localStorage.getItem("accessToken");
+        const accessToken = localStorage.getItem('accessToken');
 
         if (!accessToken) {
-          setError("Vui lòng đăng nhập để xem danh sách bài post");
+          setError('Vui lòng đăng nhập để xem danh sách bài post');
           return;
         }
 
-        const userId = fetchUser.user_id; // Lấy user_id từ fetchUser
+        const userId = fetchUser.user_id;
 
-        const res = await authorizedAxiosInstance.get<PostsResponse>(
+        const res = await axios.get<PostsResponse>(
           `${API_BE}/api/v1/posts/user_posts/${userId}`,
           {
             headers: {
@@ -128,22 +129,22 @@ const UserProfile = () => {
           }
         );
 
-        console.log("Posts API Response:", res.data);
+        console.log('Posts API Response:', res.data);
 
         if (res.data.data) {
           setPosts(res.data.data);
         } else {
-          console.error("Dữ liệu API không đúng định dạng", res.data);
+          console.error('Dữ liệu API không đúng định dạng', res.data);
           setPosts([]);
-          setError("Dữ liệu trả về không hợp lệ");
+          setError('Dữ liệu trả về không hợp lệ');
         }
       } catch (error: any) {
-        console.error("Lỗi khi fetch API Posts:", error);
+        console.error('Lỗi khi fetch API Posts:', error);
         if (error.response?.status === 404) {
-          setError("Không tìm thấy bài post nào.");
+          setError('Không tìm thấy bài post nào.');
         } else {
           setError(
-            error.response?.data?.message || "Không thể tải danh sách bài post"
+            error.response?.data?.message || 'Không thể tải danh sách bài post'
           );
         }
         setPosts([]);
@@ -167,19 +168,19 @@ const UserProfile = () => {
   }) {
     const [error, setError] = useState<string | null>(null);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
-    
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const userNameRef = useRef<HTMLInputElement>(null);
     const userEmailRef = useRef<HTMLInputElement>(null);
     const userPhoneRef = useRef<HTMLInputElement>(null);
     const userAgeRef = useRef<HTMLInputElement>(null);
     const accessToken = localStorage.getItem("accessToken");
-  
+
     // Fetch dữ liệu khi form mở
     useEffect(() => {
       const fetchProfile = async () => {
         if (!isOpen || !accessToken) return;
-  
+
         try {
           const response = await authorizedAxiosInstance.get<ProfileResponse>(
             `${API_BE}/api/v1/users/profile`,
@@ -187,7 +188,7 @@ const UserProfile = () => {
           );
           const userData = response.data.data;
           console.log('Fetched user data:', userData);
-  
+
           // Chỉ set giá trị ban đầu khi form mở, không ghi đè liên tục
           if (userNameRef.current && !userNameRef.current.value) userNameRef.current.value = userData.user_name || '';
           if (userEmailRef.current && !userEmailRef.current.value) userEmailRef.current.value = userData.email || '';
@@ -199,22 +200,22 @@ const UserProfile = () => {
           setError('Failed to load profile');
         }
       };
-  
+
       fetchProfile();
     }, [isOpen, accessToken]);
-  
+
 
     //? Update profile
     useEffect(() => {
       const updateProfile = async () => {
         if (!isSubmitting || !accessToken) return;
-  
+
         try {
           const userName = userNameRef.current?.value || '';
           const email = userEmailRef.current?.value || '';
           const phoneNum = userPhoneRef.current?.value || '';
           const age = userAgeRef.current?.value ? parseInt(userAgeRef.current.value) : undefined;
-  
+
           // Validation
           if (userName && userName.length > 20) {
             setError('User name limit 20 chars');
@@ -232,14 +233,14 @@ const UserProfile = () => {
             setError('Age limit from 13 to 100');
             return;
           }
-  
+
           // Lấy dữ liệu hiện tại để so sánh và gửi toàn bộ profile
           const response = await authorizedAxiosInstance.get<ProfileResponse>(
             `${API_BE}/api/v1/users/profile`,
             { headers: { Authorization: `Bearer ${accessToken}` } }
           );
           const userData = response.data.data;
-  
+
           const profileData: UserProfile = {
             user_name: userName || userData.user_name || '',
             email: email || userData.email || '',
@@ -247,15 +248,15 @@ const UserProfile = () => {
             phone_num: phoneNum || userData.phone_num || '',
             age: age !== undefined ? age : (userData.age ? parseInt(userData.age) : undefined),
           };
-  
+
           console.log('Sending PUT request with data:', profileData);
-  
+
           const updateResponse = await authorizedAxiosInstance.put(
             `${API_BE}/api/v1/users/profile/${userData.user_id}`,
             profileData,
             { headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' } }
           );
-  
+
           console.log('Profile updated successfully:', updateResponse.data);
           alert('Profile updated successfully!');
           setError(null);
@@ -273,9 +274,9 @@ const UserProfile = () => {
           setIsSubmitting(false);
         }
       };
-  
+
       updateProfile();
-    }, [isSubmitting, accessToken, onClose, setFetchUser]); 
+    }, [isSubmitting, accessToken, onClose, setFetchUser]);
 
     const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
@@ -284,15 +285,15 @@ const UserProfile = () => {
         setSelectedImage(imageUrl);
       }
     };
-  
+
     const eventClickOpenFile = () => {
       document.getElementById("avatarUpload")?.click();
     };
-  
+
     const handleRemoveImage = () => {
       setSelectedImage(null);
     };
-  
+
     const handleSubmit = () => {
       if (!accessToken) {
         setError('Please login first');
@@ -300,9 +301,9 @@ const UserProfile = () => {
       }
       setIsSubmitting(true);
     };
-  
+
     if (!isOpen) return null;
-  
+
     return (
       <div className={`${styles.editModel} ${isOpen ? styles.show : styles.hide}`}>
         {error && <div className={styles.errorMessage}>{error}</div>}
@@ -396,6 +397,7 @@ const UserProfile = () => {
 
     return (
       <>
+        <div className={styles.postContainer}>
         {posts.length > 0
           ? posts.map((post, index) => (
             <Post_Card
@@ -406,55 +408,57 @@ const UserProfile = () => {
               likes={post.upvote}
               dislikes={post.downvote}
               comments={post.comments_num}
+              images={post.img_url}
               tags={[]}
               onRemove={() => removePost(post.post_id)}
               isTrending={index === 0}
             />
           ))
           : null}
+      </div >
       </>
     );
   };
-  //** Main View */
-  if (loading) {
-    return <p>Loading...</p>;
-  }
-  if (!fetchUser) {
-    return <p>Không tìm thấy thông tin người dùng</p>;
-  }
-  return (
-    <>
-      <div className={styles.profileContainer}>
-        <div className="userProfileBody">
-          {/* Header Profile */}
-          <div className="userProfileContact">
-            {/* User Basic info */}
-            <div className={styles.userProfileInformation}>
-              <div className={styles.userProfileImage}>
-                <img
-                  src={fetchUser?.ava_img_path || fakeAvatar}
-                  alt={fetchUser?.user_name || "unknown"}
-                />
+//** Main View */
+if (loading) {
+  return <p>Loading...</p>;
+}
+if (!fetchUser) {
+  return <p>Không tìm thấy thông tin người dùng</p>;
+}
+return (
+  <>
+    <div className={styles.profileContainer}>
+      <div className={styles.userProfileBody}>
+        {/* Header Profile */}
+        <div className="userProfileContact">
+          {/* User Basic info */}
+          <div className={styles.userProfileInformation}>
+            <div className={styles.userProfileImage}>
+              <img
+                src={fetchUser?.ava_img_path || fakeAvatar}
+                alt={fetchUser?.user_name || "unknown"}
+              />
+            </div>
+            <div className={styles.userProfileName}>
+              <h1>{fetchUser?.user_name || "Chưa có tên"}</h1>
+              <p>Status: Active</p>
+            </div>
+            <div className={styles.userProfileBio}>
+              <div className={styles.userBasicInfo}>
+                <h1>My information</h1>
+                <p>Email: {fetchUser?.email || "N/A"}</p>
+                <p>Phone: {fetchUser?.phone_num || "N/A"}</p>
+                <p>Age: {fetchUser?.age || "N/A"}</p>
               </div>
-              <div className={styles.userProfileName}>
-                <h1>{fetchUser?.user_name || "Chưa có tên"}</h1>
-                <p>Status: Active</p>
-              </div>
-              <div className={styles.userProfileBio}>
-                <div className={styles.userBasicInfo}>
-                  <h1>My information</h1>
-                  <p>Email: {fetchUser?.email || "N/A"}</p>
-                  <p>Phone: {fetchUser?.phone_num || "N/A"}</p>
-                  <p>Age: {fetchUser?.age || "N/A"}</p>
-                </div>
-                {/* Ovelay khi modal hiện lên */}
-                {profileEditModel && (
-                  <div
-                    className={styles.overlay}
-                    onClick={() => setProfileEditModel(false)}
-                  ></div>
-                )}
-                <div className="editUserProfile" >
+              {/* Ovelay khi modal hiện lên */}
+              {profileEditModel && (
+                <div
+                  className={styles.overlay}
+                  onClick={() => setProfileEditModel(false)}
+                ></div>
+              )}
+              <div className="editUserProfile" >
                 <ButtonIconLeft
                   Icon={FaUserPen}
                   size={20}
@@ -467,18 +471,18 @@ const UserProfile = () => {
                   onClose={() => setProfileEditModel(false)}
                   setFetchUser={setFetchUser}
                 />
-                </div>
               </div>
             </div>
           </div>
-          <span />
-          {/* User Profile Post, ... etc */}
-          <div className="userProfileContent">
-            <DisplayPostComponent posts={posts} setPosts={setPosts} />
-          </div>
+        </div>
+        <span />
+        {/* User Profile Post, ... etc */}
+        <div className="userProfileContent">
+          <DisplayPostComponent posts={posts} setPosts={setPosts} />
         </div>
       </div>
-    </>
-  );
+    </div>
+  </>
+);
 };
 export default UserProfile;
