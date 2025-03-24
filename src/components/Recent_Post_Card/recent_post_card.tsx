@@ -43,9 +43,13 @@ const UserName = styled.div`
   font-weight: bold;
   font-size: 16px;
   color: #333;
+  cursor: pointer; /* Thêm con trỏ để báo hiệu có thể click */
+  &:hover {
+    text-decoration: underline; /* Hiệu ứng hover */
+  }
 `;
 
-const Caption = styled.div`
+const Title = styled.div`
   font-size: 14px;
   color: #666;
 `;
@@ -92,35 +96,38 @@ const Divider = styled.hr`
 `;
 
 interface RecentPostProps {
-  user: string;
-  caption: string;
+  user: string; // Tên người dùng
+  user_id: string; // Thêm user_id vào props
+  title: string;
   comments: number;
   image?: string;
   likes: number;
   dislikes: number;
   tags: string[];
-  images?: string[] | null; // Cập nhật type để chấp nhận null
+  images?: string[] | null;
   isTrending?: boolean;
 }
 
 const RecentPost: React.FC<RecentPostProps> = ({
   user,
-  caption,
+  user_id, // Nhận user_id từ props
+  title,
   comments,
   image,
   likes,
   dislikes,
   tags,
-  images = [], // Giá trị mặc định là mảng rỗng
+  images = [],
   isTrending,
 }) => {
   const navigate = useNavigate();
 
-  const handleNavigation = () => {
+  const handlePostNavigation = () => {
     navigate('/home/post-detail', {
       state: {
         user,
-        caption,
+        user_id,
+        title,
         likes,
         dislikes,
         tags,
@@ -131,20 +138,25 @@ const RecentPost: React.FC<RecentPostProps> = ({
     });
   };
 
-  // Đảm bảo images là mảng để tránh lỗi khi truy cập length
+  const handleUserNavigation = () => {
+    navigate(`home/user-detail/${user_id}`);
+  };
+
   const safeImages = Array.isArray(images) ? images : [];
-  // Tính số lượng hình ảnh còn lại (nếu có nhiều hơn 1 hình)
   const additionalImages = safeImages.length > 1 ? safeImages.length - 1 : 0;
 
   return (
     <>
-      <RecentPostContainer onClick={handleNavigation}>
+      <RecentPostContainer onClick={handlePostNavigation}>
         <PostContent>
           <UserInfo>
             <ProfilePic />
-            <UserName>{user}</UserName>
+            <UserName onClick={(e) => {
+              e.stopPropagation(); // Ngăn click vào container kích hoạt handlePostNavigation
+              handleUserNavigation();
+            }}>{user}</UserName>
           </UserInfo>
-          <Caption>{caption}</Caption>
+          <Title>{title}</Title>
           <CommentCount>{comments} comments</CommentCount>
         </PostContent>
         {image && (

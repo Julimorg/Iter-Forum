@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import Welcome from "../pages/Welcome_Page/Welcome";
@@ -12,32 +11,28 @@ import Explore from "../pages/Explore_Page/Explore";
 import PostDetail from "../pages/Post_Detail/post_detail";
 import TagDetail from "../pages/Tag_Detail/tag_detail";
 import AllSubscribedTags from "../pages/All_Subscribed_Tags/all_subcribed_tags";
+import ViewUserProfile from "../pages/ViewUser_Page/ViewUserProfile";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-// Config react-toastify
-import { ToastContainer } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
-import ViewUser from "../pages/ViewUser_Page/ViewUserProfile";
-
-//! TUYỆT ĐỐI KHÔNG ĐƯỢC ADD STYLE VÀO ĐÂY
-//! VÌ ĐÂY LÀ FILE ROUTES CHÍNH, NÓ CHỈ ĐỂ QUẢN LÝ CÁC ROUTES, KHÔNG ĐỂ QUẢN LÝ STYLE
-//! ADD VÀO LÀ TAO CHÉM
-//! --- Fong ---
-
-
-//? Xác định route cần auth tài khoản thì mới truy cập vào Home
-//? Outlet để hiện thị Child Route
 const AuthorizedRoute = () => {
-  const userInfo = localStorage.getItem('userInfo');
-  const user = userInfo ? JSON.parse(userInfo) : null;
-  if (!user) return <Navigate to='/login' replace={true} />;
-  return <Outlet />
-}
+  const accessToken = localStorage.getItem("accessToken");
+  if (!accessToken) {
+    console.log("No accessToken found, redirecting to /login");
+    return <Navigate to="/login" replace={true} />;
+  }
+  console.log("AccessToken found, rendering Outlet");
+  return <Outlet />;
+};
+
 const UnAuthorizedRoute = () => {
-  const userInfo = localStorage.getItem('userInfo');
-  const user = userInfo ? JSON.parse(userInfo) : null;
-  if (user) return <Navigate to='/home' replace={true} />;
-  return <Outlet />
-}
+  const accessToken = localStorage.getItem("accessToken"); // Đổi từ userInfo sang accessToken
+  if (accessToken) {
+    console.log("AccessToken exists, redirecting to /home");
+    return <Navigate to="/home" replace={true} />;
+  }
+  return <Outlet />;
+};
 
 function App() {
   return (
@@ -50,20 +45,22 @@ function App() {
           <Route path="/sign-up" element={<SignUp />} />
         </Route>
 
-        {/* <Route element={<AuthorizedRoute />}> */}
-          {/* Nested Routes in Home */}
+        {/* Authorize routes */}
+        <Route element={<AuthorizedRoute />}>
           <Route path="/home" element={<Home />}>
             <Route path="profile" element={<UserProfile />} />
             <Route path="create-post" element={<CreatePost />} />
             <Route path="popular" element={<Popular />} />
             <Route path="explore" element={<Explore />} />
-            <Route path="post-detail" element={<PostDetail />} />
-            <Route path="/home/tag/:tagName" element={<TagDetail />} />
+            <Route path="post-detail/:postId" element={<PostDetail />} />
+            <Route path="tag/:tagName" element={<TagDetail />} />
             <Route path="all-subscribed-tags" element={<AllSubscribedTags />} />
-            <Route path="user" element={<ViewUser />} />
+            <Route path="user" element={<ViewUserProfile />} />
+            <Route path="home/user-detail/:userId" element={<ViewUserProfile />} />
           </Route>
-        {/* </Route> */}
-      </Routes >
+
+        </Route>
+      </Routes>
       <ToastContainer position="bottom-left" theme="colored" />
     </>
   );

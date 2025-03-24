@@ -1,3 +1,32 @@
+.wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  width: 100%;
+}
+
+.backButton {
+  background-color: #ccc;
+  color: #000;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.backButton:hover {
+  background-color: #aaa;
+}
+
+.backButton img {
+  width: 8px;
+  height: 16px;
+}
+
 .container {
   border: 1px solid #ccc;
   padding: 0;
@@ -12,7 +41,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
-  padding: 1rem; /* Thêm padding vào header để giữ khoảng cách nội dung */
+  padding: 1rem;
 }
 
 .profilePic {
@@ -27,27 +56,45 @@
   font-weight: bold;
 }
 
-.caption {
-  font-size: 14px;
-  margin-bottom: 16px;
-  padding: 0 1rem; /* Thêm padding để căn lề caption */
+.userInfo {
+  display: flex;
+  align-items: center;
 }
 
-/* Trending section */
+.dotsContainer {
+  position: relative;
+}
+
+.dotsButton {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  color: #888;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  padding: 0 1rem; /* Thêm padding để cách rìa ngoài */
+}
+
+.content {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  padding: 0 1rem; /* Thêm padding để cách rìa ngoài */
+}
+
 .postTags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 16px;
   padding: 0 1rem;
-  align-items: center; /* Căn giữa các phần tử theo chiều dọc */
-}
-
-.trending {
-  display: flex;
   align-items: center;
-  color: #ff6200;
-  font-size: 14px;
 }
 
 .tagButton {
@@ -65,12 +112,45 @@
   background-color: #d6d6d6;
 }
 
+.swiperContainer {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.swiperContainer .swiper {
+  width: 100%;
+  height: auto;
+}
+
+.swiperContainer .swiper-slide {
+  width: 100% !important;
+  margin: 0;
+  padding: 0;
+}
+
+.swiperContainer .swiper-slide img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 0;
+  display: block;
+}
+
+.singleImage {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 0;
+  margin-bottom: 16px;
+  display: block;
+}
+
 .interactions {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 24px;
-  padding: 0 1rem; /* Thêm padding để căn lề */
+  padding: 0 1rem;
 }
 
 .button {
@@ -90,7 +170,7 @@
 
 .commentSection {
   margin-top: 24px;
-  padding: 0 1rem; /* Thêm padding để căn lề */
+  padding: 0 1rem;
 }
 
 .commentBox {
@@ -110,15 +190,26 @@
   box-sizing: border-box;
 }
 
-.commentButton,
-.replyButton {
+.circularButton {
+  width: 40px;
   height: 40px;
-  padding: 0 15px;
-  background-color: #007bff;
-  color: white;
   border: none;
-  border-radius: 5px;
+  background-color: transparent;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.circularButton:hover {
+  background-color: #f0f0f0;
+}
+
+.circularButton img {
+  width: 20px;
+  height: 20px;
 }
 
 .commentList {
@@ -175,33 +266,6 @@
   background-color: #f0f0f0;
 }
 
-.backButton {
-  background-color: #ccc;
-  color: #000;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.backButton:hover {
-  background-color: #aaa;
-}
-
-.backButton img {
-  width: 8px;
-  height: 16px;
-}
-
-.replySection {
-  display: block;
-  margin-top: 8px;
-}
-
 .replyList {
   margin-top: 12px;
   padding-left: 20px;
@@ -243,256 +307,4 @@
   color: #555;
   line-height: 1.4;
   margin-left: 48px;
-}
-
-.wrapper {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  width: 100%;
-}
-
-/* Tag Section */
-.tagSection {
-  flex: 1;
-  width: 20vw;
-  background-color: #f9f9f9;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid #ccc;
-}
-
-.tagHeader {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.9rem;
-  color: #666;
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-
-.clearTags {
-  background-color: #ffffff00;
-  color: #007bff;
-  text-decoration: underline;
-  font-size: 0.8rem;
-  border: none;
-}
-
-.clearTags:hover {
-  border: none;
-  background-color: #aaaaaa1a;
-  cursor: pointer;
-}
-
-.tagItem {
-  padding: 1rem;
-  border-bottom: 1px solid #ddd;
-}
-
-.tagItem:last-child {
-  border-bottom: none;
-}
-
-.tagInfo {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.tagName {
-  font-weight: bold;
-  font-size: 1rem;
-  max-width: 8vw;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.trending {
-  color: orange;
-  font-size: 0.8rem;
-}
-
-.tagPosts {
-  font-size: 0.8rem;
-  color: #666;
-}
-
-.tagDescription {
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-}
-
-.subscribeButton,
-.subscribedButton {
-  margin-top: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  border: none;
-  border-radius: 1.75rem;
-}
-
-.subscribeButton {
-  background-color: #fff;
-  border: 1px solid #000000;
-  color: #000000;
-}
-
-.subscribeButton:hover {
-  background-color: #e0f7fa;
-  color: #000000;
-}
-
-.subscribedButton {
-  background-color: #e0f7fa;
-  color: #000000;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  border: 1px solid #000000;
-}
-
-.subscribedButton img {
-  width: 16px;
-  height: 16px;
-}
-
-.viewTagDetail {
-  border: none;
-  background-color: #ffffff00;
-  color: #007bff;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.viewTagDetail:hover {
-  background-color: #007bff00;
-  text-decoration: underline;
-}
-
-.circularButton {
-  width: 40px;
-  height: 40px;
-  border: none;
-  background-color: transparent;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.circularButton:hover {
-  background-color: #f0f0f0;
-}
-
-.circularButton img {
-  width: 20px;
-  height: 20px;
-}
-
-.postMenu {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-}
-
-.menuButton {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: #888;
-}
-
-.dotsContainer {
-  position: relative;
-}
-
-.dotsButton {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 4px;
-  color: #888;
-}
-
-.popup {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  padding: 8px;
-  min-width: 180px;
-}
-
-.popupButton {
-  background: none;
-  border: none;
-  text-align: left;
-  padding: 8px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  white-space: nowrap;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.popupButton:hover {
-  background-color: #f0f0f0;
-}
-
-.popupButton:last-child {
-  border-bottom: none;
-}
-
-.userInfo {
-  display: flex;
-  align-items: center;
-}
-
-.swiperContainer {
-  width: 100%;
-  margin-bottom: 16px;
-}
-
-.swiperContainer .swiper {
-  width: 100%;
-  height: auto; /* Để chiều cao tự điều chỉnh theo ảnh */
-}
-
-.swiperContainer .swiper-slide {
-  width: 100% !important; /* Ép slide chiếm toàn bộ chiều rộng */
-  margin: 0;
-  padding: 0; /* Xóa padding nếu có */
-}
-
-.swiperContainer .swiper-slide img {
-  width: 100%;
-  height: auto; /* Chiều cao tự điều chỉnh theo tỷ lệ ảnh */
-  object-fit: cover; /* Đảm bảo ảnh lấp đầy container */
-  border-radius: 0;
-  display: block; /* Xóa khoảng trắng dưới ảnh */
-}
-
-.singleImage {
-  width: 100%;
-  height: auto; /* Chiều cao tự điều chỉnh theo tỷ lệ ảnh */
-  object-fit: cover;
-  border-radius: 0;
-  margin-bottom: 16px;
-  display: block;
 }

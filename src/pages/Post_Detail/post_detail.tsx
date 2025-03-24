@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import styles from './post_detail.module.css';
 import like from '../../assets/like.png';
 import dislike from '../../assets/dislike.png';
@@ -9,8 +9,7 @@ import dislikeFilled from '../../assets/dislike_filled.png';
 import replyIcon from '../../assets/comment.png';
 import replyFilled from '../../assets/comment.png';
 import backIcon from '../../assets/back_arrow.png';
-import Trending from '../../assets/trending.png'; // Đã có sẵn
-import Bell from '../../assets/bell.png';
+import Trending from '../../assets/trending.png';
 import sendIcon from '../../assets/send.png';
 import ReportPopup from '../../components/Report_Popup/Report_popup';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -18,32 +17,98 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Navigation, Pagination } from 'swiper/modules';
+import authorizedAxiosInstance from '../../services/Auth';
 
-// Cập nhật interface PostState để nhận images thay vì image
-interface PostState {
-  user: string;
-  caption: string;
-  images?: string[];
-  likes: number;
-  dislikes: number;
+interface PostData {
+  user_id: string;
+  user_name: string;
+  ava_img_path: string | null;
+  post_id: string;
+  post_title: string;
+  post_content: string;
+  img_url: string[];
+  date_updated: string;
+  upvote: number;
+  downvote: number;
   tags: string[];
-  comments: number;
-  isTrending?: boolean;
+  comments: any[];
+}
+
+interface ApiResponse {
+  is_success: boolean;
+  status_code: number;
+  message: string;
+  data: PostData;
+  timestamp: number;
+}
+
+interface ReplyItem {
+  text: string;
+  userName: string;
+}
+
+interface CommentItem {
+  text: string;
+  likeCount: number;
+  dislikeCount: number;
+  replyCount: number;
+  liked: boolean;
+  disliked: boolean;
+  replied: boolean;
+  replyText?: string;
+  replies: ReplyItem[];
 }
 
 const PostDetail: React.FC = () => {
-  const location = useLocation();
+  const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
-  const { user, caption, images = [], likes, dislikes, tags, comments, isTrending } = (location.state as PostState) || {};
-
-  const [currentLikes, setCurrentLikes] = useState<number>(likes || 0);
-  const [currentDislikes, setCurrentDislikes] = useState<number>(dislikes || 0);
+  const [post, setPost] = useState<PostData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentLikes, setCurrentLikes] = useState<number>(0);
+  const [currentDislikes, setCurrentDislikes] = useState<number>(0);
   const [liked, setLiked] = useState<boolean>(false);
   const [disliked, setDisliked] = useState<boolean>(false);
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const [activeCommentIndex, setActiveCommentIndex] = useState<number | null>(null);
+  const [commentsList, setComments] = useState<CommentItem[]>([]);
+  const [newComment, setNewComment] = useState('');
 
   const popupRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    const fetchPostDetail = async () => {
+      if (!postId) {
+        setError("Post ID not provided");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        console.log("Fetching post detail for postId:", postId);
+        const response = await authorizedAxiosInstance.get<ApiResponse>(
+          `http://localhost:3000/api/v1/posts/${postId}`
+        );
+        console.log("API response:", response.data);
+
+        if (response.data.is_success) {
+          setPost(response.data.data);
+          setCurrentLikes(response.data.data.upvote);
+          setCurrentDislikes(response.data.data.downvote);
+          setError(null);
+        } else {
+          setError(response.data.message || "Failed to fetch post detail");
+        }
+      } catch (err: any) {
+        console.error("Error fetching post detail:", err);
+        setError(err.response?.data?.message || "Post not found or server error");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPostDetail();
+  }, [postId]);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -64,63 +129,6 @@ const PostDetail: React.FC = () => {
       document.removeEventListener('mousedown', handleOutsideClick);
     };
   }, [activeCommentIndex]);
-
-  const tagContent = {
-    ReactJS: "Learn about ReactJS, the powerful JavaScript library for building user interfaces.",
-    JavaScript: "Discover the versatility of JavaScript, the language of the web.",
-    "Web Development": "Explore the world of web development and modern technologies.",
-  };
-
-  const [showTags, setShowTags] = useState<boolean>(true);
-  const [tagStatus, setTagStatus] = useState<Record<string, boolean>>({
-    ReactJS: false,
-    JavaScript: false,
-    "Web Development": true,
-  });
-
-  const handleSubscribeToggle = (tag: string) => {
-    setTagStatus((prevStatus) => ({
-      ...prevStatus,
-      [tag]: !prevStatus[tag],
-    }));
-  };
-
-  const handleClearTags = () => {
-    setShowTags(false);
-  };
-
-  interface ReplyItem {
-    text: string;
-    userName: string;
-  }
-
-  interface CommentItem {
-    text: string;
-    likeCount: number;
-    dislikeCount: number;
-    replyCount: number;
-    liked: boolean;
-    disliked: boolean;
-    replied: boolean;
-    replyText?: string;
-    replies: ReplyItem[];
-  }
-
-  const [commentsList, setComments] = useState<CommentItem[]>([
-    {
-      text: "Sample comment",
-      likeCount: 0,
-      dislikeCount: 0,
-      replyCount: 0,
-      liked: false,
-      disliked: false,
-      replied: false,
-      replyText: '',
-      replies: [],
-    },
-  ]);
-
-  const [newComment, setNewComment] = useState('');
 
   const handleLike = () => {
     if (liked) {
@@ -264,8 +272,12 @@ const PostDetail: React.FC = () => {
     }
   };
 
-  if (!user || !caption) {
-    return <div className={styles.error}>Error: Missing data for the post.</div>;
+  if (loading) {
+    return <div className={styles.wrapper}>Loading...</div>;
+  }
+
+  if (error || !post) {
+    return <div className={styles.wrapper}>{error || "Post not found"}</div>;
   }
 
   return (
@@ -280,7 +292,7 @@ const PostDetail: React.FC = () => {
           <div className={styles.header}>
             <div className={styles.userInfo}>
               <div className={styles.profilePic}></div>
-              <div className={styles.name}>{user}</div>
+              <div className={styles.name}>{post.user_name}</div>
             </div>
             <div className={styles.dotsContainer}>
               <button className={styles.dotsButton} onClick={() => setShowPopup(!showPopup)}>⋮</button>
@@ -292,23 +304,19 @@ const PostDetail: React.FC = () => {
             </div>
           </div>
 
-          <div className={styles.caption}>{caption}</div>
+          <div className={styles.title}>{post.post_title}</div> {/* Hiển thị post_title in đậm */}
+          <div className={styles.content}>{post.post_content}</div> {/* Hiển thị post_content bên dưới */}
 
           <div className={styles.postTags}>
-            {isTrending && (
-              <div className={styles.trending}>
-                <img src={Trending} alt="Trending" style={{ marginRight: '0.5rem' }} />
-                Trending
-              </div>
-            )}
-            {tags && tags.length > 0 && tags.map((tag, index) => (
+            {post.tags && post.tags.length > 0 && post.tags.map((tag, index) => (
               <button key={index} className={styles.tagButton} onClick={() => handleTagClick(tag)}>
                 #{tag}
               </button>
             ))}
           </div>
-          {images.length > 0 && (
-            images.length > 1 ? (
+
+          {post.img_url && post.img_url.length > 0 && (
+            post.img_url.length > 1 ? (
               <div className={styles.swiperContainer}>
                 <Swiper
                   modules={[Navigation, Pagination]}
@@ -318,7 +326,7 @@ const PostDetail: React.FC = () => {
                   pagination={{ clickable: true }}
                   style={{ width: '100%', height: 'auto' }}
                 >
-                  {images.map((image, index) => (
+                  {post.img_url.map((image, index) => (
                     <SwiperSlide key={index} style={{ width: '100%' }}>
                       <img
                         src={image}
@@ -331,7 +339,7 @@ const PostDetail: React.FC = () => {
                 </Swiper>
               </div>
             ) : (
-              <img src={images[0]} alt="Post image" className={styles.singleImage} />
+              <img src={post.img_url[0]} alt="Post image" className={styles.singleImage} />
             )
           )}
 
@@ -421,7 +429,7 @@ const PostDetail: React.FC = () => {
                       <div key={replyIndex} className={styles.replyItem}>
                         <div className={styles.replyHeader}>
                           <div className={styles.replyAvatar}></div>
-                          <span className={styles.replyUserName}>User</span>
+                          <span className={styles.replyUserName}>{reply.userName}</span>
                         </div>
                         <div className={styles.replyText}>{reply.text}</div>
                       </div>
