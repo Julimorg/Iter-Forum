@@ -6,7 +6,6 @@ import Sidebar from '../../components/Sidebar/Sidebar';
 import Post_Card from '../../components/Post_Card/postcard';
 import RecentPost from '../../components/Recent_Post_Card/recent_post_card';
 import authorizedAxiosInstance from '../../services/Auth';
-import { Login_API } from '../../config/configApi';
 import { handleLogOutAPI } from '../../apis';
 
 interface PostItem {
@@ -17,104 +16,138 @@ interface PostItem {
   dislikes: number;
   comments: number;
   tags: string[];
+  images?: string[];
+  isTrending?: boolean;
 }
 
-// Khởi tạo dữ liệu cho các bài post
-const initialPosts: PostItem[] = [
+// Dữ liệu mẫu cho Post_Card
+const postCardData: PostItem[] = [
   {
     id: 'post-1',
     user: 'User 1',
-    caption: 'This is caption 1',
-    likes: 45,
-    dislikes: 3,
-    comments: 12,
-    tags: ["ReactJS", "JavaScript", "Web Development"]
+    caption: 'Optimizing Backend Performance with Node.js!',
+    likes: 50,
+    dislikes: 2,
+    comments: 15,
+    tags: ['NodeJS', 'Backend', 'Performance'],
+    images: [
+      'https://images.pexels.com/photos/546819/pexels-photo-546819.jpeg',
+      'https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg',
+      'https://images.pexels.com/photos/577585/pexels-photo-577585.jpeg',
+    ],
+    isTrending: true,
   },
   {
     id: 'post-2',
     user: 'User 2',
-    caption: 'This is caption 2',
-    likes: 78,
-    dislikes: 5,
-    comments: 8,
-    tags: ["ReactJS", "JavaScript", "Web Development"]
+    caption: 'Getting Started with React Hooks!',
+    likes: 65,
+    dislikes: 3,
+    comments: 10,
+    tags: ['ReactJS', 'JavaScript', 'Frontend'],
+    images: [
+      'https://images.pexels.com/photos/11035386/pexels-photo-11035386.jpeg',
+    ],
+    isTrending: false,
   },
   {
     id: 'post-3',
     user: 'User 3',
-    caption: 'This is caption 3',
-    likes: 100,
-    dislikes: 4,
-    comments: 15,
-    tags: ["ReactJS", "JavaScript", "Web Development"]
-  }
+    caption: 'Introduction to Machine Learning with Python!',
+    likes: 80,
+    dislikes: 1,
+    comments: 20,
+    tags: ['MachineLearning', 'Python', 'AI'],
+    images: [
+      'https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg',
+      'https://images.pexels.com/photos/8386667/pexels-photo-8386667.jpeg',
+    ],
+    isTrending: false,
+  },
+  {
+    id: 'post-4',
+    user: 'User 4',
+    caption: 'Exploring Cloud Computing with AWS!',
+    likes: 40,
+    dislikes: 5,
+    comments: 8,
+    tags: ['CloudComputing', 'AWS', 'DevOps'],
+    images: [],
+    isTrending: false,
+  },
+];
+
+// Dữ liệu mẫu cho RecentPost
+const recentPostData: PostItem[] = [
+  {
+    id: 'recent-1',
+    user: 'User 5',
+    caption: 'Securing Your App with Cybersecurity Best Practices!',
+    likes: 35,
+    dislikes: 1,
+    comments: 7,
+    tags: ['Cybersecurity', 'Web Development', 'Security'],
+    images: [
+      'https://images.pexels.com/photos/60504/security-protection-anti-virus-software-60504.jpeg',
+      'https://images.pexels.com/photos/5380792/pexels-photo-5380792.jpeg',
+      'https://images.pexels.com/photos/5474029/pexels-photo-5474029.jpeg',
+    ],
+    isTrending: false,
+  },
+  {
+    id: 'recent-2',
+    user: 'User 6',
+    caption: 'Building Scalable Apps with TypeScript!',
+    likes: 55,
+    dislikes: 2,
+    comments: 12,
+    tags: ['TypeScript', 'JavaScript', 'Scalability'],
+    images: [
+      'https://images.pexels.com/photos/1181359/pexels-photo-1181359.jpeg',
+    ],
+    isTrending: true,
+  },
+  {
+    id: 'recent-3',
+    user: 'User 7',
+    caption: 'The Future of Blockchain Technology!',
+    likes: 70,
+    dislikes: 0,
+    comments: 18,
+    tags: ['Blockchain', 'Crypto', 'Technology'],
+    images: [],
+    isTrending: false,
+  },
 ];
 
 const Home = () => {
   const location = useLocation();
-  const isHomePage = location.pathname === "/home";
+  const isHomePage = location.pathname === '/home';
   const navigate = useNavigate();
-  const [posts, setPosts] = useState<PostItem[]>(initialPosts);
+  const [posts, setPosts] = useState<PostItem[]>(postCardData);
+  const [recentPosts, setRecentPosts] = useState<PostItem[]>(recentPostData);
   const [showRecentPosts, setShowRecentPosts] = useState<boolean>(true);
-  const [user, setUser] = useState<string | null>("");
+  const [user, setUser] = useState<string | null>('');
 
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const res = await authorizedAxiosInstance.get(`${Login_API}/v1/dashboards/access`);
-  //     console.log("Data From API:", res.data)
-  //     const userInforFromLocalStorage = localStorage.getItem('userInfo');
-  //     // Do ở Login page ta lưu userInfo vào local storage bằng JSON.stringify
-  //     // thì khi lưu vào sẽ là type string
-  //     // để lấy dữ liệu từ local ra ta nền parse nó thành dạng Object 
-  //     if (userInforFromLocalStorage) {
-  //       console.log("Data from local", JSON.parse(userInforFromLocalStorage));
-  //     } else {
-  //       console.log("No user info found in local storage");
-  //     }
-  //     setUser(res.data);
-  //   }
-  //   fetchData();
-  // }, []);
-  //? Fetch Posts data API
-  // useEffect(() => {
-  //   const fetchPosts = async () => {
-  //     const res = await authorizedAxiosInstance.get(`http://localhost:3000/posts`);
-  //     // setPosts(res.data);
-  //   };
-  //   fetchPosts();
-  // })
   const handleLogOut = async () => {
-    // Trường hợp 1: Xóa localstorage User ở FE
-    // localStorage.removeItem('accessToken');
-    // localStorage.removeItem('refreshToken');
-    // localStorage.removeItem('userInfo');
-
-    // Trường hợp 2:  Dùng Http OnlyCookies -> Gọi API xử lý remove Cookies
-    // Xóa userinfo trong cookies
-    localStorage.removeItem('userInfo')
+    localStorage.removeItem('userInfo');
     await handleLogOutAPI();
-    // setUser(null);
-
     navigate('/login');
-  }
-  // Hàm xóa bài đăng dựa vào id
-  const removePost = (id: string) => {
-    setPosts(prevPosts => prevPosts.filter(post => post.id !== id));
   };
 
-  // Hàm xóa các bài đăng Recent
+  const removePost = (id: string) => {
+    setPosts((prevPosts) => prevPosts.filter((post) => post.id !== id));
+  };
+
   const clearRecentPosts = () => {
     setShowRecentPosts(false);
   };
 
   return (
     <>
-      {/* HEADER */}
       <div className={styles.header}>
         <Header />
       </div>
-      {/* BODY */}
       <div className={styles.homeBody}>
         <Sidebar onSignOutClick={handleLogOut} />
         <div className={styles.mainContent}>
@@ -130,8 +163,9 @@ const Home = () => {
                     dislikes={post.dislikes}
                     comments={post.comments}
                     tags={post.tags}
+                    images={post.images}
                     onRemove={() => removePost(post.id)}
-                    isTrending={post.id === 'post-1'}  // Ví dụ: chỉ post đầu tiên là trending
+                    isTrending={post.isTrending}
                   />
                 ))}
               </div>
@@ -147,30 +181,19 @@ const Home = () => {
                     </button>
                   </div>
                   <div className={styles.recentPostContent}>
-                    {[
-                      { id: 1, },
-                      { id: 2, },
-                      { id: 3, },
-                    ].map(post => (
-                      <RecentPost key={post.id} />
-                    ))}
-                  </div>
-                  <div className={styles.recentPostHeader}>
-                    <h2>Recent Post</h2>
-                    <button
-                      className={styles.clearButton}
-                      onClick={clearRecentPosts}
-                    >
-                      Clear
-                    </button>
-                  </div>
-                  <div className={styles.recentPostContent}>
-                    {[
-                      { id: 1, },
-                      { id: 2, },
-                      { id: 3, },
-                    ].map(post => (
-                      <RecentPost key={post.id} />
+                    {recentPosts.map((post) => (
+                      <RecentPost
+                        key={post.id}
+                        user={post.user}
+                        caption={post.caption}
+                        comments={post.comments}
+                        image={post.images && post.images.length > 0 ? post.images[0] : undefined}
+                        likes={post.likes}
+                        dislikes={post.dislikes}
+                        tags={post.tags}
+                        images={post.images}
+                        isTrending={post.isTrending}
+                      />
                     ))}
                   </div>
                 </div>
@@ -181,8 +204,6 @@ const Home = () => {
           )}
         </div>
       </div>
-      {/* FOOTER (nếu cần) */}
-      {/* <div className={styles.footer}> <Footer /> </div> */}
     </>
   );
 };

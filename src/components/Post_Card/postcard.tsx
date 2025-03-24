@@ -9,8 +9,13 @@ import likeFilled from '../../assets/like_filled.png';
 import TagPost from '../../components/Tag_Post/Tag_post';
 import Trending from '../../assets/trending.png';
 import ReportPopup from '../Report_Popup/Report_popup';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import { Navigation, Pagination } from 'swiper/modules';
 
-// Sử dụng transient prop "$isHidden" để không truyền xuống DOM
+// Styled components
 const PostCardContainer = styled.div`
   width: 100%;
   margin: 16px auto;
@@ -19,7 +24,6 @@ const PostCardContainer = styled.div`
   padding: 16px;
   background-color: #fff;
   overflow: hidden;
-  /* Hiệu ứng chuyển đổi cho opacity, margin và height */
   transition: opacity 0.5s ease, margin 0.5s ease, height 0.5s ease, padding 0.5s ease;
   height: auto;
   pointer-events: auto;
@@ -45,7 +49,6 @@ const Name = styled.div`
   flex-grow: 1;
 `;
 
-// DotsButton và Popup: bọc chúng trong container div để tránh lỗi lồng button
 const DotsContainer = styled.div`
   position: relative;
 `;
@@ -60,7 +63,7 @@ const DotsButton = styled.button`
 
 const Popup = styled.div`
   position: absolute;
-  top: 100%; /* Xuống bên dưới */
+  top: 100%;
   right: 0;
   background-color: #fff;
   border: 1px solid #ccc;
@@ -73,31 +76,11 @@ const Popup = styled.div`
   min-width: 180px;
 `;
 
-const PopupButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  background: none;
-  border: none;
-  text-align: left;
-  padding: 8px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  white-space: nowrap;
-  border-bottom: 1px solid #e0e0e0;
-  &:hover {
-    background-color: #f0f0f0;
-  }
-  &:last-child {
-    border-bottom: none;
-  }
-`;
-
 const Caption = styled.div`
   margin-bottom: 16px;
   font-size: 14px;
   line-height: 1.5;
+  cursor: pointer;
 `;
 
 const PostTags = styled.div`
@@ -108,12 +91,29 @@ const PostTags = styled.div`
   direction: rtl;
 `;
 
-const ImagePlaceholder = styled.div`
+const SingleImage = styled.img`
   width: 100%;
   aspect-ratio: 16 / 9;
-  background-color: #e0e0e0;
+  object-fit: cover;
   border-radius: 8px;
   margin-bottom: 16px;
+  cursor: pointer; /* Thêm con trỏ để báo hiệu có thể nhấp */
+`;
+
+const SwiperContainer = styled.div`
+  width: 100%;
+  margin-bottom: 16px;
+  .swiper {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+  .swiper-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer; /* Thêm con trỏ cho hình ảnh trong Swiper */
+  }
 `;
 
 const Interactions = styled.div`
@@ -145,6 +145,7 @@ interface PostcardProps {
   tags: string[];
   isTrending?: boolean;
   onRemove: () => void;
+  images?: string[];
 }
 
 const Postcard: React.FC<PostcardProps> = ({
@@ -155,6 +156,8 @@ const Postcard: React.FC<PostcardProps> = ({
   comments,
   tags,
   isTrending,
+  onRemove,
+  images = [],
 }) => {
   const [currentLikes, setCurrentLikes] = useState<number>(likes);
   const [currentDislikes, setCurrentDislikes] = useState<number>(dislikes);
@@ -166,8 +169,6 @@ const Postcard: React.FC<PostcardProps> = ({
   const popupRef = useRef<HTMLDivElement>(null);
 
   const togglePopup = () => setPopupVisible(!popupVisible);
-
-
 
   const handleLike = () => {
     setLiked((prev) => !prev);
@@ -187,9 +188,9 @@ const Postcard: React.FC<PostcardProps> = ({
     }
   };
 
-  const handleCommentClick = () => {
+  const handleNavigation = () => {
     navigate('/home/post-detail', {
-      state: { user, caption, likes: currentLikes, dislikes: currentDislikes, tags, comments },
+      state: { user, caption, likes: currentLikes, dislikes: currentDislikes, tags, comments, images, isTrending },
     });
   };
 
@@ -198,18 +199,18 @@ const Postcard: React.FC<PostcardProps> = ({
       <Header>
         <ProfilePic />
         <Name>
-          <Link to = "/home/user">{user}</Link>
+          <Link to="/home/user">{user}</Link>
         </Name>
         <DotsContainer>
           <DotsButton onClick={togglePopup}>⋮</DotsButton>
           {popupVisible && (
             <div ref={popupRef}>
-              <ReportPopup type='post' />
+              <ReportPopup type="post" />
             </div>
           )}
         </DotsContainer>
       </Header>
-      <Caption>{caption}</Caption>
+      <Caption onClick={handleNavigation}>{caption}</Caption>
       <PostTags>
         {tags.map((tag, index) => (
           <TagPost key={index} tag={tag} />
@@ -222,7 +223,29 @@ const Postcard: React.FC<PostcardProps> = ({
         )}
       </PostTags>
 
-      <ImagePlaceholder />
+      {/* Hiển thị hình ảnh nếu images tồn tại và có ít nhất 1 phần tử */}
+      {images.length > 0 && (
+        images.length > 1 ? (
+          <SwiperContainer>
+            <Swiper
+              modules={[Navigation, Pagination]}
+              spaceBetween={10}
+              slidesPerView={1}
+              navigation
+              pagination={{ clickable: true }}
+            >
+              {images.map((image, index) => (
+                <SwiperSlide key={index}>
+                  <img src={image} alt={`Post image ${index + 1}`} onClick={handleNavigation} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </SwiperContainer>
+        ) : (
+          <SingleImage src={images[0]} alt="Post image" onClick={handleNavigation} />
+        )
+      )}
+
       <Interactions>
         <Button onClick={handleLike}>
           <img src={liked ? likeFilled : like} alt="Like" />
@@ -232,7 +255,7 @@ const Postcard: React.FC<PostcardProps> = ({
           <img src={disliked ? dislikeFilled : dislike} alt="Dislike" />
           {currentDislikes}
         </Button>
-        <Button onClick={handleCommentClick}>
+        <Button onClick={handleNavigation}>
           <img src={comment} alt="Comment" />
           {comments}
         </Button>
