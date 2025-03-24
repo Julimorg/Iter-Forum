@@ -203,6 +203,8 @@ const UserProfile = () => {
       fetchProfile();
     }, [isOpen, accessToken]);
   
+
+    //? Update profile
     useEffect(() => {
       const updateProfile = async () => {
         if (!isSubmitting || !accessToken) return;

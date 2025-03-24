@@ -72,73 +72,77 @@ const CreatePost = () => {
     //? Create Post API
     useEffect(() => {
         const submitPost = async () => {
-          if (!isSubmitting || !accessToken) return;
-      
-          // Kiểm tra dữ liệu trước khi gửi
-          if (!title || !textDescripLimit) {
-            setError("Title and content are required");
-            setIsSubmitting(false);
-            return;
-          }
-      
-          try {
-            // Tạo FormData để gửi dữ liệu
-            const formData = new FormData();
-            formData.append("post_title", title);
-            formData.append("post_content", textDescripLimit);
-            
-            // Thử với key 'images' thay vì 'img_url'
-            imageFiles.forEach((file) => {
-              formData.append("img_file", file); // Đổi thành 'images'
-            });
-      
-            formData.append("tags", JSON.stringify(tags));
-      
-            // Log dữ liệu gửi lên để debug
-            console.log("Sending POST request with FormData:");
-            for (const [key, value] of formData.entries()) {
-              console.log(`${key}: ${value}`);
+            if (!isSubmitting || !accessToken) return;
+    
+            // Kiểm tra dữ liệu trước khi gửi
+            if (!title || !textDescripLimit) {
+                setError("Title and content are required");
+                setIsSubmitting(false);
+                return;
             }
-      
-            // Gửi request POST với FormData
-            const response = await authorizedAxiosInstance.post(
-              `${API_BE}/api/v1/posts/`,
-              formData,
-              {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`,
-                  "Content-Type": "multipart/form-data",
-                },
-              }
-            );
-      
-            console.log("Post created successfully:", response.data);
-            alert("Post created successfully!");
-      
-            // Reset form sau khi thành công
-            setTitle("");
-            setTextDescripLimit("");
-            setImages([]);
-            setImageFiles([]);
-            setTags([]);
-            setIsChecked(false);
-            setError(null);
-          } catch (error) {
-            console.error("Error creating post:", error);
-            if (axios.isAxiosError(error)) {
-              setError(error.response?.data?.message || "Failed to create post");
-              console.log("Error response:", error.response?.data); // Log chi tiết lỗi
-            } else {
-              setError("An unexpected error occurred");
+    
+            try {
+                // Tạo FormData để gửi dữ liệu
+                const formData = new FormData();
+                formData.append("post_title", title);
+                formData.append("post_content", textDescripLimit);
+    
+                // Gửi file ảnh (giả định key là 'images' dựa trên 'img_url' trong response)
+                imageFiles.forEach((file) => {
+                    formData.append("images", file); // Đổi từ 'img_file' sang 'images'
+                });
+    
+                // Gửi tags dưới dạng tags[0], tags[1], v.v.
+                tags.forEach((tag, index) => {
+                    formData.append(`tags[${index}]`, tag);
+                });
+    
+                // Log dữ liệu gửi lên để debug
+                console.log("Sending POST request with FormData:");
+                for (const [key, value] of formData.entries()) {
+                    console.log(`${key}: ${value}`);
+                }
+    
+                // Gửi request POST với FormData
+                const response = await authorizedAxiosInstance.post(
+                    `${API_BE}/api/v1/posts/`,
+                    formData,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${accessToken}`,
+                            "Content-Type": "multipart/form-data",
+                        },
+                    }
+                );
+    
+                console.log("Post created successfully:", response.data);
+                alert("Post created successfully!");
+    
+                // Reset form sau khi thành công
+                setTitle("");
+                setTextDescripLimit("");
+                setImages([]);
+                setImageFiles([]);
+                setTags([]);
+                setIsChecked(false);
+                setError(null);
+            } catch (error) {
+                console.error("Error creating post:", error);
+                if (axios.isAxiosError(error)) {
+                    const errorData = error.response?.data;
+                    console.log("Full error response:", errorData); // Log chi tiết lỗi
+                    setError(errorData?.message || "Failed to create post");
+                } else {
+                    setError("An unexpected error occurred");
+                }
+                alert("Failed to create post. Please try again.");
+            } finally {
+                setIsSubmitting(false);
             }
-            alert("Failed to create post. Please try again.");
-          } finally {
-            setIsSubmitting(false);
-          }
         };
-      
+    
         submitPost();
-      }, [isSubmitting, title, textDescripLimit, imageFiles, tags, accessToken]);
+    }, [isSubmitting, title, textDescripLimit, imageFiles, tags, accessToken]);
 
     const handleSubmit = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
