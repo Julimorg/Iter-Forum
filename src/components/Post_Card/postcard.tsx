@@ -97,7 +97,7 @@ const SingleImage = styled.img`
   object-fit: cover;
   border-radius: 8px;
   margin-bottom: 16px;
-  cursor: pointer; /* Thêm con trỏ để báo hiệu có thể nhấp */
+  cursor: pointer;
 `;
 
 const SwiperContainer = styled.div`
@@ -112,7 +112,7 @@ const SwiperContainer = styled.div`
     height: 100%;
     object-fit: cover;
     border-radius: 8px;
-    cursor: pointer; /* Thêm con trỏ cho hình ảnh trong Swiper */
+    cursor: pointer;
   }
 `;
 
@@ -136,6 +136,12 @@ const Button = styled.button`
   }
 `;
 
+const ImageCount = styled.div`
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+`;
+
 interface PostcardProps {
   user: string;
   caption: string;
@@ -145,7 +151,7 @@ interface PostcardProps {
   tags: string[];
   isTrending?: boolean;
   onRemove: () => void;
-  images?: string[];
+  images?: string[] | null; // Cập nhật type để chấp nhận null
 }
 
 const Postcard: React.FC<PostcardProps> = ({
@@ -157,16 +163,23 @@ const Postcard: React.FC<PostcardProps> = ({
   tags,
   isTrending,
   onRemove,
-  images = [],
+  images = [], // Giá trị mặc định là mảng rỗng
 }) => {
   const [currentLikes, setCurrentLikes] = useState<number>(likes);
   const [currentDislikes, setCurrentDislikes] = useState<number>(dislikes);
   const [liked, setLiked] = useState<boolean>(false);
   const [disliked, setDisliked] = useState<boolean>(false);
   const [popupVisible, setPopupVisible] = useState<boolean>(false);
+  const [imageCount, setImageCount] = useState<number>(0);
 
   const navigate = useNavigate();
   const popupRef = useRef<HTMLDivElement>(null);
+
+  // Cập nhật số lượng hình ảnh khi images thay đổi
+  useEffect(() => {
+    // Nếu images là null hoặc undefined, gán imageCount là 0, ngược lại lấy length
+    setImageCount(Array.isArray(images) ? images.length : 0);
+  }, [images]);
 
   const togglePopup = () => setPopupVisible(!popupVisible);
 
@@ -193,6 +206,9 @@ const Postcard: React.FC<PostcardProps> = ({
       state: { user, caption, likes: currentLikes, dislikes: currentDislikes, tags, comments, images, isTrending },
     });
   };
+
+  // Đảm bảo images luôn là mảng để tránh lỗi khi truy cập length
+  const safeImages = Array.isArray(images) ? images : [];
 
   return (
     <PostCardContainer>
@@ -223,9 +239,12 @@ const Postcard: React.FC<PostcardProps> = ({
         )}
       </PostTags>
 
-      {/* Hiển thị hình ảnh nếu images tồn tại và có ít nhất 1 phần tử */}
-      {images.length > 0 && (
-        images.length > 1 ? (
+      {/* Hiển thị số lượng hình ảnh */}
+      {imageCount > 0 && <ImageCount>{imageCount} image{imageCount > 1 ? 's' : ''}</ImageCount>}
+
+      {/* Hiển thị hình ảnh nếu safeImages có ít nhất 1 phần tử */}
+      {safeImages.length > 0 && (
+        safeImages.length > 1 ? (
           <SwiperContainer>
             <Swiper
               modules={[Navigation, Pagination]}
@@ -234,7 +253,7 @@ const Postcard: React.FC<PostcardProps> = ({
               navigation
               pagination={{ clickable: true }}
             >
-              {images.map((image, index) => (
+              {safeImages.map((image, index) => (
                 <SwiperSlide key={index}>
                   <img src={image} alt={`Post image ${index + 1}`} onClick={handleNavigation} />
                 </SwiperSlide>
@@ -242,7 +261,7 @@ const Postcard: React.FC<PostcardProps> = ({
             </Swiper>
           </SwiperContainer>
         ) : (
-          <SingleImage src={images[0]} alt="Post image" onClick={handleNavigation} />
+          <SingleImage src={safeImages[0]} alt="Post image" onClick={handleNavigation} />
         )
       )}
 

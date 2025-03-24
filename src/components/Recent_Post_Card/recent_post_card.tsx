@@ -56,7 +56,7 @@ const CommentCount = styled.div`
 `;
 
 const ThumbnailContainer = styled.div`
-  position: relative; /* Để định vị số lượng hình ảnh */
+  position: relative;
   width: 100px;
   height: 80px;
 `;
@@ -75,8 +75,8 @@ const ImageCount = styled.div`
   position: absolute;
   bottom: 5px;
   right: 5px;
-  background-color: rgba(255, 255, 255, 0.9); /* Nền trắng mờ */
-  border: 1px solid #ddd; /* Bo viền màu trắng */
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ddd;
   border-radius: 4px;
   padding: 2px 6px;
   font-size: 12px;
@@ -99,7 +99,7 @@ interface RecentPostProps {
   likes: number;
   dislikes: number;
   tags: string[];
-  images?: string[];
+  images?: string[] | null; // Cập nhật type để chấp nhận null
   isTrending?: boolean;
 }
 
@@ -111,7 +111,7 @@ const RecentPost: React.FC<RecentPostProps> = ({
   likes,
   dislikes,
   tags,
-  images = [], // Mặc định là mảng rỗng nếu không có images
+  images = [], // Giá trị mặc định là mảng rỗng
   isTrending,
 }) => {
   const navigate = useNavigate();
@@ -131,8 +131,10 @@ const RecentPost: React.FC<RecentPostProps> = ({
     });
   };
 
+  // Đảm bảo images là mảng để tránh lỗi khi truy cập length
+  const safeImages = Array.isArray(images) ? images : [];
   // Tính số lượng hình ảnh còn lại (nếu có nhiều hơn 1 hình)
-  const additionalImages = images.length > 1 ? images.length - 1 : 0;
+  const additionalImages = safeImages.length > 1 ? safeImages.length - 1 : 0;
 
   return (
     <>
