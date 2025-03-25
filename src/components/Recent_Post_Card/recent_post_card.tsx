@@ -49,6 +49,12 @@ const UserName = styled.div`
   }
 `;
 
+const Timestamp = styled.div`
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+`;
+
 const Title = styled.div`
   font-size: 14px;
   color: #666;
@@ -98,7 +104,7 @@ const Divider = styled.hr`
 interface RecentPostProps {
   user: string;
   user_id: string;
-  post_id: string; // Thêm post_id
+  post_id: string;
   title: string;
   comments: number;
   image?: string;
@@ -107,12 +113,13 @@ interface RecentPostProps {
   tags: string[];
   images?: string[] | null;
   isTrending?: boolean;
+  date_updated: string; // Thêm date_updated
 }
 
 const RecentPost: React.FC<RecentPostProps> = ({
   user,
   user_id,
-  post_id, // Nhận post_id từ props
+  post_id,
   title,
   comments,
   image,
@@ -121,15 +128,43 @@ const RecentPost: React.FC<RecentPostProps> = ({
   tags,
   images = [],
   isTrending,
+  date_updated,
 }) => {
   const navigate = useNavigate();
 
   const handlePostNavigation = () => {
-    navigate(`/home/post-detail/${post_id}`); // Sửa lại URL
+    navigate(`/home/post-detail/${post_id}`);
   };
 
   const handleUserNavigation = () => {
-    navigate(`/home/user-detail/${user_id}`); // Sửa lại URL
+    navigate(`/home/user-detail/${user_id}`);
+  };
+
+  const formatRelativeTime = (date: string): string => {
+    const now = new Date();
+    const updatedDate = new Date(date);
+    const diffInMs = now.getTime() - updatedDate.getTime();
+    const diffInSeconds = Math.floor(diffInMs / 1000);
+
+    const minutes = Math.floor(diffInSeconds / 60);
+    if (minutes < 1) return `${diffInSeconds} seconds ago`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 1) return `${minutes} minutes ago`;
+
+    const days = Math.floor(hours / 24);
+    if (days < 1) return `${hours} hours ago`;
+
+    const weeks = Math.floor(days / 7);
+    if (weeks < 1) return `${days} days ago`;
+
+    const months = Math.floor(days / 30);
+    if (months < 1) return `${weeks} weeks ago`;
+
+    const years = Math.floor(months / 12);
+    if (years < 1) return `${months} months ago`;
+
+    return `${years} years ago`;
   };
 
   const safeImages = Array.isArray(images) ? images : [];
@@ -141,14 +176,17 @@ const RecentPost: React.FC<RecentPostProps> = ({
         <PostContent>
           <UserInfo>
             <ProfilePic />
-            <UserName
-              onClick={(e) => {
-                e.stopPropagation();
-                handleUserNavigation();
-              }}
-            >
-              {user}
-            </UserName>
+            <div>
+              <UserName
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleUserNavigation();
+                }}
+              >
+                {user}
+              </UserName>
+              <Timestamp>{formatRelativeTime(date_updated)}</Timestamp>
+            </div>
           </UserInfo>
           <Title>{title}</Title>
           <CommentCount>{comments} comments</CommentCount>

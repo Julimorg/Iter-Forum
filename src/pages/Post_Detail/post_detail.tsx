@@ -263,8 +263,11 @@ const PostDetail: React.FC = () => {
   };
 
   const handleTagClick = () => {
-    // navigate(`/home/tag/${tag_id.tag_id}`);
-    alert("Comming Soon");
+    alert("Coming Soon");
+  };
+
+  const handleUserNavigation = () => {
+    navigate(`/home/user-detail/${post?.user_id}`);
   };
 
   const handleBack = () => {
@@ -273,6 +276,33 @@ const PostDetail: React.FC = () => {
     } else {
       navigate('/home');
     }
+  };
+
+  const formatRelativeTime = (date: string): string => {
+    const now = new Date();
+    const updatedDate = new Date(date);
+    const diffInMs = now.getTime() - updatedDate.getTime();
+    const diffInSeconds = Math.floor(diffInMs / 1000);
+
+    const minutes = Math.floor(diffInSeconds / 60);
+    if (minutes < 1) return `${diffInSeconds} seconds ago`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 1) return `${minutes} minutes ago`;
+
+    const days = Math.floor(hours / 24);
+    if (days < 1) return `${hours} hours ago`;
+
+    const weeks = Math.floor(days / 7);
+    if (weeks < 1) return `${days} days ago`;
+
+    const months = Math.floor(days / 30);
+    if (months < 1) return `${weeks} weeks ago`;
+
+    const years = Math.floor(months / 12);
+    if (years < 1) return `${months} months ago`;
+
+    return `${years} years ago`;
   };
 
   if (loading) {
@@ -295,24 +325,35 @@ const PostDetail: React.FC = () => {
           <div className={styles.header}>
             <div className={styles.userInfo}>
               <div className={styles.profilePic}></div>
-              <div className={styles.name}>{post.user_name}</div>
+              <div>
+                <div
+                  className={styles.name}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUserNavigation();
+                  }}
+                >
+                  {post.user_name}
+                </div>
+                <div className={styles.timestamp}>{formatRelativeTime(post.date_updated)}</div>
+              </div>
             </div>
             <div className={styles.dotsContainer}>
               <button className={styles.dotsButton} onClick={() => setShowPopup(!showPopup)}>⋮</button>
               {showPopup && (
                 <div ref={(el) => { popupRefs.current[0] = el; }}>
-                     <ReportPopup type="Post" user_id={post.user_id} post_id={post.post_id} />
+                  <ReportPopup type="Post" user_id={post.user_id} post_id={post.post_id} />
                 </div>
               )}
             </div>
           </div>
 
-          <div className={styles.title}>{post.post_title}</div> {/* Hiển thị post_title in đậm */}
-          <div className={styles.content}>{post.post_content}</div> {/* Hiển thị post_content bên dưới */}
+          <div className={styles.title}>{post.post_title}</div>
+          <div className={styles.content}>{post.post_content}</div>
 
           <div className={styles.postTags}>
             {post.tags && post.tags.length > 0 && post.tags.map((tag, index) => (
-              <button key={index} className={styles.tagButton} onClick={() => handleTagClick(tag)}>
+              <button key={index} className={styles.tagButton} onClick={() => handleTagClick()}>
                 #{tag}
               </button>
             ))}
@@ -391,7 +432,7 @@ const PostDetail: React.FC = () => {
                       </button>
                       {activeCommentIndex === index && (
                         <div ref={(el) => { popupRefs.current[index] = el; }}>
-                          <ReportPopup type='Comment' user_id={post.user_id} post_id={post.post_id} />
+                          <ReportPopup type="Comment" user_id={post.user_id} post_id={post.post_id} />
                         </div>
                       )}
                     </div>

@@ -1,28 +1,29 @@
-.profileContainer{
-    /* border: 1px solid #333; */
+.profileContainer {
     width: 100%;
-    height: 51.8rem;
-    margin-left: 10rem
-}
-.userProfileInformation{
+    max-width: 70rem;
+    margin: 0 auto; /* Căn giữa */
+    padding: 1rem; /* Thêm padding để tạo khoảng cách */
+    padding-left: 8rem; /* Thêm padding bên trái */
+  }
+  
+  .userProfileInformation {
     gap: 5rem;
-    left: 20px;
     align-items: center;
     border-bottom: 2px solid rgb(200, 200, 200);
     height: 10rem;
     padding: 10px;
-    /* margin: 1rem; */
-    display: flex
-;
-}
-/** ============ Profile Header Content ========= */
-.userProfileImage {
+    display: flex;
+    max-width: 70rem; /* Giới hạn chiều rộng */
+    margin: 0 auto; /* Căn giữa */
+  }
+  
+  /** ============ Profile Header Content ========= */
+  .userProfileImage {
     background-color: #fff;
     border: none;
     width: 7rem;
     height: 7rem;
     border-radius: 70%;
-    /* box-shadow: 0 0px 3px gray; */
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
@@ -31,36 +32,58 @@
     padding: 0;
     overflow: hidden;
     border: none;
-}
-.userProfileImage img {
+  }
+  
+  .userProfileImage img {
     border: 1px solid #333;
     width: 100%;
     height: 100%;
     object-fit: cover;
     border-radius: 70%;
-}
-.userProfileName {
+  }
+  
+  .userProfileName {
     height: 7rem;
-    /* border: 1px solid #333; */
-    font-size: 20px;
+    font-size:I 20px;
     font-weight: 600;
     padding-right: 1rem;
     border-right: 2px solid rgb(200, 200, 200);
-}
-.userProfileName h1{
+  }
+  
+  .userProfileName h1 {
     padding: 0.5rem 0 0.5rem 0;
-}
-.userBasicInfo p {
+  }
+  
+  .userBasicInfo p {
     padding: 2px 0 2px 0;
     font-size: 15px;
     font-weight: 600;
-    color: rgba(107, 114, 128, 1);;
-}
-.userProfileBio {
+    color: rgba(107, 114, 128, 1);
+  }
+  
+  .userProfileBio {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    /* border: 1px solid #333; */
     width: 28rem;
-    
-}
+  }
+  
+  .userProfileContent {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    max-width: 70rem; /* Giữ nguyên max-width */
+    margin: 0 auto; /* Căn giữa */
+    background-color: #f9f9f9; /* Nền nhạt */
+    border-radius: 8px; /* Bo góc */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bóng đổ nhẹ */
+  }
+  
+  /* Style cho thông báo "No posts available" */
+  .userProfileContent p {
+    text-align: center;
+    color: #666;
+    font-size: 16px;
+    padding: 1rem;
+  }

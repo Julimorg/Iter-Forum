@@ -1,9 +1,17 @@
 import React, { CSSProperties } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Trending from '../../assets/trending.png';
-import Follow from '../../assets/see_more.png';
 
-const Tag_Card: React.FC<{ title: string; posts: number; isTrending: boolean }> = ({ title, posts, isTrending }) => {
-  // CSS styles with explicit typing using CSSProperties
+interface TagCardProps {
+  tag_id: string;
+  title: string;
+  posts: number;
+  isTrending: boolean;
+}
+
+const Tag_Card: React.FC<TagCardProps> = ({ tag_id, title, posts, isTrending }) => {
+  const navigate = useNavigate();
+
   const styles: { [key: string]: CSSProperties } = {
     tagCard: {
       display: 'flex',
@@ -16,6 +24,10 @@ const Tag_Card: React.FC<{ title: string; posts: number; isTrending: boolean }> 
         ? '0 2px 4px rgba(0, 0, 0, 0.1)'
         : '0 1px 2px rgba(0, 0, 0, 0.1)',
       gap: '15px',
+      cursor: 'pointer',
+      width: '15rem',
+      textAlign: 'left',
+      transition: 'background-color 0.3s ease',
     },
     icon: {
       color: '#ffa500',
@@ -23,44 +35,38 @@ const Tag_Card: React.FC<{ title: string; posts: number; isTrending: boolean }> 
     },
     content: {
       display: 'flex',
-      flexDirection: 'column' as const, // Ensure valid literal type
+      flexDirection: 'column' as const,
       gap: '10px',
+      flex: 1,
+      overflow: 'hidden',
     },
     title: {
       fontSize: '1.2rem',
       fontWeight: 'bold',
       margin: 0,
       color: '#333',
-    },
-    postsFollow: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      width: '100%',
-      margin: 0,
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
     },
     posts: {
       fontSize: '0.9rem',
       color: '#777',
       margin: 0,
-    },
-    followButton: {
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '5px',
-    },
-    followImage: {
-      width: '20px',
-      height: '20px',
+      whiteSpace: 'nowrap',
     },
   };
 
+  const handleTagClick = () => {
+    navigate(`/home/tag/${tag_id}`);
+  };
+
   return (
-    <div style={styles.tagCard}>
+    <button
+      style={styles.tagCard}
+      onClick={handleTagClick}
+      aria-label={`View details for ${title}`}
+    >
       {isTrending && (
         <div style={styles.icon}>
           <img src={Trending} alt="Trending" style={styles.icon} />
@@ -68,14 +74,9 @@ const Tag_Card: React.FC<{ title: string; posts: number; isTrending: boolean }> 
       )}
       <div style={styles.content}>
         <h3 style={styles.title}>{title}</h3>
-        <div style={styles.postsFollow}>
-          <p style={styles.posts}>{posts} POSTS</p>
-          <button style={styles.followButton} aria-label={`Follow ${title}`}>
-            <img src={Follow} alt="Follow" style={styles.followImage} />
-          </button>
-        </div>
+        <p style={styles.posts}>{posts} POSTS</p>
       </div>
-    </div>
+    </button>
   );
 };
 

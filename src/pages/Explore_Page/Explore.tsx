@@ -13,9 +13,9 @@ interface Tags {
 
 const Explore = () => {
   const [groupedTags, setGroupedTags] = useState<{
-    [category: string]: { title: string; posts: number; isTrending: boolean }[];
+    [category: string]: { tag_id: string; title: string; posts: number; isTrending: boolean }[];
   }>({});
-  const [isLoading, setIsLoading] = useState<boolean>(true); // Thêm trạng thái loading
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -23,12 +23,12 @@ const Explore = () => {
 
       if (!accessToken) {
         console.error('No access token found in localStorage');
-        setIsLoading(false); // Tắt loading nếu không có token
+        setIsLoading(false);
         return;
       }
 
       try {
-        setIsLoading(true); // Bật loading khi bắt đầu fetch
+        setIsLoading(true);
         const response = await axios.get(`${API_BE}/api/v1/recommend/tags`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -38,25 +38,31 @@ const Explore = () => {
 
         const data = response.data.data;
 
-        // Nhóm tags theo tag_category
-        const tagsByCategory = data.reduce((acc: { [key: string]: { title: string; posts: number; isTrending: boolean }[] }, tag: Tags) => {
-          const category = tag.tag_category;
-          if (!acc[category]) {
-            acc[category] = [];
-          }
-          acc[category].push({
-            title: tag.tag_name,
-            posts: tag.num_posts,
-            isTrending: tag.num_posts > 1000,
-          });
-          return acc;
-        }, {});
+        const tagsByCategory = data.reduce(
+          (
+            acc: { [key: string]: { tag_id: string; title: string; posts: number; isTrending: boolean }[] },
+            tag: Tags
+          ) => {
+            const category = tag.tag_category;
+            if (!acc[category]) {
+              acc[category] = [];
+            }
+            acc[category].push({
+              tag_id: tag.tag_id,
+              title: tag.tag_name,
+              posts: tag.num_posts,
+              isTrending: tag.num_posts > 1000,
+            });
+            return acc;
+          },
+          {}
+        );
 
         setGroupedTags(tagsByCategory);
       } catch (error) {
         console.error('Error fetching tags:', error);
       } finally {
-        setIsLoading(false); // Tắt loading khi hoàn tất (dù thành công hay lỗi)
+        setIsLoading(false);
       }
     };
 
@@ -68,17 +74,17 @@ const Explore = () => {
       <h1 className={styles.title}>Explore new tags:</h1>
 
       {isLoading ? (
-        <div>Loading tags...</div> // Hiển thị khi đang loading
+        <div>Loading tags...</div>
       ) : (
         <>
-          {/* Render mỗi category với tags tương ứng */}
           {Object.entries(groupedTags).map(([category, tags]) => (
             <section key={category} className={styles['section-tags']}>
               <h2>{category}</h2>
               <div className={styles.tags}>
-                {tags.map((tag, index) => (
+                {tags.map((tag) => (
                   <Tag_Card
-                    key={index}
+                    key={tag.tag_id}
+                    tag_id={tag.tag_id}
                     title={tag.title}
                     posts={tag.posts}
                     isTrending={tag.isTrending}
@@ -87,7 +93,6 @@ const Explore = () => {
               </div>
             </section>
           ))}
-          <button className={styles['see-more']}>See more tags</button>
         </>
       )}
     </div>

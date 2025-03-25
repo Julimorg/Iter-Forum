@@ -4,7 +4,7 @@ import Post_Card from '../../components/Post_Card/postcard';
 import { useParams, useNavigate } from 'react-router-dom';
 import backIcon from '../../assets/back_arrow.png';
 import bellIcon from '../../assets/bell.png';
-import axios from 'axios';
+import authorizedAxiosInstance from '../../services/Auth';
 
 interface Post {
     user_id: string;
@@ -44,14 +44,26 @@ const Tag_Detail: React.FC = () => {
     const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
     const [tagData, setTagData] = useState<TagData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchTagData = async () => {
+            if (!tagId) {
+                setError("Tag ID not provided");
+                setLoading(false);
+                return;
+            }
+
             try {
                 setLoading(true);
-                const accessToken = localStorage.getItem('accessToken') || '';
+                const accessToken = localStorage.getItem('accessToken');
+                if (!accessToken) {
+                    setError("Please login to view tag details");
+                    setLoading(false);
+                    return;
+                }
 
-                const response = await axios.get<ApiResponse>(
+                const response = await authorizedAxiosInstance.get<ApiResponse>(
                     `http://localhost:3000/api/v1/recommend/tags/${tagId}`,
                     {
                         headers: {
@@ -61,22 +73,22 @@ const Tag_Detail: React.FC = () => {
                     }
                 );
 
-                console.log('Fetched tags detail:', response.data); // Giữ log để debug
+                console.log('Fetched tags detail:', response.data);
                 if (response.data.is_success) {
                     setTagData(response.data.data);
+                    setError(null);
                 } else {
-                    console.error('API request failed:', response.data.message);
+                    setError(response.data.message || "Failed to fetch tag details");
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error fetching tag data:', error);
+                setError(error.response?.data?.message || "Failed to fetch tag details");
             } finally {
                 setLoading(false);
             }
         };
 
-        if (tagId) {
-            fetchTagData();
-        }
+        fetchTagData();
     }, [tagId]);
 
     const handleBack = (): void => {
@@ -91,8 +103,23 @@ const Tag_Detail: React.FC = () => {
         setIsSubscribed(prev => !prev);
     };
 
+    const handleRemovePost = (postId: string): void => {
+        setTagData(prev => {
+            if (!prev) return prev;
+            return {
+                ...prev,
+                recommend_posts: prev.recommend_posts.filter(post => post.post_id !== postId),
+                num_posts: prev.num_posts - 1,
+            };
+        });
+    };
+
     if (loading) {
         return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>{error}</div>;
     }
 
     if (!tagData) {
@@ -139,22 +166,29 @@ const Tag_Detail: React.FC = () => {
 
                 <section className={styles['trending-posts']}>
                     <div className={styles['trending_post_content']}>
-                        {tagData.recommend_posts &&
-                            tagData.recommend_posts.map((post, index) => (
+                        {tagData.recommend_posts && tagData.recommend_posts.length > 0 ? (
+                            tagData.recommend_posts.map((post) => (
                                 <Post_Card
-                                    key={index}
-                                    user={post.user_name}
-                                    caption={post.post_title}
-                                    likes={post.upvote}
-                                    user_id={post.user_id}
-                                    post_id={post.post_id}
-                                    dislikes={post.downvote}
-                                    tags={post.tags}
-                                    comments={post.comments_num}
-                                    images={post.img_url} // Truyền mảng img_url vào Post_Card
-                                    onRemove={() => console.log(`Post ${index} removed.`)}
-                                    isTrending={true} title={''} />
-                            ))}
+                                key={post.post_id}
+                                user={post.user_name}
+                                user_id={post.user_id}
+                                post_id={post.post_id}
+                                title={post.post_title}
+                                caption={post.post_content}
+                                likes={post.upvote}
+                                dislikes={post.downvote}
+                                comments={post.comments_num}
+                                tags={post.tags}
+                                images={post.img_url}
+                                avatar={post.ava_img_path}
+                                onRemove={() => handleRemovePost(post.post_id)}
+                                isTrending={true}
+                                date_updated={post.date_updated} // Đã có date_updated
+                                />
+                            ))
+                        ) : (
+                            <p>No posts found for this tag.</p>
+                        )}
                     </div>
                 </section>
             </div>
