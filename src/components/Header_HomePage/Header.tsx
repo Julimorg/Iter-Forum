@@ -8,7 +8,7 @@ import IconButton from '../RoundButtonIcon/RoundButtonIcon';
 import ButtonIconLeft from '../ButtonIconLeft/ButtonIconLeft';
 import NotificationElements from '../Notification_Elements/NotificationElements';
 import styled from 'styled-components';
-import styles from './headerSearch.module.css'; // Giữ lại nếu cần class từ CSS module
+
 import { API_BE } from '../../config/configApi';
 
 interface SearchedUser {
@@ -82,7 +82,7 @@ function SearchModal({ isOpen, users, onClose }: { isOpen: boolean; users: Searc
           <ul>
             {users.map((user) => (
               <li key={user.user_id}>
-                <Link to={`/home/user/${user.user_id}`} onClick={onClose}>
+                <Link to={`/home/user-detail/${user.user_id}`} onClick={onClose}>
                   {user.user_name}
                 </Link>
               </li>
@@ -126,7 +126,7 @@ const Header: React.FC = () => {
     };
   }, []);
 
-  // Fetch search results
+  //? Fetch search results
   const fetchSearchResults = async (query: string) => {
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) {
@@ -369,7 +369,7 @@ const StyleWrapper = styled.div`
     border-radius: 8px;
     padding: 20px;
     z-index: 1000;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: rgba(0, 0, 0, 0.3) 4px 9px 27px 7px;
     width: 300px;
     max-height: 400px;
     overflow-y: auto;

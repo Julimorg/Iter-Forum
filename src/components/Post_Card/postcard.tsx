@@ -201,7 +201,7 @@ const Postcard: React.FC<PostcardProps> = ({
   comments,
   tags,
   isTrending,
-  onRemove,
+  // onRemove,
   images = [],
   avatar,
 }) => {
@@ -271,13 +271,13 @@ const Postcard: React.FC<PostcardProps> = ({
           <DotsButton onClick={togglePopup}>⋮</DotsButton>
           {popupVisible && (
             <div ref={popupRef}>
-              <ReportPopup type="post" />
+              <ReportPopup type="Post" user_id = {user_id} post_id = {post_id} />
             </div>
           )}
         </DotsContainer>
       </Header>
-      <Title onClick={handlePostNavigation}>{title}</Title> {/* Hiển thị title in đậm */}
-      <Caption onClick={handlePostNavigation}>{caption}</Caption> {/* Hiển thị caption bên dưới */}
+      <Title onClick={handlePostNavigation}>{title}</Title>
+      <Caption onClick={handlePostNavigation}>{caption}</Caption>
       <PostTags>
         {tags.map((tag, index) => (
           <TagPost key={index} tag={tag} />

@@ -1,5 +1,156 @@
+import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { API_BE } from '../../config/configApi';
+
+interface ReportPanelProps {
+  onClose: () => void;
+  type: string;
+  user_id: string;
+  post_id: string;
+}
+interface ReportRequest{
+  reported_user_id: string;
+  report_title: string;
+  report_body: string;
+  post_id: string;
+}
+
+const ReportPanel: React.FC<ReportPanelProps> = ({ onClose, type, user_id , post_id}) => {
+  const [selectedReason, setSelectedReason] = useState<string | null>(null);
+  const [description, setDescription] = useState('');
+  const [reportSubmitted, setReportSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  //? handle report API 
+
+  const reportReasons = [
+    'Problem involving someone under 18',
+    'Pretending to be someone',
+    'Fake account',
+    'Fake name',
+    'Harassment or bullying',
+    'Suicide or self-harm',
+    'Violent hateful or disturbing content',
+    'Selling or promoting restricted items',
+    'Adult content',
+    'Scam fraud or false information',
+    'I dont want to see this',
+  ];
+
+  const handleReasonClick = (reason: string) => {
+    setSelectedReason(reason);
+  };
+
+  const handleBackClick = () => {
+    setSelectedReason(null);
+  };
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (target && !target.closest('.report-panel-container')) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [onClose]);
+  
+  const handleConfirmReport = async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      setError('Vui lòng đăng nhập để gửi báo cáo');
+      return;
+    }
+
+    if (!selectedReason) {
+      setError('Vui lòng chọn lý do báo cáo');
+      return;
+    }
+
+    const reportData: ReportRequest = {
+      reported_user_id: user_id,
+      report_title: selectedReason,
+      report_body: description,
+      post_id: post_id,
+    };
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await axios.post(
+        `${API_BE}/api/v1/report/${encodeURIComponent(type)}`, 
+        reportData,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.data.is_success) {
+        setReportSubmitted(true);
+      } else {
+        setError('Không thể gửi báo cáo');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Đã xảy ra lỗi khi gửi báo cáo');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <PanelOverlay>
+      <ReportPanelContainer className="report-panel-container">
+      {reportSubmitted ? (
+        <>
+          <SuccessMessage>Báo cáo đã được gửi thành công!</SuccessMessage>
+          <ConfirmButton onClick={onClose}>Đóng</ConfirmButton>
+        </>
+      ) : (
+        <>
+          <Title>{selectedReason ? `More detail - ${selectedReason} ` : 'Chose your reasons'}</Title>
+          {selectedReason ? (
+            <>
+             <BackButton onClick={handleBackClick}>Return</BackButton>
+              <Textarea
+                placeholder="Describe your problem with this post (Optional)"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+              />
+              {error && <div style={{ color: 'red' }}>{error}</div>}
+              <ConfirmButton onClick={handleConfirmReport} disabled={isLoading}>
+                {isLoading ? 'Đang gửi...' : 'Submit Report'}
+              </ConfirmButton>
+            </>
+          ) : (
+            <ReasonList>
+              {reportReasons.map((reason) => (
+                <ReasonItem key={reason} onClick={() => handleReasonClick(reason)}>
+                  {reason}
+                </ReasonItem>
+              ))}
+            </ReasonList>
+          )}
+          {error && !selectedReason && <div style={{ color: 'red' }}>{error}</div>}
+          <ConfirmButton onClick={onClose}>Cancel</ConfirmButton>
+        </>
+      )}
+      </ReportPanelContainer>
+    </PanelOverlay>
+  );
+};
+
+export default ReportPanel;
+
 
 const PanelOverlay = styled.div`
   position: fixed;
@@ -14,6 +165,10 @@ const PanelOverlay = styled.div`
   align-items: center;
 `;
 
+const Title = styled.h2`
+  margin: 0 0 20px;
+  font-size: 1.5rem;
+`;
 const ReportPanelContainer = styled.div`
   background: white;
   padding: 20px;
@@ -25,6 +180,14 @@ const ReportPanelContainer = styled.div`
   flex-direction: column;
   position: relative;
   overflow: hidden; /* Đảm bảo nội dung không tràn */
+`;
+const ReasonItem = styled.li`
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  &:hover {
+    background: #f5f5f5;
+  }
 `;
 
 const BackButton = styled.button`
@@ -44,26 +207,10 @@ const BackButton = styled.button`
   }
 `;
 
-const PanelTitle = styled.h2`
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 20px;
-`;
 
-const ReasonButton = styled.button`
-  padding: 12px;
-  margin: 8px 0;
-  border: 1px solid #ccc;
-  background-color: transparent;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  width: 100%;
-  text-align: left;
-  border-radius: 4px;
-
-  &:hover {
-    background-color: #f0f0f0;
-  }
+const ReasonList = styled.ul`
+  list-style: none;
+  padding: 0;
 `;
 
 const Textarea = styled.textarea`
@@ -92,123 +239,8 @@ const ConfirmButton = styled.button`
   }
 `;
 
-const ConfirmationMessage = styled.div`
-  text-align: left;
+const SuccessMessage = styled.div`
+  text-align: center;
+  color: green;
+  margin-top: 20px;
 `;
-
-const ConfirmationTitle = styled.h2`
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 8px;
-`;
-
-const ProcessInfo = styled.p`
-  font-size: 14px;
-  margin-bottom: 12px;
-  color: #333;
-`;
-
-const HighlightedReason = styled.div`
-  background-color: #f2f2f2;
-  padding: 10px;
-  border-radius: 4px;
-  margin: 8px 0;
-  font-weight: bold;
-  color: #333;
-`;
-
-const DescriptionText = styled.p`
-  color: #666;
-  margin-top: 4px;
-`;
-
-interface ReportPanelProps {
-  onClose: () => void;
-  type: string;
-}
-
-const ReportPanel: React.FC<ReportPanelProps> = ({ onClose, type }) => {
-  const [selectedReason, setSelectedReason] = useState<string | null>(null);
-  const [description, setDescription] = useState('');
-  const [reportSubmitted, setReportSubmitted] = useState(false);
-
-  const reportReasons = [
-    'Problems with children under 18',
-    'Bullying, harassment, or abuse',
-    'Suicide or self-injury',
-    'Content that is violent, hateful, or disruptive',
-    'Adult content',
-    'Fraudulent and false content',
-    'Other problems',
-  ];
-
-  const handleReasonClick = (reason: string) => {
-    setSelectedReason(reason);
-  };
-
-  const handleBackClick = () => {
-    setSelectedReason(null);
-  };
-
-  const handleConfirmReport = () => {
-    setReportSubmitted(true);
-  };
-
-  useEffect(() => {
-    const handleOutsideClick = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (target && !target.closest('.report-panel-container')) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-    };
-  }, [onClose]);
-
-  return (
-    <PanelOverlay>
-      <ReportPanelContainer className="report-panel-container">
-        {!reportSubmitted ? (
-          <>
-            {!selectedReason ? (
-              <>
-                <PanelTitle>Why are you reporting this {type}?</PanelTitle>
-                {reportReasons.map((reason, index) => (
-                  <ReasonButton key={index} onClick={() => handleReasonClick(reason)}>
-                    {reason}
-                  </ReasonButton>
-                ))}
-              </>
-            ) : (
-              <>
-                <BackButton onClick={handleBackClick}>Back</BackButton>
-                <PanelTitle>Description for {selectedReason}</PanelTitle>
-                <Textarea
-                  placeholder="Describe your problem with this post (Optional)"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={4}
-                />
-                <ConfirmButton onClick={handleConfirmReport}>Submit Report</ConfirmButton>
-              </>
-            )}
-          </>
-        ) : (
-          <ConfirmationMessage>
-            <ConfirmationTitle>Report Submitted Successfully</ConfirmationTitle>
-            <ProcessInfo>
-              After we verify this {type}, we will inform you how to resolve this problem. Thank you for reporting!
-            </ProcessInfo>
-            <HighlightedReason>{selectedReason}</HighlightedReason>
-            {description && <DescriptionText>{description}</DescriptionText>}
-          </ConfirmationMessage>
-        )}
-      </ReportPanelContainer>
-    </PanelOverlay>
-  );
-};
-
-export default ReportPanel;

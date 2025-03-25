@@ -34,6 +34,7 @@ interface PostItem {
   upvote: number;
   downvote: number;
   comments_num: number;
+  post_title: string;
   
 }
 interface PostsResponse {
@@ -399,20 +400,23 @@ const UserProfile = () => {
       <>
         <div className={styles.postContainer}>
         {posts.length > 0
-          ? posts.map((post, index) => (
+          ? posts.map((post) => (
             <Post_Card
-              key={post.post_id}
-              // id={post.post_id}
-              user={post.user_name}
-              caption={post.post_content}
-              likes={post.upvote}
-              dislikes={post.downvote}
-              comments={post.comments_num}
-              images={post.img_url}
-              tags={[]}
-              onRemove={() => removePost(post.post_id)}
-              isTrending={index === 0}
-            />
+            key={post.post_id}
+            post_id={post.post_id}
+            user={post.user_name}
+            user_id={post.user_id}
+            title={post.post_title}
+            caption={post.post_content}
+            likes={post.upvote}
+            dislikes={post.downvote}
+            comments={post.comments_num}
+            tags={post.tags}
+            images={post.img_url}
+            avatar={post.ava_img_path}
+            onRemove={() => removePost(post.post_id)}
+            isTrending={false}
+          />
           ))
           : null}
       </div >

@@ -4,6 +4,45 @@ import blockUserIcon from '../../assets/block.png';
 import reportIcon from '../../assets/report.png';
 import ReportPanel from '../Report_Panel/Report_panel'; // Đảm bảo đường dẫn đúng
 
+interface ReportPopupProps {
+  type: string; 
+  user_id: string;
+  post_id: string;
+  comment_id?: string;
+}
+
+const ReportPopup: React.FC<ReportPopupProps> = ({ type, user_id , post_id }) => {
+  const [showReportPanel, setShowReportPanel] = useState<boolean>(false);
+
+  const handleOpenReportPanel = () => {
+    setShowReportPanel(true); // Mở ReportPanel
+  };
+
+  const handleCloseReportPanel = () => {
+    setShowReportPanel(false); // Đóng ReportPanel
+  };
+  return (
+    <>
+      <Popup>
+        <PopupButton>
+          <img src={blockUserIcon} alt="Block This User" />
+          Block this user
+        </PopupButton>
+        <PopupButton style={{ color: 'red' }} onClick={handleOpenReportPanel}>
+          <img src={reportIcon} alt="Report" />
+          Report this {type}
+        </PopupButton>
+      </Popup>
+
+      {/* Hiển thị ReportPanel nếu cần */}
+      {showReportPanel && <ReportPanel onClose={handleCloseReportPanel} type={type}  user_id = {user_id} post_id={post_id}/>}
+    </>
+  );
+};
+
+export default ReportPopup;
+
+
 const Popup = styled.div`
   position: absolute;
   top: 100%;
@@ -39,38 +78,3 @@ const PopupButton = styled.button`
     border-bottom: none;
   }
 `;
-interface ReportPopupProps {
-  type: string; // Prop cho nội dung động
-}
-
-const ReportPopup: React.FC<ReportPopupProps> = ({ type }) => {
-  const [showReportPanel, setShowReportPanel] = useState<boolean>(false);
-
-  const handleOpenReportPanel = () => {
-    setShowReportPanel(true); // Mở ReportPanel
-  };
-
-  const handleCloseReportPanel = () => {
-    setShowReportPanel(false); // Đóng ReportPanel
-  };
-
-  return (
-    <>
-      <Popup>
-        <PopupButton>
-          <img src={blockUserIcon} alt="Block This User" />
-          Block this user
-        </PopupButton>
-        <PopupButton style={{ color: 'red' }} onClick={handleOpenReportPanel}>
-          <img src={reportIcon} alt="Report" />
-          Report this {type}
-        </PopupButton>
-      </Popup>
-
-      {/* Hiển thị ReportPanel nếu cần */}
-      {showReportPanel && <ReportPanel onClose={handleCloseReportPanel} type={type} />}
-    </>
-  );
-};
-
-export default ReportPopup;

@@ -7,6 +7,7 @@ import Post_Card from '../../components/Post_Card/postcard';
 import RecentPost from '../../components/Recent_Post_Card/recent_post_card';
 import authorizedAxiosInstance from '../../services/Auth';
 import { handleLogOutAPI } from '../../apis';
+import { API_BE } from '../../config/configApi';
 
 interface Post {
   user_id: string;
@@ -60,7 +61,7 @@ function PostDisplayComponent() {
 
       try {
         const response = await authorizedAxiosInstance.get<PostsResponse>(
-          "http://localhost:3000/api/v1/recommend/home",
+          `${API_BE}/api/v1/recommend/home`,
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
