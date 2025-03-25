@@ -18,6 +18,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Navigation, Pagination } from 'swiper/modules';
 import authorizedAxiosInstance from '../../services/Auth';
+import { API_BE } from '../../config/configApi';
 
 interface PostData {
   user_id: string;
@@ -31,6 +32,7 @@ interface PostData {
   upvote: number;
   downvote: number;
   tags: string[];
+  tag_id: string;
   comments: any[];
 }
 
@@ -87,7 +89,7 @@ const PostDetail: React.FC = () => {
       try {
         console.log("Fetching post detail for postId:", postId);
         const response = await authorizedAxiosInstance.get<ApiResponse>(
-          `http://localhost:3000/api/v1/posts/${postId}`
+          `${API_BE}/api/v1/posts/${postId}`
         );
         console.log("API response:", response.data);
 
@@ -260,8 +262,9 @@ const PostDetail: React.FC = () => {
     );
   };
 
-  const handleTagClick = (tag: string) => {
-    navigate(`/home/tag/${encodeURIComponent(tag)}`);
+  const handleTagClick = () => {
+    // navigate(`/home/tag/${tag_id.tag_id}`);
+    alert("Comming Soon");
   };
 
   const handleBack = () => {
@@ -298,7 +301,7 @@ const PostDetail: React.FC = () => {
               <button className={styles.dotsButton} onClick={() => setShowPopup(!showPopup)}>⋮</button>
               {showPopup && (
                 <div ref={(el) => { popupRefs.current[0] = el; }}>
-                  <ReportPopup type='post' />
+                     <ReportPopup type="Post" user_id={post.user_id} post_id={post.post_id} />
                 </div>
               )}
             </div>
@@ -388,7 +391,7 @@ const PostDetail: React.FC = () => {
                       </button>
                       {activeCommentIndex === index && (
                         <div ref={(el) => { popupRefs.current[index] = el; }}>
-                          <ReportPopup type='comment' />
+                          <ReportPopup type='Comment' user_id={post.user_id} post_id={post.post_id} />
                         </div>
                       )}
                     </div>

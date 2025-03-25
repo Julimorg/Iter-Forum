@@ -12,6 +12,7 @@ import { API_BE } from '../../config/configApi';
 interface TagSubscribed {
   tag_title: string;
   post_count: number;
+  tag_id: string;
 }
 
 interface SidebarProps {
@@ -214,7 +215,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onSignOutClick }) => {
               {(showAllTags ? subscribedTags : subscribedTags.slice(0, 3)).map((tag, index) => (
                 <li key={index} className={styles.tagItem}>
                   <Link
-                    to={`/home/tag/${encodeURIComponent(tag.tag_title)}`}
+                    to={`/home/tag/${tag.tag_id}`}
                     className={styles.tagLink}
                   >
                     <span className={styles.tagName}>{tag.tag_title} {tag.post_count} </span>

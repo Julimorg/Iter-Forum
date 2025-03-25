@@ -53,7 +53,7 @@ function App() {
             <Route path="popular" element={<Popular />} />
             <Route path="explore" element={<Explore />} />
             <Route path="post-detail/:postId" element={<PostDetail />} />
-            <Route path="tag/:tagName" element={<TagDetail />} />
+            <Route path="tag/:tagId" element={<TagDetail />} />
             <Route path="all-subscribed-tags" element={<AllSubscribedTags />} />
             <Route path="user" element={<ViewUserProfile />} />
             <Route path="user-detail/:userId" element={<ViewUserProfile />} />

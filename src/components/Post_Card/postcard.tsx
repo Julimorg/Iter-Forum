@@ -15,6 +15,190 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Navigation, Pagination } from 'swiper/modules';
 
+interface PostcardProps {
+  post_id: string;
+  user: string;
+  user_id: string;
+  title: string; // Thêm title để map với post_title
+  caption: string; // Map với post_content
+  likes: number;
+  dislikes: number;
+  comments: number;
+  tags: string[];
+  isTrending?: boolean;
+  onRemove: () => void;
+  images?: string[] | null;
+  avatar?: string | null; // Thêm avatar nếu muốn dùng ava_img_path
+}
+
+const Postcard: React.FC<PostcardProps> = ({
+  post_id,
+  user,
+  user_id,
+  title, // Map với post_title
+  caption, // Map với post_content
+  likes,
+  dislikes,
+  comments,
+  tags,
+  isTrending,
+  // onRemove,
+  images = [],
+  avatar,
+}) => {
+  const [currentLikes, setCurrentLikes] = useState<number>(likes);
+  const [currentDislikes, setCurrentDislikes] = useState<number>(dislikes);
+  const [liked, setLiked] = useState<boolean>(false);
+  const [disliked, setDisliked] = useState<boolean>(false);
+  const [popupVisible, setPopupVisible] = useState<boolean>(false);
+  const [imageCount, setImageCount] = useState<number>(0);
+  const [imageErrors, setImageErrors] = useState<boolean[]>([]);
+
+  const navigate = useNavigate();
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const count = Array.isArray(images) ? images.length : 0;
+    setImageCount(count);
+    setImageErrors(new Array(count).fill(false));
+  }, [images]);
+
+  const togglePopup = () => setPopupVisible(!popupVisible);
+
+  const handleLike = () => {
+    setLiked((prev) => !prev);
+    setCurrentLikes((prev) => (liked ? prev - 1 : prev + 1));
+    if (disliked) {
+      setDisliked(false);
+      setCurrentDislikes((prev) => prev - 1);
+    }
+  };
+
+  const handleDislike = () => {
+    setDisliked((prev) => !prev);
+    setCurrentDislikes((prev) => (disliked ? prev - 1 : prev + 1));
+    if (liked) {
+      setLiked(false);
+      setCurrentLikes((prev) => prev - 1);
+    }
+  };
+
+  const handlePostNavigation = () => {
+    console.log("Navigating to post detail with post_id:", post_id);
+    navigate(`/home/post-detail/${post_id}`);
+  };
+
+  const handleUserNavigation = () => {
+    navigate(`/home/user-detail/${user_id}`);
+  };
+
+  const safeImages = Array.isArray(images) ? images : [];
+
+  const handleImageError = (index: number) => (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error('Error loading image:', e.currentTarget.src);
+    setImageErrors((prev) => {
+      const newErrors = [...prev];
+      newErrors[index] = true;
+      return newErrors;
+    });
+  };
+
+  return (
+    <PostCardContainer>
+      <Header>
+        <ProfilePic style={avatar ? { backgroundImage: `url(${avatar})`, backgroundSize: 'cover' } : {}} />
+        <Name onClick={handleUserNavigation}>{user}</Name>
+        <DotsContainer>
+          <DotsButton onClick={togglePopup}>⋮</DotsButton>
+          {popupVisible && (
+            <div ref={popupRef}>
+              <ReportPopup type="Post" user_id={user_id} post_id={post_id} />
+            </div>
+          )}
+        </DotsContainer>
+      </Header>
+      <Title onClick={handlePostNavigation}>{title}</Title>
+      <Caption onClick={handlePostNavigation}>{caption}</Caption>
+      <PostTags>
+      
+        {tags ? tags.map((tag, index) => (
+          <TagPost key={index} tag={tag} />
+        )) : null}
+        
+        {isTrending && (
+          <div style={{ color: 'orange', display: 'flex', alignItems: 'center' }}>
+            <img src={Trending} alt="Trending" style={{ marginRight: '0.5rem' }} />
+            Trending
+          </div>
+        )}
+      </PostTags>
+
+      {imageCount > 0 && <ImageCount>{imageCount} image{imageCount > 1 ? 's' : ''}</ImageCount>}
+
+      {safeImages.length > 0 && (
+        safeImages.length > 1 ? (
+          <SwiperContainer>
+            <Swiper
+              modules={[Navigation, Pagination]}
+              spaceBetween={10}
+              slidesPerView={1}
+              navigation
+              pagination={{ clickable: true }}
+            >
+              {safeImages.map((image, index) => (
+                <SwiperSlide key={index}>
+                  {imageErrors[index] ? (
+                    <PlaceholderImage>Image failed to load</PlaceholderImage>
+                  ) : (
+                    <img
+                      src={image}
+                      alt={`Post image ${index + 1}`}
+                      onClick={handlePostNavigation}
+                      onError={handleImageError(index)}
+                      loading="lazy"
+                    />
+                  )}
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </SwiperContainer>
+        ) : (
+          imageErrors[0] ? (
+            <PlaceholderImage>Image failed to load</PlaceholderImage>
+          ) : (
+            <SingleImage
+              src={safeImages[0]}
+              alt="Post image"
+              onClick={handlePostNavigation}
+              onError={handleImageError(0)}
+              loading="lazy"
+            />
+          )
+        )
+      )}
+
+      <Interactions>
+        <Button onClick={handleLike}>
+          <img src={liked ? likeFilled : like} alt="Like" />
+          {currentLikes}
+        </Button>
+        <Button onClick={handleDislike}>
+          <img src={disliked ? dislikeFilled : dislike} alt="Dislike" />
+          {currentDislikes}
+        </Button>
+        <Button onClick={handlePostNavigation}>
+          <img src={comment} alt="Comment" />
+          {comments}
+        </Button>
+      </Interactions>
+    </PostCardContainer>
+  );
+};
+
+export default Postcard;
+
+
+
 // Styled components
 const PostCardContainer = styled.div`
   width: 100%;
@@ -173,183 +357,3 @@ const PlaceholderImage = styled.div`
   color: #666;
   font-size: 14px;
 `;
-
-interface PostcardProps {
-  post_id: string;
-  user: string;
-  user_id: string;
-  title: string; // Thêm title để map với post_title
-  caption: string; // Map với post_content
-  likes: number;
-  dislikes: number;
-  comments: number;
-  tags: string[];
-  isTrending?: boolean;
-  onRemove: () => void;
-  images?: string[] | null;
-  avatar?: string | null; // Thêm avatar nếu muốn dùng ava_img_path
-}
-
-const Postcard: React.FC<PostcardProps> = ({
-  post_id,
-  user,
-  user_id,
-  title, // Map với post_title
-  caption, // Map với post_content
-  likes,
-  dislikes,
-  comments,
-  tags,
-  isTrending,
-  // onRemove,
-  images = [],
-  avatar,
-}) => {
-  const [currentLikes, setCurrentLikes] = useState<number>(likes);
-  const [currentDislikes, setCurrentDislikes] = useState<number>(dislikes);
-  const [liked, setLiked] = useState<boolean>(false);
-  const [disliked, setDisliked] = useState<boolean>(false);
-  const [popupVisible, setPopupVisible] = useState<boolean>(false);
-  const [imageCount, setImageCount] = useState<number>(0);
-  const [imageErrors, setImageErrors] = useState<boolean[]>([]);
-
-  const navigate = useNavigate();
-  const popupRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const count = Array.isArray(images) ? images.length : 0;
-    setImageCount(count);
-    setImageErrors(new Array(count).fill(false));
-  }, [images]);
-
-  const togglePopup = () => setPopupVisible(!popupVisible);
-
-  const handleLike = () => {
-    setLiked((prev) => !prev);
-    setCurrentLikes((prev) => (liked ? prev - 1 : prev + 1));
-    if (disliked) {
-      setDisliked(false);
-      setCurrentDislikes((prev) => prev - 1);
-    }
-  };
-
-  const handleDislike = () => {
-    setDisliked((prev) => !prev);
-    setCurrentDislikes((prev) => (disliked ? prev - 1 : prev + 1));
-    if (liked) {
-      setLiked(false);
-      setCurrentLikes((prev) => prev - 1);
-    }
-  };
-
-  const handlePostNavigation = () => {
-    console.log("Navigating to post detail with post_id:", post_id);
-    navigate(`/home/post-detail/${post_id}`);
-  };
-
-  const handleUserNavigation = () => {
-    navigate(`/home/user-detail/${user_id}`);
-  };
-
-  const safeImages = Array.isArray(images) ? images : [];
-
-  const handleImageError = (index: number) => (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    console.error('Error loading image:', e.currentTarget.src);
-    setImageErrors((prev) => {
-      const newErrors = [...prev];
-      newErrors[index] = true;
-      return newErrors;
-    });
-  };
-
-  return (
-    <PostCardContainer>
-      <Header>
-        <ProfilePic style={avatar ? { backgroundImage: `url(${avatar})`, backgroundSize: 'cover' } : {}} />
-        <Name onClick={handleUserNavigation}>{user}</Name>
-        <DotsContainer>
-          <DotsButton onClick={togglePopup}>⋮</DotsButton>
-          {popupVisible && (
-            <div ref={popupRef}>
-              <ReportPopup type="Post" user_id = {user_id} post_id = {post_id} />
-            </div>
-          )}
-        </DotsContainer>
-      </Header>
-      <Title onClick={handlePostNavigation}>{title}</Title>
-      <Caption onClick={handlePostNavigation}>{caption}</Caption>
-      <PostTags>
-        {tags.map((tag, index) => (
-          <TagPost key={index} tag={tag} />
-        ))}
-        {isTrending && (
-          <div style={{ color: 'orange', display: 'flex', alignItems: 'center' }}>
-            <img src={Trending} alt="Trending" style={{ marginRight: '0.5rem' }} />
-            Trending
-          </div>
-        )}
-      </PostTags>
-
-      {imageCount > 0 && <ImageCount>{imageCount} image{imageCount > 1 ? 's' : ''}</ImageCount>}
-
-      {safeImages.length > 0 && (
-        safeImages.length > 1 ? (
-          <SwiperContainer>
-            <Swiper
-              modules={[Navigation, Pagination]}
-              spaceBetween={10}
-              slidesPerView={1}
-              navigation
-              pagination={{ clickable: true }}
-            >
-              {safeImages.map((image, index) => (
-                <SwiperSlide key={index}>
-                  {imageErrors[index] ? (
-                    <PlaceholderImage>Image failed to load</PlaceholderImage>
-                  ) : (
-                    <img
-                      src={image}
-                      alt={`Post image ${index + 1}`}
-                      onClick={handlePostNavigation}
-                      onError={handleImageError(index)}
-                      loading="lazy"
-                    />
-                  )}
-                </SwiperSlide>
-              ))}
-            </Swiper>
-          </SwiperContainer>
-        ) : (
-          imageErrors[0] ? (
-            <PlaceholderImage>Image failed to load</PlaceholderImage>
-          ) : (
-            <SingleImage
-              src={safeImages[0]}
-              alt="Post image"
-              onClick={handlePostNavigation}
-              onError={handleImageError(0)}
-              loading="lazy"
-            />
-          )
-        )
-      )}
-
-      <Interactions>
-        <Button onClick={handleLike}>
-          <img src={liked ? likeFilled : like} alt="Like" />
-          {currentLikes}
-        </Button>
-        <Button onClick={handleDislike}>
-          <img src={disliked ? dislikeFilled : dislike} alt="Dislike" />
-          {currentDislikes}
-        </Button>
-        <Button onClick={handlePostNavigation}>
-          <img src={comment} alt="Comment" />
-          {comments}
-        </Button>
-      </Interactions>
-    </PostCardContainer>
-  );
-};
-
-export default Postcard;

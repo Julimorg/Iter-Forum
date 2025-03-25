@@ -16,7 +16,7 @@ interface Post {
   post_id: string;
   post_title: string;
   post_content: string;
-  img_url?: string[];
+  img_url: string[];
   date_updated: string;
   upvote: number;
   downvote: number;

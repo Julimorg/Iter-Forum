@@ -35,7 +35,7 @@ interface PostItem {
   downvote: number;
   comments_num: number;
   post_title: string;
-  
+  tags: string[];
 }
 interface PostsResponse {
   data: PostItem[];
