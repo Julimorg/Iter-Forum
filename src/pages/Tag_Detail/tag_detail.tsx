@@ -5,6 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import backIcon from '../../assets/back_arrow.png';
 import bellIcon from '../../assets/bell.png';
 import authorizedAxiosInstance from '../../services/Auth';
+import { API_BE } from '../../config/configApi';
 
 interface Post {
     user_id: string;
@@ -64,7 +65,7 @@ const Tag_Detail: React.FC = () => {
                 }
 
                 const response = await authorizedAxiosInstance.get<ApiResponse>(
-                    `http://localhost:3000/api/v1/recommend/tags/${tagId}`,
+                    `${API_BE}/api/v1/recommend/tags/${tagId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${accessToken}`,
@@ -140,7 +141,7 @@ const Tag_Detail: React.FC = () => {
                         <p className={styles.postCount}>{`${tagData.num_posts} Posts`}</p>
                     </div>
 
-                    <div className={styles.subscribeSection}>
+                    {/* <div className={styles.subscribeSection}>
                         <button
                             className={isSubscribed ? styles.subscribedButton : styles.subscribeButton}
                             onClick={handleSubscribeToggle}
@@ -157,7 +158,7 @@ const Tag_Detail: React.FC = () => {
                         <p className={styles.subscriberCount}>
                             {isSubscribed ? '14,000 Subscribers' : '13,999 Subscribers'}
                         </p>
-                    </div>
+                    </div> */}
                 </div>
 
                 <p className={styles.tagDescription}>{tagData.tag_description}</p>
