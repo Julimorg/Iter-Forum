@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import styles from "./viewuserprofile.module.css";
 import authorizedAxiosInstance from "../../services/Auth";
 import { API_BE } from "../../config/configApi";
+import ReportPopup from "../../components/Report_Popup/Report_popup";
 
 interface UserProfile {
   user_id: string;
@@ -14,6 +15,7 @@ interface UserProfile {
   first_name: string | null;
   last_name: string | null;
   status: string;
+  post_id: string;
 }
 
 interface ApiResponse {
@@ -24,13 +26,18 @@ interface ApiResponse {
   timestamp: number;
 }
 
-const fakeAvatar: string = "https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e303b9f80d10d582.jpg";
+const fakeAvatar: string =
+  "https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e303b9f80d10d582.jpg";
 
 const ViewUserProfile = () => {
   const { userId } = useParams<{ userId: string }>();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [showPopup, setShowPopup] = useState<boolean>(false);
+  const [popupVisible, setPopupVisible] = useState<boolean>(false);
+
+  const popupRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -55,7 +62,8 @@ const ViewUserProfile = () => {
         }
       } catch (err: any) {
         console.error("Error fetching user profile:", err);
-        const errorMessage = err.response?.data?.message || "User not found or server error";
+        const errorMessage =
+          err.response?.data?.message || "User not found or server error";
         setError(errorMessage);
       } finally {
         setLoading(false);
@@ -64,13 +72,16 @@ const ViewUserProfile = () => {
 
     fetchUserProfile();
   }, [userId]);
+  const togglePopup = () => setPopupVisible(!popupVisible);
 
   if (loading) {
     return <div className={styles.profileContainer}>Loading...</div>;
   }
 
   if (error || !userProfile) {
-    return <div className={styles.profileContainer}>{error || "User not found"}</div>;
+    return (
+      <div className={styles.profileContainer}>{error || "User not found"}</div>
+    );
   }
 
   return (
@@ -79,7 +90,10 @@ const ViewUserProfile = () => {
         <div className="userProfileContact">
           <div className={styles.userProfileInformation}>
             <div className={styles.userProfileImage}>
-              <img src={userProfile.ava_img_path || fakeAvatar} alt={userProfile.user_name} />
+              <img
+                src={userProfile.ava_img_path || fakeAvatar}
+                alt={userProfile.user_name}
+              />
             </div>
             <div className={styles.userProfileName}>
               <h1>{userProfile.user_name}</h1>
@@ -91,6 +105,20 @@ const ViewUserProfile = () => {
                 <p>Email: {userProfile.email}</p>
                 {userProfile.phone_num && <p>Phone: {userProfile.phone_num}</p>}
                 {userProfile.age && <p>Age: {userProfile.age}</p>}
+              </div>
+              <div className={styles.dotsContainer}>
+                <div className={styles.dotsButton} onClick={togglePopup}>
+                  ⋮
+                </div>
+                {popupVisible && (
+                  <div className={styles.popup} ref={popupRef}>
+                    <ReportPopup
+                      type="User"
+                      user_id={userProfile.user_id}
+                      // post_id={userProfile.post_id}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>

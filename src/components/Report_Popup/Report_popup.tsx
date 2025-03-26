@@ -7,7 +7,7 @@ import ReportPanel from '../Report_Panel/Report_panel'; // Đảm bảo đườn
 interface ReportPopupProps {
   type: string; 
   user_id: string;
-  post_id: string;
+  post_id?: string | null;
   comment_id?: string;
 }
 
@@ -21,6 +21,11 @@ const ReportPopup: React.FC<ReportPopupProps> = ({ type, user_id , post_id }) =>
   const handleCloseReportPanel = () => {
     setShowReportPanel(false); // Đóng ReportPanel
   };
+  function show() {
+    console.log(user_id);
+    console.log(post_id);
+  }
+  show();
   return (
     <>
       <Popup>
@@ -35,7 +40,7 @@ const ReportPopup: React.FC<ReportPopupProps> = ({ type, user_id , post_id }) =>
       </Popup>
 
       {/* Hiển thị ReportPanel nếu cần */}
-      {showReportPanel && <ReportPanel onClose={handleCloseReportPanel} type={type}  user_id = {user_id} post_id={post_id}/>}
+      {showReportPanel && <ReportPanel onClose={handleCloseReportPanel} type={type}  user_id={user_id} {...(type !== 'User' && post_id !== undefined && { post_id })}/>}
     </>
   );
 };

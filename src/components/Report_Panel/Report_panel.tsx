@@ -7,13 +7,13 @@ interface ReportPanelProps {
   onClose: () => void;
   type: string;
   user_id: string;
-  post_id: string;
+  post_id?: string | null;
 }
 interface ReportRequest{
   reported_user_id: string;
   report_title: string;
   report_body: string;
-  post_id: string;
+  post_id?: string | null;
 }
 
 const ReportPanel: React.FC<ReportPanelProps> = ({ onClose, type, user_id , post_id}) => {
@@ -47,6 +47,7 @@ const ReportPanel: React.FC<ReportPanelProps> = ({ onClose, type, user_id , post
     setSelectedReason(null);
   };
 
+  //? Handle Report API Report
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       const target = event.target as Element;
@@ -60,7 +61,7 @@ const ReportPanel: React.FC<ReportPanelProps> = ({ onClose, type, user_id , post
       document.removeEventListener('mousedown', handleOutsideClick);
     };
   }, [onClose]);
-  
+
   const handleConfirmReport = async () => {
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) {
@@ -73,18 +74,19 @@ const ReportPanel: React.FC<ReportPanelProps> = ({ onClose, type, user_id , post
       return;
     }
 
+    // Chỉ thêm post_id vào reportData nếu nó tồn tại và type !== 'User'
     const reportData: ReportRequest = {
       reported_user_id: user_id,
       report_title: selectedReason,
       report_body: description,
-      post_id: post_id,
+      ...(type !== 'User' && post_id !== undefined && { post_id }), 
     };
 
     try {
       setIsLoading(true);
       setError(null);
       const response = await axios.post(
-        `${API_BE}/api/v1/report/${encodeURIComponent(type)}`, 
+        `${API_BE}/api/v1/report/${encodeURIComponent(type)}`,
         reportData,
         {
           headers: {
