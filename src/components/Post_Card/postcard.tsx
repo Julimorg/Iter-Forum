@@ -19,8 +19,8 @@ interface PostcardProps {
   post_id: string;
   user: string;
   user_id: string;
-  title: string; // Thêm title để map với post_title
-  caption: string; // Map với post_content
+  title: string;
+  caption: string;
   likes: number;
   dislikes: number;
   comments: number;
@@ -28,23 +28,25 @@ interface PostcardProps {
   isTrending?: boolean;
   onRemove: () => void;
   images?: string[] | null;
-  avatar?: string | null; // Thêm avatar nếu muốn dùng ava_img_path
+  avatar?: string | null;
+  date_updated?: string; // Sửa thành optional
 }
 
 const Postcard: React.FC<PostcardProps> = ({
   post_id,
   user,
   user_id,
-  title, // Map với post_title
-  caption, // Map với post_content
+  title,
+  caption,
   likes,
   dislikes,
   comments,
   tags,
   isTrending,
-  // onRemove,
+  onRemove,
   images = [],
   avatar,
+  date_updated,
 }) => {
   const [currentLikes, setCurrentLikes] = useState<number>(likes);
   const [currentDislikes, setCurrentDislikes] = useState<number>(dislikes);
@@ -103,11 +105,41 @@ const Postcard: React.FC<PostcardProps> = ({
     });
   };
 
+  const formatRelativeTime = (date: string): string => {
+    const now = new Date();
+    const updatedDate = new Date(date);
+    const diffInMs = now.getTime() - updatedDate.getTime();
+    const diffInSeconds = Math.floor(diffInMs / 1000);
+
+    const minutes = Math.floor(diffInSeconds / 60);
+    if (minutes < 1) return `${diffInSeconds} seconds ago`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 1) return `${minutes} minutes ago`;
+
+    const days = Math.floor(hours / 24);
+    if (days < 1) return `${hours} hours ago`;
+
+    const weeks = Math.floor(days / 7);
+    if (weeks < 1) return `${days} days ago`;
+
+    const months = Math.floor(days / 30);
+    if (months < 1) return `${weeks} weeks ago`;
+
+    const years = Math.floor(months / 12);
+    if (years < 1) return `${months} months ago`;
+
+    return `${years} years ago`;
+  };
+
   return (
     <PostCardContainer>
       <Header>
         <ProfilePic style={avatar ? { backgroundImage: `url(${avatar})`, backgroundSize: 'cover' } : {}} />
-        <Name onClick={handleUserNavigation}>{user}</Name>
+        <UserInfo>
+          <Name onClick={handleUserNavigation}>{user}</Name>
+          {date_updated && <Timestamp>{formatRelativeTime(date_updated)}</Timestamp>}
+        </UserInfo>
         <DotsContainer>
           <DotsButton onClick={togglePopup}>⋮</DotsButton>
           {popupVisible && (
@@ -120,11 +152,9 @@ const Postcard: React.FC<PostcardProps> = ({
       <Title onClick={handlePostNavigation}>{title}</Title>
       <Caption onClick={handlePostNavigation}>{caption}</Caption>
       <PostTags>
-      
         {tags ? tags.map((tag, index) => (
           <TagPost key={index} tag={tag} />
         )) : null}
-        
         {isTrending && (
           <div style={{ color: 'orange', display: 'flex', alignItems: 'center' }}>
             <img src={Trending} alt="Trending" style={{ marginRight: '0.5rem' }} />
@@ -197,8 +227,6 @@ const Postcard: React.FC<PostcardProps> = ({
 
 export default Postcard;
 
-
-
 // Styled components
 const PostCardContainer = styled.div`
   width: 100%;
@@ -216,7 +244,6 @@ const PostCardContainer = styled.div`
 const Header = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
   margin-bottom: 8px;
 `;
 
@@ -228,6 +255,12 @@ const ProfilePic = styled.div`
   margin-right: 8px;
 `;
 
+const UserInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+`;
+
 const Name = styled.div`
   font-weight: bold;
   flex-grow: 1;
@@ -237,8 +270,15 @@ const Name = styled.div`
   }
 `;
 
+const Timestamp = styled.div`
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+`;
+
 const DotsContainer = styled.div`
   position: relative;
+  margin-left: auto;
 `;
 
 const DotsButton = styled.button`
@@ -249,26 +289,10 @@ const DotsButton = styled.button`
   padding: 4px;
 `;
 
-const Popup = styled.div`
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  padding: 8px;
-  min-width: 180px;
-`;
-
-// Thêm styled component cho Title
 const Title = styled.div`
-  font-size: 18px; /* To hơn một chút so với Caption */
+  font-size: 18px;
   font-weight: bold;
-  margin-bottom: 8px; /* Khoảng cách với Caption bên dưới */
+  margin-bottom: 8px;
   cursor: pointer;
 `;
 

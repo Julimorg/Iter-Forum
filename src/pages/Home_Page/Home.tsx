@@ -127,6 +127,7 @@ function PostDisplayComponent() {
               avatar={post.ava_img_path}
               onRemove={() => removePost(post.post_id)}
               isTrending={false}
+              date_updated={post.date_updated}
             />
           ))
         ) : (
@@ -148,7 +149,7 @@ function PostDisplayComponent() {
                   key={post.post_id}
                   user={post.user_name}
                   user_id={post.user_id}
-                  post_id={post.post_id} // Thêm post_id
+                  post_id={post.post_id}
                   title={post.post_title}
                   comments={post.comments_num}
                   image={post.img_url && post.img_url.length > 0 ? post.img_url[0] : undefined}
@@ -157,6 +158,7 @@ function PostDisplayComponent() {
                   tags={post.tags}
                   images={post.img_url}
                   isTrending={false}
+                  date_updated={post.date_updated} // Đã truyền date_updated
                 />
               ))
             ) : (

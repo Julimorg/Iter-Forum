@@ -7,11 +7,11 @@ import Post_Card from "../../components/Post_Card/postcard";
 import ButtonTextComponent from "../../components/ButtonTextOnly/ButtonText";
 import authorizedAxiosInstance from "../../services/Auth";
 import { API_BE } from "../../config/configApi";
-import Postcard from "../../components/Post_Card/postcard";
 import axios from "axios";
 
 const fakeAvatar: string =
   "https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e303b9f80d10d582.jpg";
+
 interface UserDetail {
   user_id: string;
   user_name: string;
@@ -20,6 +20,7 @@ interface UserDetail {
   age: string | null;
   phone_num: string | null;
 }
+
 interface ProfileResponse {
   data: UserDetail;
 }
@@ -36,7 +37,9 @@ interface PostItem {
   comments_num: number;
   post_title: string;
   tags: string[];
+  date_updated: string; // Đã thêm date_updated
 }
+
 interface PostsResponse {
   data: PostItem[];
 }
@@ -48,13 +51,13 @@ interface UserProfile {
   phone_num?: string;
   age?: number;
 }
+
 const UserProfile = () => {
   const [profileEditModel, setProfileEditModel] = useState(false);
   const [error, setError] = useState("");
   const [fetchUser, setFetchUser] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<PostItem[]>([]);
-
 
   //* ===================== FUNCTION HANDLE API ===================== **//
 
@@ -205,7 +208,6 @@ const UserProfile = () => {
       fetchProfile();
     }, [isOpen, accessToken]);
 
-
     //? Update profile
     useEffect(() => {
       const updateProfile = async () => {
@@ -312,7 +314,6 @@ const UserProfile = () => {
           <h2>Edit Profile</h2>
           <IconButton Icon={FaXmark} size={20} color="#333" onClick={onClose} />
         </div>
-        {/* Form content giữ nguyên */}
         <div className={styles.editFormBody}>
           <div className={styles.fillTextForm}>
             <div className={styles.editUserName}>
@@ -388,6 +389,7 @@ const UserProfile = () => {
       </div>
     );
   }
+
   const DisplayPostComponent: React.FC<{
     posts: PostItem[];
     setPosts: React.Dispatch<React.SetStateAction<PostItem[]>>;
@@ -399,94 +401,97 @@ const UserProfile = () => {
     return (
       <>
         <div className={styles.postContainer}>
-        {posts.length > 0
-          ? posts.map((post) => (
-            <Post_Card
-            key={post.post_id}
-            post_id={post.post_id}
-            user={post.user_name}
-            user_id={post.user_id}
-            title={post.post_title}
-            caption={post.post_content}
-            likes={post.upvote}
-            dislikes={post.downvote}
-            comments={post.comments_num}
-            tags={post.tags}
-            images={post.img_url}
-            avatar={post.ava_img_path}
-            onRemove={() => removePost(post.post_id)}
-            isTrending={false}
-          />
-          ))
-          : null}
-      </div >
+          {posts.length > 0 ? (
+            posts.map((post) => (
+              <Post_Card
+                key={post.post_id}
+                post_id={post.post_id}
+                user={post.user_name}
+                user_id={post.user_id}
+                title={post.post_title}
+                caption={post.post_content}
+                likes={post.upvote}
+                dislikes={post.downvote}
+                comments={post.comments_num}
+                tags={post.tags}
+                images={post.img_url}
+                avatar={post.ava_img_path}
+                onRemove={() => removePost(post.post_id)}
+                isTrending={false}
+                date_updated={post.date_updated} // Truyền date_updated
+              />
+            ))
+          ) : null}
+        </div>
       </>
     );
   };
-//** Main View */
-if (loading) {
-  return <p>Loading...</p>;
-}
-if (!fetchUser) {
-  return <p>Không tìm thấy thông tin người dùng</p>;
-}
-return (
-  <>
-    <div className={styles.profileContainer}>
-      <div className={styles.userProfileBody}>
-        {/* Header Profile */}
-        <div className="userProfileContact">
-          {/* User Basic info */}
-          <div className={styles.userProfileInformation}>
-            <div className={styles.userProfileImage}>
-              <img
-                src={fetchUser?.ava_img_path || fakeAvatar}
-                alt={fetchUser?.user_name || "unknown"}
-              />
-            </div>
-            <div className={styles.userProfileName}>
-              <h1>{fetchUser?.user_name || "Chưa có tên"}</h1>
-              <p>Status: Active</p>
-            </div>
-            <div className={styles.userProfileBio}>
-              <div className={styles.userBasicInfo}>
-                <h1>My information</h1>
-                <p>Email: {fetchUser?.email || "N/A"}</p>
-                <p>Phone: {fetchUser?.phone_num || "N/A"}</p>
-                <p>Age: {fetchUser?.age || "N/A"}</p>
+
+  //** Main View */
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+  if (!fetchUser) {
+    return <p>Không tìm thấy thông tin người dùng</p>;
+  }
+  return (
+    <>
+      <div className={styles.profileContainer}>
+        <div className={styles.userProfileBody}>
+          {/* Header Profile */}
+          <div className="userProfileContact">
+            {/* User Basic info */}
+            <div className={styles.userProfileInformation}>
+              <div className={styles.userProfileImage}>
+                <img
+                  src={fetchUser?.ava_img_path || fakeAvatar}
+                  alt={fetchUser?.user_name || "unknown"}
+                />
               </div>
-              {/* Ovelay khi modal hiện lên */}
-              {profileEditModel && (
-                <div
-                  className={styles.overlay}
-                  onClick={() => setProfileEditModel(false)}
-                ></div>
-              )}
-              <div className="editUserProfile" >
-                <ButtonIconLeft
-                  Icon={FaUserPen}
-                  size={20}
-                  color="#333"
-                  title="Edit Profile"
-                  onclick={() => setProfileEditModel(true)}
-                />
-                <UserProfileEditForm
-                  isOpen={profileEditModel}
-                  onClose={() => setProfileEditModel(false)}
-                  setFetchUser={setFetchUser}
-                />
+              <div className={styles.userProfileName}>
+                <h1>{fetchUser?.user_name || "Chưa có tên"}</h1>
+                <p>Status: Active</p>
+              </div>
+              <div className={styles.userProfileBio}>
+                <div className={styles.userBasicInfo}>
+                  <h1>My information</h1>
+                  <p>Email: {fetchUser?.email || "N/A"}</p>
+                  <p>Phone: {fetchUser?.phone_num || "N/A"}</p>
+                  <p>Age: {fetchUser?.age || "N/A"}</p>
+                </div>
+                {/* Ovelay khi modal hiện lên */}
+                {profileEditModel && (
+                  <div
+                    className={styles.overlay}
+                    onClick={() => setProfileEditModel(false)}
+                  ></div>
+                )}
+                <div className="editUserProfile">
+                  <ButtonIconLeft
+                    Icon={FaUserPen}
+                    size={20}
+                    color="#333"
+                    title="Edit Profile"
+                    onclick={() => setProfileEditModel(true)}
+                  />
+                  <UserProfileEditForm
+                    isOpen={profileEditModel}
+                    onClose={() => setProfileEditModel(false)}
+                    setFetchUser={setFetchUser}
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <span />
-        {/* User Profile Post, ... etc */}
-        <div className="userProfileContent">
-          <DisplayPostComponent posts={posts} setPosts={setPosts} />
+          <span />
+          {/* User Profile Post, ... etc */}
+          <div className="userProfileContent">
+            <DisplayPostComponent posts={posts} setPosts={setPosts} />
+          </div>
         </div>
       </div>
-    </div>
-  </>
-);
+    </>
+  );
 };
+
 export default UserProfile;

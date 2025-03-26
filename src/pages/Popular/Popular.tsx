@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import styles from './Popular.module.css'; // Import CSS Module
-import Tag_Card from '../../components/Tag_Card/Tag_Card'; // Import Tag_Card component
-import Post_Card from '../../components/Post_Card/postcard'; // Import Post_Card component
+import styles from './Popular.module.css';
+import Tag_Card from '../../components/Tag_Card/Tag_Card';
+import Post_Card from '../../components/Post_Card/postcard';
 import axios from 'axios';
 import { API_BE } from '../../config/configApi';
 
 interface TrendingTags {
+  tag_id: string;
   tag_name: string;
   tag_category: string;
   num_posts: number;
 }
+
 interface TrendingPost {
   user_id: string;
   user_name: string;
@@ -24,6 +26,7 @@ interface TrendingPost {
   comments_num: number;
   tags: string[];
 }
+
 interface TrendingResponse {
   data: {
     trending_tags: TrendingTags[];
@@ -32,10 +35,18 @@ interface TrendingResponse {
 }
 
 const Popular = () => {
-  const [trendingTags, setTrendingTags] = useState<{ title: string; posts: number; isTrending: boolean }[]>([]);
+  const [trendingTags, setTrendingTags] = useState<{
+    tag_id: string;
+    title: string;
+    posts: number;
+    isTrending: boolean;
+  }[]>([]);
   const [trendingPosts, setTrendingPosts] = useState<{
+    post_id: string; // Thêm post_id
+    user_id: string; // Thêm user_id
     user: string;
-    caption: string;
+    title: string;
+    content: string;
     likes: number;
     dislikes: number;
     comments: number;
@@ -45,7 +56,6 @@ const Popular = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  //? Fetch Trending Tags and Trending Posts
   useEffect(() => {
     const fetchTrendingData = async () => {
       const accessToken = localStorage.getItem('accessToken');
@@ -72,20 +82,24 @@ const Popular = () => {
 
         // Map trending tags cho Tag_Card
         const mappedTags = trending_tags.map((tag) => ({
+          tag_id: tag.tag_id,
           title: tag.tag_name,
           posts: tag.num_posts,
-          isTrending: true, // Vì đây là trending tags nên mặc định true
+          isTrending: true,
         }));
 
         // Map trending posts cho Post_Card
         const mappedPosts = trending_posts.map((post) => ({
+          post_id: post.post_id, // Thêm post_id
+          user_id: post.user_id, // Thêm user_id
           user: post.user_name,
-          caption: post.post_title, // Dùng post_title làm caption
+          title: post.post_title,
+          content: post.post_content,
           likes: post.upvote,
           dislikes: post.downvote,
           comments: post.comments_num,
           tags: post.tags,
-          img_url: post.img_url, 
+          img_url: post.img_url,
         }));
 
         setTrendingTags(mappedTags);
@@ -100,6 +114,7 @@ const Popular = () => {
 
     fetchTrendingData();
   }, []);
+
   return (
     <div className={styles['popular-container']}>
       <h1 className={styles.title}>What is on trending?</h1>
@@ -113,9 +128,10 @@ const Popular = () => {
           <section className={styles['section-tags']}>
             <h2 className={styles['section-title']}>Trending tags</h2>
             <div className={styles.tags}>
-              {trendingTags.map((tag, index) => (
+              {trendingTags.map((tag) => (
                 <Tag_Card
-                  key={index}
+                  key={tag.tag_id}
+                  tag_id={tag.tag_id}
                   title={tag.title}
                   posts={tag.posts}
                   isTrending={tag.isTrending}
@@ -128,17 +144,20 @@ const Popular = () => {
           <section className={styles['trending-posts']}>
             <h2 className={styles['section-title']}>Trending posts</h2>
             <div className={styles['trending_post_content']}>
-              {trendingPosts.map((post, index) => (
+              {trendingPosts.map((post) => (
                 <Post_Card
-                  key={index}
+                  key={post.post_id} // Sử dụng post_id làm key
+                  post_id={post.post_id} // Truyền post_id
+                  user_id={post.user_id} // Truyền user_id
                   user={post.user}
-                  caption={post.caption}
+                  title={post.title} 
+                  caption={post.content} 
                   likes={post.likes}
                   dislikes={post.dislikes}
-                  tags={post.tags} 
+                  tags={post.tags}
                   comments={post.comments}
-                  images = {post.img_url}
-                  onRemove={() => console.log(`Post ${index} removed.`)}
+                  images={post.img_url}
+                  onRemove={() => console.log(`Post ${post.post_id} removed.`)}
                   isTrending={true}
                 />
               ))}
