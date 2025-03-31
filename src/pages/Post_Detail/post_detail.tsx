@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import io, { Socket } from 'socket.io-client';
 import styles from './post_detail.module.css';
 import like from '../../assets/like.png';
 import dislike from '../../assets/dislike.png';
@@ -76,12 +77,39 @@ interface CommentItem {
   replies: ReplyItem[];
 }
 
+interface InteractData {
+  post_id: string;
+  like: number;
+  dislike: number;
+}
+
+interface CommentDataFromBE {
+  post_id: string;
+  cmt_id: string;
+  cmt_parent_id: string;
+  cmt_content: string;
+  user_id: string;
+  user_name: string;
+  ava_img_path: string | null;
+  date_cmt: string;
+}
+
+interface UserProfile {
+  user_id: string;
+  user_name: string;
+  last_name: string | null;
+  first_name: string | null;
+  age: number;
+  ava_img_path: string;
+  email: string;
+  phone_num: string;
+}
+
 // Hàm xử lý dữ liệu comment thành cấu trúc cây
 const buildCommentTree = (comments: CommentApiItem[]): CommentItem[] => {
   const commentsMap: { [key: string]: CommentItem } = {};
   const rootComments: CommentItem[] = [];
 
-  // Lần duyệt 1: Tạo tất cả comment và lưu vào commentsMap
   comments.forEach((comment: CommentApiItem) => {
     const commentItem: CommentItem = {
       comment_id: comment.comment_id,
@@ -99,13 +127,10 @@ const buildCommentTree = (comments: CommentApiItem[]): CommentItem[] => {
     commentsMap[comment.comment_id] = commentItem;
   });
 
-  // Lần duyệt 2: Nhóm reply vào comment cha
   comments.forEach((comment: CommentApiItem) => {
     if (!comment.comment_parent_id) {
-      // Nếu không có comment_parent_id, đây là comment gốc
       rootComments.push(commentsMap[comment.comment_id]);
     } else {
-      // Nếu có comment_parent_id, đây là reply
       const parentComment = commentsMap[comment.comment_parent_id];
       if (parentComment) {
         parentComment.replies.push({
@@ -115,29 +140,23 @@ const buildCommentTree = (comments: CommentApiItem[]): CommentItem[] => {
           timestamp: comment.date_comment,
         });
         parentComment.replyCount = parentComment.replies.length;
-      } else {
-        console.warn(`Parent comment with ID ${comment.comment_parent_id} not found for reply ${comment.comment_id}`);
       }
     }
   });
 
-  // Sắp xếp comment theo thời gian (mới nhất trước)
   rootComments.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  // Sắp xếp reply trong mỗi comment
   rootComments.forEach((comment) => {
     comment.replies.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    console.log(`Comment ${comment.comment_id} has ${comment.replies.length} replies:`, comment.replies);
   });
 
   return rootComments;
 };
 
-// Hàm lưu trữ dữ liệu comment vào localStorage
+// Hàm lưu trữ và lấy dữ liệu comment từ localStorage
 const cacheComments = (postId: string, comments: CommentItem[]) => {
   localStorage.setItem(`comments_${postId}`, JSON.stringify(comments));
 };
 
-// Hàm lấy dữ liệu comment từ localStorage
 const getCachedComments = (postId: string): CommentItem[] => {
   const cached = localStorage.getItem(`comments_${postId}`);
   return cached ? JSON.parse(cached) : [];
@@ -157,29 +176,140 @@ const PostDetail: React.FC = () => {
   const [activeCommentIndex, setActiveCommentIndex] = useState<number | null>(null);
   const [commentsList, setComments] = useState<CommentItem[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [userId, setUserId] = useState<string | null>(null);
 
+  const socketRef = useRef<Socket | null>(null);
   const popupRefs = useRef<(HTMLDivElement | null)[]>([]);
 
+  // Khởi tạo WebSocket và lấy user_id
+  useEffect(() => {
+    const initializeSocket = async () => {
+      try {
+        const profileResponse = await authorizedAxiosInstance.get<{ data: UserProfile }>(
+          'http://localhost:3000/api/v1/users/profile'
+        );
+        const fetchedUserId = profileResponse.data.data.user_id;
+        setUserId(fetchedUserId);
+        console.log('Fetched user_id:', fetchedUserId);
+
+        socketRef.current = io('http://localhost:3000', { transports: ['websocket'] });
+
+        if (fetchedUserId && postId) {
+          socketRef.current.emit('joinRoom', fetchedUserId);
+          socketRef.current.emit('joinRoomPost', postId);
+          console.log(`Joined room User: ${fetchedUserId}, Post: ${postId}`);
+        }
+
+        socketRef.current.on('connect', () => {
+          console.log('WebSocket connected');
+        });
+
+        // Xóa listener cũ trước khi gắn mới để tránh trùng lặp
+        socketRef.current.off('displayDetailCmts');
+        socketRef.current.on('displayDetailCmts', (data: CommentDataFromBE) => {
+          console.log('Received comment from BE:', data);
+          const newCommentItem: CommentItem = {
+            comment_id: data.cmt_id,
+            text: data.cmt_content,
+            userName: data.user_name,
+            timestamp: data.date_cmt,
+            likeCount: 0,
+            dislikeCount: 0,
+            replyCount: 0,
+            liked: false,
+            disliked: false,
+            replied: false,
+            replies: [],
+          };
+
+          setComments((prev) => {
+            // Kiểm tra trùng lặp comment_id cho comment gốc
+            const isDuplicate = prev.some((comment) => comment.comment_id === data.cmt_id);
+            if (isDuplicate) {
+              console.log(`Duplicate comment_id detected: ${data.cmt_id}, skipping...`);
+              return prev;
+            }
+
+            const updatedComments = data.cmt_parent_id === ''
+              ? [newCommentItem, ...prev]
+              : prev.map((comment) => {
+                  if (comment.comment_id === data.cmt_parent_id) {
+                    // Kiểm tra trùng lặp trong replies dựa trên cmt_id
+                    const isReplyDuplicate = comment.replies.some(
+                      (reply) => reply.comment_id === data.cmt_id
+                    );
+                    if (isReplyDuplicate) {
+                      console.log(`Duplicate reply_id detected: ${data.cmt_id}, skipping...`);
+                      return comment;
+                    }
+                    console.log(`Adding reply ${data.cmt_id} to comment ${comment.comment_id}`);
+                    return {
+                      ...comment,
+                      replies: [
+                        ...comment.replies,
+                        {
+                          comment_id: data.cmt_id,
+                          text: data.cmt_content,
+                          userName: data.user_name,
+                          timestamp: data.date_cmt,
+                        },
+                      ],
+                      replyCount: comment.replies.length + 1,
+                      replied: false, // Reset replied sau khi thêm reply
+                    };
+                  }
+                  return comment;
+                });
+
+            cacheComments(postId!, updatedComments);
+            console.log('Updated comments:', updatedComments);
+            return updatedComments;
+          });
+        });
+
+        socketRef.current.on('updateInteractFromServer', (data: InteractData) => {
+          console.log('Received interaction update:', data);
+          setCurrentLikes(data.like);
+          setCurrentDislikes(data.dislike);
+        });
+
+        socketRef.current.on('connect_error', (err) => {
+          console.error('WebSocket connection error:', err);
+        });
+
+        return () => {
+          if (socketRef.current) {
+            socketRef.current.emit('leaveRoom', fetchedUserId);
+            socketRef.current.disconnect();
+            console.log('WebSocket disconnected');
+          }
+        };
+      } catch (err) {
+        console.error('Lỗi khởi tạo WebSocket hoặc lấy profile:', err);
+      }
+    };
+
+    initializeSocket();
+  }, [postId]);
+
+  // Lấy chi tiết bài viết
   useEffect(() => {
     const fetchPostDetail = async () => {
       if (!postId) {
-        setError("Post ID not provided");
+        setError("Không có ID bài viết");
         setLoading(false);
         return;
       }
 
-      // Kiểm tra cache trước
       const cachedComments = getCachedComments(postId);
       if (cachedComments.length > 0) {
         setComments(cachedComments);
       }
 
       try {
-        console.log("Fetching post detail for postId:", postId);
         const response = await authorizedAxiosInstance.get<ApiResponse>(
           `${API_BE}/api/v1/posts/${postId}`
         );
-        console.log("API response:", response.data);
 
         if (response.data.is_success) {
           const postData = response.data.data;
@@ -187,20 +317,16 @@ const PostDetail: React.FC = () => {
           setCurrentLikes(postData.upvote);
           setCurrentDislikes(postData.downvote);
 
-          // Xử lý danh sách comment thành cấu trúc cây
           const commentTree = buildCommentTree(postData.comments);
           setComments(commentTree);
-
-          // Lưu vào cache
           cacheComments(postId, commentTree);
 
           setError(null);
         } else {
-          setError(response.data.message || "Failed to fetch post detail");
+          setError(response.data.message || "Không thể tải chi tiết bài viết");
         }
       } catch (err: any) {
-        console.error("Error fetching post detail:", err);
-        setError(err.response?.data?.message || "Post not found or server error");
+        setError(err.response?.data?.message || "Bài viết không tồn tại hoặc lỗi server");
       } finally {
         setLoading(false);
       }
@@ -209,6 +335,7 @@ const PostDetail: React.FC = () => {
     fetchPostDetail();
   }, [postId]);
 
+  // Xử lý click ngoài popup
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       if (popupRefs.current[0] && !popupRefs.current[0]?.contains(event.target as Node)) {
@@ -229,58 +356,66 @@ const PostDetail: React.FC = () => {
     };
   }, [activeCommentIndex]);
 
+  // Xử lý like
   const handleLike = () => {
-    if (liked) {
-      setLiked(false);
-      setCurrentLikes((prev) => prev - 1);
-    } else {
-      if (disliked) {
-        setDisliked(false);
-        setCurrentDislikes((prev) => prev - 1);
-      }
-      setLiked(true);
-      setCurrentLikes((prev) => prev + 1);
-    }
+    if (!socketRef.current || !postId || !userId) return;
+
+    const newLikeCount = liked ? currentLikes - 1 : currentLikes + 1;
+    const newDislikeCount = disliked && !liked ? currentDislikes - 1 : currentDislikes;
+
+    socketRef.current.emit('newInteractFromClient', {
+      post_id: postId,
+      user_post_id: userId,
+      is_upvote: true,
+      upvote: newLikeCount,
+      downvote: newDislikeCount,
+    });
+
+    console.log('Sent like:', { upvote: newLikeCount, downvote: newDislikeCount });
+    setLiked(!liked);
+    if (disliked) setDisliked(false);
   };
 
+  // Xử lý dislike
   const handleDislike = () => {
-    if (disliked) {
-      setDisliked(false);
-      setCurrentDislikes((prev) => prev - 1);
-    } else {
-      if (liked) {
-        setLiked(false);
-        setCurrentLikes((prev) => prev - 1);
-      }
-      setDisliked(true);
-      setCurrentDislikes((prev) => prev + 1);
-    }
+    if (!socketRef.current || !postId || !userId) return;
+
+    const newDislikeCount = disliked ? currentDislikes - 1 : currentDislikes + 1;
+    const newLikeCount = liked && !disliked ? currentLikes - 1 : currentLikes;
+
+    socketRef.current.emit('newInteractFromClient', {
+      post_id: postId,
+      user_post_id: userId,
+      is_upvote: false,
+      upvote: newLikeCount,
+      downvote: newDislikeCount,
+    });
+
+    console.log('Sent dislike:', { upvote: newLikeCount, downvote: newDislikeCount });
+    setDisliked(!disliked);
+    if (liked) setLiked(false);
   };
 
+  // Xử lý thêm comment
   const handleAddComment = () => {
-    if (newComment.trim()) {
-      const newCommentItem: CommentItem = {
-        comment_id: `temp-${Date.now()}`, // Tạm thời tạo ID, nên thay bằng ID từ server
-        text: newComment,
-        userName: "User", // Thay bằng tên người dùng thực tế
-        timestamp: new Date().toISOString(),
-        likeCount: 0,
-        dislikeCount: 0,
-        replyCount: 0,
-        liked: false,
-        disliked: false,
-        replied: false,
-        replies: [],
-      };
-      setComments((prev) => {
-        const updatedComments = [newCommentItem, ...prev];
-        cacheComments(postId!, updatedComments); // Cập nhật cache
-        return updatedComments;
-      });
-      setNewComment('');
-    }
+    if (!newComment.trim() || !socketRef.current || !postId || !userId) return;
+
+    const commentData = {
+      user_id: userId,
+      post_id: postId,
+      cmt_cont: newComment,
+      level_parent: -1,
+      cmt_parent_id: '',
+      user_parent_id: null,
+      user_post_id: userId,
+    };
+
+    socketRef.current.emit('newCommentFromClient', commentData);
+    console.log('Sent new comment:', commentData);
+    setNewComment('');
   };
 
+  // Xử lý like comment
   const handleCommentLike = (index: number) => {
     setComments((prevComments) =>
       prevComments.map((comment, i) => {
@@ -299,6 +434,7 @@ const PostDetail: React.FC = () => {
     );
   };
 
+  // Xử lý dislike comment
   const handleCommentDislike = (index: number) => {
     setComments((prevComments) =>
       prevComments.map((comment, i) => {
@@ -317,14 +453,12 @@ const PostDetail: React.FC = () => {
     );
   };
 
+  // Xử lý reply (chỉ mở/đóng ô nhập liệu)
   const handleCommentReply = (index: number) => {
     setComments((prevComments) =>
       prevComments.map((comment, i) => {
         if (i === index) {
-          return {
-            ...comment,
-            replied: !comment.replied,
-          };
+          return { ...comment, replied: !comment.replied };
         }
         return comment;
       })
@@ -335,36 +469,33 @@ const PostDetail: React.FC = () => {
     setComments((prevComments) =>
       prevComments.map((comment, i) => {
         if (i === index) {
-          return {
-            ...comment,
-            replyText: text,
-          };
+          return { ...comment, replyText: text };
         }
         return comment;
       })
     );
   };
 
+  // Xử lý gửi reply
   const handlePostReply = (index: number) => {
+    if (!socketRef.current || !postId || !userId) return;
+
     setComments((prevComments) =>
       prevComments.map((comment, i) => {
         if (i === index && comment.replyText?.trim()) {
-          const newReply: ReplyItem = {
-            comment_id: `temp-reply-${Date.now()}`, // Tạm thời tạo ID
-            text: comment.replyText,
-            userName: "User",
-            timestamp: new Date().toISOString(),
+          const replyData = {
+            user_id: userId,
+            post_id: postId,
+            cmt_cont: comment.replyText,
+            level_parent: 0,
+            cmt_parent_id: comment.comment_id,
+            user_parent_id: userId,
+            user_post_id: userId,
           };
-          const updatedComment = {
-            ...comment,
-            replies: [...comment.replies, newReply],
-            replyText: '',
-            replyCount: comment.replyCount + 1,
-          };
-          const updatedComments = [...prevComments];
-          updatedComments[i] = updatedComment;
-          cacheComments(postId!, updatedComments); // Cập nhật cache
-          return updatedComment;
+
+          socketRef.current?.emit('newCommentFromClient', replyData);
+          console.log('Sent reply:', replyData);
+          return { ...comment, replyText: '', replied: false };
         }
         return comment;
       })
@@ -372,7 +503,7 @@ const PostDetail: React.FC = () => {
   };
 
   const handleTagClick = () => {
-    alert("Coming Soon");
+    alert("Sắp ra mắt");
   };
 
   const handleUserNavigation = () => {
@@ -394,39 +525,39 @@ const PostDetail: React.FC = () => {
     const diffInSeconds = Math.floor(diffInMs / 1000);
 
     const minutes = Math.floor(diffInSeconds / 60);
-    if (minutes < 1) return `${diffInSeconds} seconds ago`;
+    if (minutes < 1) return `${diffInSeconds} giây trước`;
 
     const hours = Math.floor(minutes / 60);
-    if (hours < 1) return `${minutes} minutes ago`;
+    if (hours < 1) return `${minutes} phút trước`;
 
     const days = Math.floor(hours / 24);
-    if (days < 1) return `${hours} hours ago`;
+    if (days < 1) return `${hours} giờ trước`;
 
     const weeks = Math.floor(days / 7);
-    if (weeks < 1) return `${days} days ago`;
+    if (weeks < 1) return `${days} ngày trước`;
 
     const months = Math.floor(days / 30);
-    if (months < 1) return `${weeks} weeks ago`;
+    if (months < 1) return `${weeks} tuần trước`;
 
     const years = Math.floor(months / 12);
-    if (years < 1) return `${months} months ago`;
+    if (years < 1) return `${months} tháng trước`;
 
-    return `${years} years ago`;
+    return `${years} năm trước`;
   };
 
   if (loading) {
-    return <div className={styles.wrapper}>Loading...</div>;
+    return <div className={styles.wrapper}>Đang tải...</div>;
   }
 
   if (error || !post) {
-    return <div className={styles.wrapper}>{error || "Post not found"}</div>;
+    return <div className={styles.wrapper}>{error || "Không tìm thấy bài viết"}</div>;
   }
 
   return (
     <div className={styles.wrapper}>
       <button className={styles.backButton} onClick={handleBack}>
-        <img src={backIcon} alt="Back" />
-        Back
+        <img src={backIcon} alt="Quay lại" />
+        Quay lại
       </button>
 
       <div className={styles.container}>
@@ -450,7 +581,7 @@ const PostDetail: React.FC = () => {
             <div className={styles.dotsContainer}>
               <button className={styles.dotsButton} onClick={() => setShowPopup(!showPopup)}>⋮</button>
               {showPopup && (
-                <div ref={(el) => { popupRefs.current[0] = el; }}>
+                <div ref={(el) => (popupRefs.current[0] = el)}>
                   <ReportPopup type="Post" user_id={post.user_id} post_id={post.post_id} />
                 </div>
               )}
@@ -461,11 +592,13 @@ const PostDetail: React.FC = () => {
           <div className={styles.content}>{post.post_content}</div>
 
           <div className={styles.postTags}>
-            {post.tags && post.tags.length > 0 && post.tags.map((tag, index) => (
-              <button key={index} className={styles.tagButton} onClick={() => handleTagClick()}>
-                #{tag}
-              </button>
-            ))}
+            {post.tags &&
+              post.tags.length > 0 &&
+              post.tags.map((tag, index) => (
+                <button key={index} className={styles.tagButton} onClick={() => handleTagClick()}>
+                  #{tag}
+                </button>
+              ))}
           </div>
 
           {post.img_url && post.img_url.length > 0 && (
@@ -483,7 +616,7 @@ const PostDetail: React.FC = () => {
                     <SwiperSlide key={index} style={{ width: '100%' }}>
                       <img
                         src={image}
-                        alt={`Post image ${index + 1}`}
+                        alt={`Hình ảnh bài viết ${index + 1}`}
                         className={styles.swiperImage}
                         style={{ width: '100%', height: 'auto' }}
                       />
@@ -492,22 +625,22 @@ const PostDetail: React.FC = () => {
                 </Swiper>
               </div>
             ) : (
-              <img src={post.img_url[0]} alt="Post image" className={styles.singleImage} />
+              <img src={post.img_url[0]} alt="Hình ảnh bài viết" className={styles.singleImage} />
             )
           )}
 
           <div className={styles.interactions}>
             <button className={styles.button} onClick={handleLike}>
-              <img src={liked ? likeFilled : like} alt="Like" />
+              <img src={liked ? likeFilled : like} alt="Thích" />
               {currentLikes}
             </button>
             <button className={styles.button} onClick={handleDislike}>
-              <img src={disliked ? dislikeFilled : dislike} alt="Dislike" />
+              <img src={disliked ? dislikeFilled : dislike} alt="Không thích" />
               {currentDislikes}
             </button>
             <button className={styles.button}>
-              <img src={commentIcon} alt="Comments" />
-              {post.comments.length}
+              <img src={commentIcon} alt="Bình luận" />
+              {commentsList.length}
             </button>
           </div>
 
@@ -515,12 +648,12 @@ const PostDetail: React.FC = () => {
             <div className={styles.commentBox}>
               <textarea
                 className={styles.commentInput}
-                placeholder="Write a comment..."
+                placeholder="Viết bình luận..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
               />
               <button className={styles.circularButton} onClick={handleAddComment}>
-                <img src={sendIcon} alt="Send" />
+                <img src={sendIcon} alt="Gửi" />
               </button>
             </div>
 
@@ -541,7 +674,7 @@ const PostDetail: React.FC = () => {
                         ⋮
                       </button>
                       {activeCommentIndex === index && (
-                        <div ref={(el) => { popupRefs.current[index] = el; }}>
+                        <div ref={(el) => (popupRefs.current[index] = el)}>
                           <ReportPopup type="Comment" user_id={post.user_id} post_id={post.post_id} />
                         </div>
                       )}
@@ -550,16 +683,25 @@ const PostDetail: React.FC = () => {
 
                   <div className={styles.commentText}>{item.text}</div>
                   <div className={styles.commentActions}>
-                    <button className={styles.commentActionButton} onClick={() => handleCommentLike(index)}>
-                      <img src={item.liked ? likeFilled : like} alt="Like" />
+                    <button
+                      className={styles.commentActionButton}
+                      onClick={() => handleCommentLike(index)}
+                    >
+                      <img src={item.liked ? likeFilled : like} alt="Thích" />
                       {item.likeCount}
                     </button>
-                    <button className={styles.commentActionButton} onClick={() => handleCommentDislike(index)}>
-                      <img src={item.disliked ? dislikeFilled : dislike} alt="Dislike" />
+                    <button
+                      className={styles.commentActionButton}
+                      onClick={() => handleCommentDislike(index)}
+                    >
+                      <img src={item.disliked ? dislikeFilled : dislike} alt="Không thích" />
                       {item.dislikeCount}
                     </button>
-                    <button className={styles.commentActionButton} onClick={() => handleCommentReply(index)}>
-                      <img src={item.replied ? replyFilled : replyIcon} alt="Reply" />
+                    <button
+                      className={styles.commentActionButton}
+                      onClick={() => handleCommentReply(index)}
+                    >
+                      <img src={item.replied ? replyFilled : replyIcon} alt="Trả lời" />
                       {item.replyCount}
                     </button>
                   </div>
@@ -568,12 +710,12 @@ const PostDetail: React.FC = () => {
                     <div className={styles.commentBox}>
                       <textarea
                         className={styles.replyInput}
-                        placeholder="Write a reply..."
+                        placeholder="Viết trả lời..."
                         value={item.replyText || ''}
                         onChange={(e) => handleReplyInputChange(index, e.target.value)}
                       />
                       <button className={styles.circularButton} onClick={() => handlePostReply(index)}>
-                        <img src={sendIcon} alt="Send Reply" />
+                        <img src={sendIcon} alt="Gửi trả lời" />
                       </button>
                     </div>
                   )}
