@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import io, { Socket } from 'socket.io-client';
 import styles from './post_detail.module.css';
@@ -177,11 +177,72 @@ const PostDetail: React.FC = () => {
   const [commentsList, setComments] = useState<CommentItem[]>([]);
   const [newComment, setNewComment] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
+  const [isSendingReply, setIsSendingReply] = useState<boolean>(false);
 
   const socketRef = useRef<Socket | null>(null);
   const popupRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Khởi tạo WebSocket và lấy user_id
+  const handleDisplayDetailCmts = useCallback((data: CommentDataFromBE) => {
+    console.log('Received comment from BE:', data);
+    const newCommentItem: CommentItem = {
+      comment_id: data.cmt_id,
+      text: data.cmt_content,
+      userName: data.user_name,
+      timestamp: data.date_cmt,
+      likeCount: 0,
+      dislikeCount: 0,
+      replyCount: 0,
+      liked: false,
+      disliked: false,
+      replied: false,
+      replies: [],
+    };
+
+    setComments((prev) => {
+      const isDuplicate = prev.some((comment) => comment.comment_id === data.cmt_id);
+      if (isDuplicate) {
+        console.log(`Duplicate comment_id detected: ${data.cmt_id}, skipping...`);
+        return prev;
+      }
+
+      console.log(`Processing comment/reply with cmt_id: ${data.cmt_id}`);
+      const updatedComments = data.cmt_parent_id === ''
+        ? [newCommentItem, ...prev]
+        : prev.map((comment) => {
+            if (comment.comment_id === data.cmt_parent_id) {
+              const isReplyDuplicate = comment.replies.some(
+                (reply) => reply.comment_id === data.cmt_id
+              );
+              if (isReplyDuplicate) {
+                console.log(`Duplicate reply_id detected: ${data.cmt_id}, skipping...`);
+                return comment;
+              }
+              console.log(`Adding reply ${data.cmt_id} to comment ${comment.comment_id}`);
+              return {
+                ...comment,
+                replies: [
+                  ...comment.replies,
+                  {
+                    comment_id: data.cmt_id,
+                    text: data.cmt_content,
+                    userName: data.user_name,
+                    timestamp: data.date_cmt,
+                  },
+                ],
+                replyCount: comment.replies.length + 1,
+                replied: false,
+              };
+            }
+            return comment;
+          });
+
+      cacheComments(postId!, updatedComments);
+      console.log('Updated comments:', updatedComments);
+      return updatedComments;
+    });
+    setIsSendingReply(false); // Reset cờ sau khi nhận reply từ BE
+  }, [postId]);
+
   useEffect(() => {
     const initializeSocket = async () => {
       try {
@@ -204,68 +265,7 @@ const PostDetail: React.FC = () => {
           console.log('WebSocket connected');
         });
 
-        // Xóa listener cũ trước khi gắn mới để tránh trùng lặp
-        socketRef.current.off('displayDetailCmts');
-        socketRef.current.on('displayDetailCmts', (data: CommentDataFromBE) => {
-          console.log('Received comment from BE:', data);
-          const newCommentItem: CommentItem = {
-            comment_id: data.cmt_id,
-            text: data.cmt_content,
-            userName: data.user_name,
-            timestamp: data.date_cmt,
-            likeCount: 0,
-            dislikeCount: 0,
-            replyCount: 0,
-            liked: false,
-            disliked: false,
-            replied: false,
-            replies: [],
-          };
-
-          setComments((prev) => {
-            // Kiểm tra trùng lặp comment_id cho comment gốc
-            const isDuplicate = prev.some((comment) => comment.comment_id === data.cmt_id);
-            if (isDuplicate) {
-              console.log(`Duplicate comment_id detected: ${data.cmt_id}, skipping...`);
-              return prev;
-            }
-
-            const updatedComments = data.cmt_parent_id === ''
-              ? [newCommentItem, ...prev]
-              : prev.map((comment) => {
-                  if (comment.comment_id === data.cmt_parent_id) {
-                    // Kiểm tra trùng lặp trong replies dựa trên cmt_id
-                    const isReplyDuplicate = comment.replies.some(
-                      (reply) => reply.comment_id === data.cmt_id
-                    );
-                    if (isReplyDuplicate) {
-                      console.log(`Duplicate reply_id detected: ${data.cmt_id}, skipping...`);
-                      return comment;
-                    }
-                    console.log(`Adding reply ${data.cmt_id} to comment ${comment.comment_id}`);
-                    return {
-                      ...comment,
-                      replies: [
-                        ...comment.replies,
-                        {
-                          comment_id: data.cmt_id,
-                          text: data.cmt_content,
-                          userName: data.user_name,
-                          timestamp: data.date_cmt,
-                        },
-                      ],
-                      replyCount: comment.replies.length + 1,
-                      replied: false, // Reset replied sau khi thêm reply
-                    };
-                  }
-                  return comment;
-                });
-
-            cacheComments(postId!, updatedComments);
-            console.log('Updated comments:', updatedComments);
-            return updatedComments;
-          });
-        });
+        socketRef.current.on('displayDetailCmts', handleDisplayDetailCmts);
 
         socketRef.current.on('updateInteractFromServer', (data: InteractData) => {
           console.log('Received interaction update:', data);
@@ -279,6 +279,7 @@ const PostDetail: React.FC = () => {
 
         return () => {
           if (socketRef.current) {
+            socketRef.current.off('displayDetailCmts', handleDisplayDetailCmts);
             socketRef.current.emit('leaveRoom', fetchedUserId);
             socketRef.current.disconnect();
             console.log('WebSocket disconnected');
@@ -290,9 +291,8 @@ const PostDetail: React.FC = () => {
     };
 
     initializeSocket();
-  }, [postId]);
+  }, [postId, handleDisplayDetailCmts]);
 
-  // Lấy chi tiết bài viết
   useEffect(() => {
     const fetchPostDetail = async () => {
       if (!postId) {
@@ -335,7 +335,6 @@ const PostDetail: React.FC = () => {
     fetchPostDetail();
   }, [postId]);
 
-  // Xử lý click ngoài popup
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       if (popupRefs.current[0] && !popupRefs.current[0]?.contains(event.target as Node)) {
@@ -356,7 +355,6 @@ const PostDetail: React.FC = () => {
     };
   }, [activeCommentIndex]);
 
-  // Xử lý like
   const handleLike = () => {
     if (!socketRef.current || !postId || !userId) return;
 
@@ -376,7 +374,6 @@ const PostDetail: React.FC = () => {
     if (disliked) setDisliked(false);
   };
 
-  // Xử lý dislike
   const handleDislike = () => {
     if (!socketRef.current || !postId || !userId) return;
 
@@ -396,7 +393,6 @@ const PostDetail: React.FC = () => {
     if (liked) setLiked(false);
   };
 
-  // Xử lý thêm comment
   const handleAddComment = () => {
     if (!newComment.trim() || !socketRef.current || !postId || !userId) return;
 
@@ -415,7 +411,6 @@ const PostDetail: React.FC = () => {
     setNewComment('');
   };
 
-  // Xử lý like comment
   const handleCommentLike = (index: number) => {
     setComments((prevComments) =>
       prevComments.map((comment, i) => {
@@ -434,7 +429,6 @@ const PostDetail: React.FC = () => {
     );
   };
 
-  // Xử lý dislike comment
   const handleCommentDislike = (index: number) => {
     setComments((prevComments) =>
       prevComments.map((comment, i) => {
@@ -453,7 +447,6 @@ const PostDetail: React.FC = () => {
     );
   };
 
-  // Xử lý reply (chỉ mở/đóng ô nhập liệu)
   const handleCommentReply = (index: number) => {
     setComments((prevComments) =>
       prevComments.map((comment, i) => {
@@ -476,31 +469,35 @@ const PostDetail: React.FC = () => {
     );
   };
 
-  // Xử lý gửi reply
-  const handlePostReply = (index: number) => {
-    if (!socketRef.current || !postId || !userId) return;
+  const handlePostReply = useCallback((index: number, event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (!socketRef.current || !postId || !userId || isSendingReply) return;
 
-    setComments((prevComments) =>
-      prevComments.map((comment, i) => {
-        if (i === index && comment.replyText?.trim()) {
-          const replyData = {
-            user_id: userId,
-            post_id: postId,
-            cmt_cont: comment.replyText,
-            level_parent: 0,
-            cmt_parent_id: comment.comment_id,
-            user_parent_id: userId,
-            user_post_id: userId,
-          };
+    setIsSendingReply(true);
 
-          socketRef.current?.emit('newCommentFromClient', replyData);
-          console.log('Sent reply:', replyData);
-          return { ...comment, replyText: '', replied: false };
-        }
-        return comment;
-      })
-    );
-  };
+    const comment = commentsList[index];
+    if (comment.replyText?.trim()) {
+      const replyData = {
+        user_id: userId,
+        post_id: postId,
+        cmt_cont: comment.replyText,
+        level_parent: 0,
+        cmt_parent_id: comment.comment_id,
+        user_parent_id: userId,
+        user_post_id: userId,
+      };
+
+      socketRef.current?.emit('newCommentFromClient', replyData);
+      console.log('Sent reply:', replyData);
+      console.log("Userid ne", userId);
+
+      setComments((prevComments) =>
+        prevComments.map((c, i) =>
+          i === index ? { ...c, replyText: '', replied: false } : c
+        )
+      );
+    }
+  }, [postId, userId, isSendingReply, commentsList]);
 
   const handleTagClick = () => {
     alert("Sắp ra mắt");
@@ -714,7 +711,11 @@ const PostDetail: React.FC = () => {
                         value={item.replyText || ''}
                         onChange={(e) => handleReplyInputChange(index, e.target.value)}
                       />
-                      <button className={styles.circularButton} onClick={() => handlePostReply(index)}>
+                      <button
+                        className={styles.circularButton}
+                        onClick={(e) => handlePostReply(index, e)}
+                        disabled={isSendingReply}
+                      >
                         <img src={sendIcon} alt="Gửi trả lời" />
                       </button>
                     </div>
