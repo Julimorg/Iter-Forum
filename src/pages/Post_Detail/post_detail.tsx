@@ -9,7 +9,6 @@ import dislikeFilled from '../../assets/dislike_filled.png';
 import replyIcon from '../../assets/comment.png';
 import replyFilled from '../../assets/comment.png';
 import backIcon from '../../assets/back_arrow.png';
-import Trending from '../../assets/trending.png';
 import sendIcon from '../../assets/send.png';
 import ReportPopup from '../../components/Report_Popup/Report_popup';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -32,8 +31,19 @@ interface PostData {
   upvote: number;
   downvote: number;
   tags: string[];
-  tag_id: string;
-  comments: any[];
+  comments: CommentApiItem[];
+}
+
+interface CommentApiItem {
+  user_id: string;
+  user_name: string;
+  ava_img_path: string | null;
+  comment_id: string;
+  comment_parent_id: string | null;
+  date_comment: string;
+  comment_content: string;
+  upvote: number | null;
+  downvote: number | null;
 }
 
 interface ApiResponse {
@@ -45,12 +55,17 @@ interface ApiResponse {
 }
 
 interface ReplyItem {
+  comment_id: string;
   text: string;
   userName: string;
+  timestamp: string;
 }
 
 interface CommentItem {
+  comment_id: string;
   text: string;
+  userName: string;
+  timestamp: string;
   likeCount: number;
   dislikeCount: number;
   replyCount: number;
@@ -60,6 +75,73 @@ interface CommentItem {
   replyText?: string;
   replies: ReplyItem[];
 }
+
+// Hàm xử lý dữ liệu comment thành cấu trúc cây
+const buildCommentTree = (comments: CommentApiItem[]): CommentItem[] => {
+  const commentsMap: { [key: string]: CommentItem } = {};
+  const rootComments: CommentItem[] = [];
+
+  // Lần duyệt 1: Tạo tất cả comment và lưu vào commentsMap
+  comments.forEach((comment: CommentApiItem) => {
+    const commentItem: CommentItem = {
+      comment_id: comment.comment_id,
+      text: comment.comment_content,
+      userName: comment.user_name,
+      timestamp: comment.date_comment,
+      likeCount: comment.upvote || 0,
+      dislikeCount: comment.downvote || 0,
+      replyCount: 0,
+      liked: false,
+      disliked: false,
+      replied: false,
+      replies: [],
+    };
+    commentsMap[comment.comment_id] = commentItem;
+  });
+
+  // Lần duyệt 2: Nhóm reply vào comment cha
+  comments.forEach((comment: CommentApiItem) => {
+    if (!comment.comment_parent_id) {
+      // Nếu không có comment_parent_id, đây là comment gốc
+      rootComments.push(commentsMap[comment.comment_id]);
+    } else {
+      // Nếu có comment_parent_id, đây là reply
+      const parentComment = commentsMap[comment.comment_parent_id];
+      if (parentComment) {
+        parentComment.replies.push({
+          comment_id: comment.comment_id,
+          text: comment.comment_content,
+          userName: comment.user_name,
+          timestamp: comment.date_comment,
+        });
+        parentComment.replyCount = parentComment.replies.length;
+      } else {
+        console.warn(`Parent comment with ID ${comment.comment_parent_id} not found for reply ${comment.comment_id}`);
+      }
+    }
+  });
+
+  // Sắp xếp comment theo thời gian (mới nhất trước)
+  rootComments.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  // Sắp xếp reply trong mỗi comment
+  rootComments.forEach((comment) => {
+    comment.replies.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    console.log(`Comment ${comment.comment_id} has ${comment.replies.length} replies:`, comment.replies);
+  });
+
+  return rootComments;
+};
+
+// Hàm lưu trữ dữ liệu comment vào localStorage
+const cacheComments = (postId: string, comments: CommentItem[]) => {
+  localStorage.setItem(`comments_${postId}`, JSON.stringify(comments));
+};
+
+// Hàm lấy dữ liệu comment từ localStorage
+const getCachedComments = (postId: string): CommentItem[] => {
+  const cached = localStorage.getItem(`comments_${postId}`);
+  return cached ? JSON.parse(cached) : [];
+};
 
 const PostDetail: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
@@ -86,6 +168,12 @@ const PostDetail: React.FC = () => {
         return;
       }
 
+      // Kiểm tra cache trước
+      const cachedComments = getCachedComments(postId);
+      if (cachedComments.length > 0) {
+        setComments(cachedComments);
+      }
+
       try {
         console.log("Fetching post detail for postId:", postId);
         const response = await authorizedAxiosInstance.get<ApiResponse>(
@@ -94,9 +182,18 @@ const PostDetail: React.FC = () => {
         console.log("API response:", response.data);
 
         if (response.data.is_success) {
-          setPost(response.data.data);
-          setCurrentLikes(response.data.data.upvote);
-          setCurrentDislikes(response.data.data.downvote);
+          const postData = response.data.data;
+          setPost(postData);
+          setCurrentLikes(postData.upvote);
+          setCurrentDislikes(postData.downvote);
+
+          // Xử lý danh sách comment thành cấu trúc cây
+          const commentTree = buildCommentTree(postData.comments);
+          setComments(commentTree);
+
+          // Lưu vào cache
+          cacheComments(postId, commentTree);
+
           setError(null);
         } else {
           setError(response.data.message || "Failed to fetch post detail");
@@ -163,17 +260,23 @@ const PostDetail: React.FC = () => {
   const handleAddComment = () => {
     if (newComment.trim()) {
       const newCommentItem: CommentItem = {
+        comment_id: `temp-${Date.now()}`, // Tạm thời tạo ID, nên thay bằng ID từ server
         text: newComment,
+        userName: "User", // Thay bằng tên người dùng thực tế
+        timestamp: new Date().toISOString(),
         likeCount: 0,
         dislikeCount: 0,
         replyCount: 0,
         liked: false,
         disliked: false,
         replied: false,
-        replyText: '',
         replies: [],
       };
-      setComments((prev) => [...prev, newCommentItem]);
+      setComments((prev) => {
+        const updatedComments = [newCommentItem, ...prev];
+        cacheComments(postId!, updatedComments); // Cập nhật cache
+        return updatedComments;
+      });
       setNewComment('');
     }
   };
@@ -247,15 +350,21 @@ const PostDetail: React.FC = () => {
       prevComments.map((comment, i) => {
         if (i === index && comment.replyText?.trim()) {
           const newReply: ReplyItem = {
+            comment_id: `temp-reply-${Date.now()}`, // Tạm thời tạo ID
             text: comment.replyText,
             userName: "User",
+            timestamp: new Date().toISOString(),
           };
-          return {
+          const updatedComment = {
             ...comment,
             replies: [...comment.replies, newReply],
             replyText: '',
             replyCount: comment.replyCount + 1,
           };
+          const updatedComments = [...prevComments];
+          updatedComments[i] = updatedComment;
+          cacheComments(postId!, updatedComments); // Cập nhật cache
+          return updatedComment;
         }
         return comment;
       })
@@ -398,7 +507,7 @@ const PostDetail: React.FC = () => {
             </button>
             <button className={styles.button}>
               <img src={commentIcon} alt="Comments" />
-              {commentsList.length}
+              {post.comments.length}
             </button>
           </div>
 
@@ -417,11 +526,12 @@ const PostDetail: React.FC = () => {
 
             <div className={styles.commentList}>
               {commentsList.map((item, index) => (
-                <div key={index} className={styles.commentItem}>
+                <div key={item.comment_id} className={styles.commentItem}>
                   <div className={styles.commentHeader}>
                     <div className={styles.userInfo}>
                       <div className={styles.commentAvatar}></div>
-                      <span className={styles.commentUsername}>User</span>
+                      <span className={styles.commentUsername}>{item.userName}</span>
+                      <span className={styles.timestamp}>{formatRelativeTime(item.timestamp)}</span>
                     </div>
                     <div className={styles.dotsContainer}>
                       <button
@@ -468,17 +578,20 @@ const PostDetail: React.FC = () => {
                     </div>
                   )}
 
-                  <div className={styles.replyList}>
-                    {item.replies.map((reply, replyIndex) => (
-                      <div key={replyIndex} className={styles.replyItem}>
-                        <div className={styles.replyHeader}>
-                          <div className={styles.replyAvatar}></div>
-                          <span className={styles.replyUserName}>{reply.userName}</span>
+                  {item.replies.length > 0 && (
+                    <div className={styles.replyList}>
+                      {item.replies.map((reply, replyIndex) => (
+                        <div key={reply.comment_id} className={styles.replyItem}>
+                          <div className={styles.replyHeader}>
+                            <div className={styles.replyAvatar}></div>
+                            <span className={styles.replyUserName}>{reply.userName}</span>
+                            <span className={styles.timestamp}>{formatRelativeTime(reply.timestamp)}</span>
+                          </div>
+                          <div className={styles.replyText}>{reply.text}</div>
                         </div>
-                        <div className={styles.replyText}>{reply.text}</div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
