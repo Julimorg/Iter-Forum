@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaBell, FaPlus } from 'react-icons/fa';
 import BlurText from '../BlurText/BlurText';
@@ -21,35 +21,112 @@ interface SearchedUser {
 interface SearchResponse {
   data: SearchedUser[];
 }
-
+interface Notification {
+  notification_id: string;
+  notification_content: string;
+  date_sent: string;
+}
+interface NotificationResponse {
+  is_success: boolean;
+  data: {
+    notifications: Notification[];
+  };
+}
 // Modal components
 function NotiModel({ isOpen }: { isOpen: boolean }) {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
   const fakeAvatar = "https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e303b9f80d10d582.jpg";
+
+  //? Calc Times
+  const formatTimeAgo = (date: Date): string => {
+    const now = Date.now();
+    const diffMs = now - date.getTime(); // Khoảng cách thời gian tính bằng mili giây
+    const diffSeconds = Math.floor(diffMs / 1000);
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+  
+    if (diffDays > 1) {
+      return `${diffDays} ngày trước`;
+    } else if (diffDays === 1) {
+      return `1 ngày trước`;
+    } else if (diffHours > 1) {
+      return `${diffHours} giờ trước`;
+    } else if (diffHours === 1) {
+      return `1 giờ trước`;
+    } else if (diffMinutes > 1) {
+      return `${diffMinutes} phút trước`;
+    } else if (diffMinutes === 1) {
+      return `1 phút trước`;
+    } else {
+      return `Vừa xong`;
+    }
+  };
+  //? Fetch Noti in Noti model box
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        setError('Vui lòng đăng nhập để xem thông báo');
+        return;
+      }
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await axios.get<NotificationResponse>(`${API_BE}/api/v1/recommend/`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.data.is_success) {
+          setNotifications(response.data.data.notifications);
+        } else {
+          setError('Không thể tải thông báo');
+        }
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Đã xảy ra lỗi khi tải thông báo');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (isOpen) {
+      fetchNotifications();
+    }
+  }, [isOpen]);
+
   return (
     <StyleWrapper>
       <div className={isOpen ? `notiModel show` : `notiModel hide`}>
         <div className="NoticationPopUps">
-          <NotificationElements
-            imgSrc={fakeAvatar}
-            title="Fong"
-            content="hdqwdqwdqdqdiqwdqwdqdqwdqwdqdqwdqwdqd"
-            time="1 minutes ago"
-            onClick={() => alert("Hello")}
-          />
-           <NotificationElements
-            imgSrc={fakeAvatar}
-            title="Fong"
-            content="hdqwdqwdqdqdiqwdqwdqdqwdqwdqdqwdqwdqd"
-            time="1 minutes ago"
-            onClick={() => alert("Hello")}
-          /> <NotificationElements
-          imgSrc={fakeAvatar}
-          title="Fong"
-          content="hdqwdqwdqdqdiqwdqwdqdqwdqwdqdqwdqwdqd"
-          time="1 minutes ago"
-          onClick={() => alert("Hello")}
-        />
-          {/* Các NotificationElements khác */}
+          {isLoading ? (
+            <div>Loading notifications...</div>
+          ) : error ? (
+            <div>{error}</div>
+          ) : notifications.length > 0 ? (
+            notifications.map((noti) => {
+              const parsedContent = JSON.parse(noti.notification_content);
+              const date = new Date(noti.date_sent);
+              const timeAgo = formatTimeAgo(date);
+              return (
+                <NotificationElements
+                  key={noti.notification_id}
+                  imgSrc={fakeAvatar}
+                  title="Thông báo"
+                  content={parsedContent.content}
+                  time={timeAgo}
+                  onClick={() => navigate(`post-detail/${parsedContent.post_id}`)}
+                />
+              );
+            })
+          ) : (
+            <div>No notifications available</div>
+          )}
         </div>
       </div>
     </StyleWrapper>
@@ -110,7 +187,7 @@ const Header: React.FC = () => {
   const notiRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
 
-  // Handle click outside for models
+  //? Handle click outside for models
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (notiRef.current && !notiRef.current.contains(event.target as Node)) {
@@ -272,7 +349,7 @@ const StyleWrapper = styled.div`
     top: 4rem;
     right: -3rem;
     z-index: 100;
-    width: 25rem;
+    width: 31.5rem;
     height: 16rem;
     border-radius: 30px;
     box-shadow: rgba(0, 0, 0, 0.3) 4px 9px 27px 7px;
@@ -285,7 +362,7 @@ const StyleWrapper = styled.div`
   .NoticationPopUps {
     margin-top: 1rem;
     overflow-y: auto;
-    width: 24.5rem;
+    width: 32.5rem;
     height: 14.5rem;
   }
   .NoticationPopUps::-webkit-scrollbar {
