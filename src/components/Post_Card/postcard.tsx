@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import io, { Socket } from 'socket.io-client';
 import dislike from '../../assets/dislike.png';
 import like from '../../assets/like.png';
 import comment from '../../assets/comment.png';
@@ -14,6 +15,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Navigation, Pagination } from 'swiper/modules';
+import authorizedAxiosInstance from '../../services/Auth';
 
 interface PostcardProps {
   post_id: string;
@@ -29,7 +31,13 @@ interface PostcardProps {
   onRemove: () => void;
   images?: string[] | null;
   avatar?: string | null;
-  date_updated?: string; // Sửa thành optional
+  date_updated?: string;
+}
+
+interface InteractData {
+  post_id: string;
+  like: number;
+  dislike: number;
 }
 
 const Postcard: React.FC<PostcardProps> = ({
@@ -55,9 +63,67 @@ const Postcard: React.FC<PostcardProps> = ({
   const [popupVisible, setPopupVisible] = useState<boolean>(false);
   const [imageCount, setImageCount] = useState<number>(0);
   const [imageErrors, setImageErrors] = useState<boolean[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const popupRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    const initializeSocket = async () => {
+      try {
+        const profileResponse = await authorizedAxiosInstance.get<{ data: { user_id: string } }>(
+          'http://localhost:3000/api/v1/users/profile'
+        );
+        const fetchedUserId = profileResponse.data.data.user_id;
+        setUserId(fetchedUserId);
+
+        socketRef.current = io('http://localhost:3000', { transports: ['websocket'] });
+
+        if (fetchedUserId && post_id) {
+          socketRef.current.emit('joinRoom', fetchedUserId);
+          socketRef.current.emit('joinRoomPost', post_id);
+        }
+
+        socketRef.current.on('connect', () => {
+          console.log('WebSocket connected in Postcard');
+        });
+
+        socketRef.current.on('updateInteractFromServer', (data: InteractData) => {
+          if (data.post_id === post_id) {
+            setCurrentLikes(data.like);
+            setCurrentDislikes(data.dislike);
+
+            const storedState = localStorage.getItem(`post_${post_id}_interaction`);
+            if (storedState) {
+              const { liked: storedLiked, disliked: storedDisliked } = JSON.parse(storedState);
+              setLiked(storedLiked);
+              setDisliked(storedDisliked);
+            }
+          }
+        });
+
+        const storedState = localStorage.getItem(`post_${post_id}_interaction`);
+        if (storedState) {
+          const { liked: storedLiked, disliked: storedDisliked } = JSON.parse(storedState);
+          setLiked(storedLiked);
+          setDisliked(storedDisliked);
+        }
+        setCurrentLikes(likes);
+        setCurrentDislikes(dislikes);
+
+        return () => {
+          if (socketRef.current) {
+            socketRef.current.disconnect();
+          }
+        };
+      } catch (err) {
+        console.error('Error initializing WebSocket in Postcard:', err);
+      }
+    };
+
+    initializeSocket();
+  }, [post_id, likes, dislikes]);
 
   useEffect(() => {
     const count = Array.isArray(images) ? images.length : 0;
@@ -68,25 +134,40 @@ const Postcard: React.FC<PostcardProps> = ({
   const togglePopup = () => setPopupVisible(!popupVisible);
 
   const handleLike = () => {
-    setLiked((prev) => !prev);
-    setCurrentLikes((prev) => (liked ? prev - 1 : prev + 1));
-    if (disliked) {
-      setDisliked(false);
-      setCurrentDislikes((prev) => prev - 1);
-    }
+    if (!socketRef.current || !post_id || !userId) return;
+
+    const newLiked = !liked;
+    const newDisliked = newLiked ? false : disliked;
+
+    socketRef.current.emit('newInteractFromClient', {
+      post_id,
+      user_post_id: userId,
+      is_upvote: true,
+      upvote: newLiked ? currentLikes + 1 : currentLikes - 1,
+      downvote: newDisliked ? currentDislikes + 1 : (disliked ? currentDislikes - 1 : currentDislikes),
+    });
+
+    localStorage.setItem(`post_${post_id}_interaction`, JSON.stringify({ liked: newLiked, disliked: newDisliked }));
   };
 
   const handleDislike = () => {
-    setDisliked((prev) => !prev);
-    setCurrentDislikes((prev) => (disliked ? prev - 1 : prev + 1));
-    if (liked) {
-      setLiked(false);
-      setCurrentLikes((prev) => prev - 1);
-    }
+    if (!socketRef.current || !post_id || !userId) return;
+
+    const newDisliked = !disliked;
+    const newLiked = newDisliked ? false : liked;
+
+    socketRef.current.emit('newInteractFromClient', {
+      post_id,
+      user_post_id: userId,
+      is_upvote: false,
+      upvote: newLiked ? currentLikes + 1 : (liked ? currentLikes - 1 : currentLikes),
+      downvote: newDisliked ? currentDislikes + 1 : currentDislikes - 1,
+    });
+
+    localStorage.setItem(`post_${post_id}_interaction`, JSON.stringify({ liked: newLiked, disliked: newDisliked }));
   };
 
   const handlePostNavigation = () => {
-    console.log("Navigating to post detail with post_id:", post_id);
     navigate(`/home/post-detail/${post_id}`);
   };
 
@@ -113,22 +194,16 @@ const Postcard: React.FC<PostcardProps> = ({
 
     const minutes = Math.floor(diffInSeconds / 60);
     if (minutes < 1) return `${diffInSeconds} seconds ago`;
-
     const hours = Math.floor(minutes / 60);
     if (hours < 1) return `${minutes} minutes ago`;
-
     const days = Math.floor(hours / 24);
     if (days < 1) return `${hours} hours ago`;
-
     const weeks = Math.floor(days / 7);
     if (weeks < 1) return `${days} days ago`;
-
     const months = Math.floor(days / 30);
     if (months < 1) return `${weeks} weeks ago`;
-
     const years = Math.floor(months / 12);
     if (years < 1) return `${months} months ago`;
-
     return `${years} years ago`;
   };
 
@@ -225,159 +300,155 @@ const Postcard: React.FC<PostcardProps> = ({
   );
 };
 
-export default Postcard;
-
-// Styled components
 const PostCardContainer = styled.div`
-  width: 100%;
-  margin: 16px auto;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 16px;
-  background-color: #fff;
-  overflow: hidden;
-  transition: opacity 0.5s ease, margin 0.5s ease, height 0.5s ease, padding 0.5s ease;
-  height: auto;
-  pointer-events: auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  width: 60vw; /* Cập nhật width thành 60vw */
+  max-width: 50rem; /* Cập nhật max-width thành 50rem */
 `;
 
 const Header = styled.div`
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
 `;
 
 const ProfilePic = styled.div`
   width: 40px;
   height: 40px;
-  background-color: #ccc;
   border-radius: 50%;
-  margin-right: 8px;
+  background-color: #ccc;
+  margin-right: 0.5rem;
 `;
 
 const UserInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  text-align: left;
+  flex-grow: 1;
 `;
 
 const Name = styled.div`
   font-weight: bold;
-  flex-grow: 1;
   cursor: pointer;
+
   &:hover {
     text-decoration: underline;
   }
 `;
 
 const Timestamp = styled.div`
-  font-size: 12px;
+  font-size: 0.8rem;
   color: #666;
-  margin-top: 2px;
 `;
 
 const DotsContainer = styled.div`
   position: relative;
-  margin-left: auto;
 `;
 
 const DotsButton = styled.button`
   background: none;
   border: none;
+  font-size: 1.5rem;
   cursor: pointer;
-  font-size: 20px;
-  padding: 4px;
+  color: #333;
 `;
 
-const Title = styled.div`
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 8px;
+const Title = styled.h2`
+  font-size: 1.2rem;
+  margin: 0.5rem 0;
   cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
-const Caption = styled.div`
-  margin-bottom: 16px;
-  font-size: 14px;
-  line-height: 1.5;
+const Caption = styled.p`
+  font-size: 1rem;
+  color: #333;
+  margin: 0.5rem 0;
   cursor: pointer;
 `;
 
 const PostTags = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  margin-bottom: 16px;
-  direction: rtl;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
 `;
 
-const SingleImage = styled.img`
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  cursor: pointer;
+const ImageCount = styled.div`
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0.5rem 0;
 `;
 
 const SwiperContainer = styled.div`
   width: 100%;
-  margin-bottom: 16px;
-  .swiper {
-    width: 100%;
-    height: 100%;
-    aspect-ratio: 16 / 9;
-  }
+  margin: 0.5rem 0;
+
   .swiper-slide {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100%;
   }
-  .swiper-slide img {
+
+  img {
     width: 100%;
-    height: 100%;
+    height: auto;
+    max-height: 400px;
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: 5px;
     cursor: pointer;
   }
 `;
 
-const Interactions = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const Button = styled.button`
-  display: flex;
-  align-items: center;
-  border: none;
-  padding: 8px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
+const SingleImage = styled.img`
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 5px;
+  margin: 0.5rem 0;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  &:hover {
-    background-color: #d6d6d6;
-  }
-`;
-
-const ImageCount = styled.div`
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 8px;
 `;
 
 const PlaceholderImage = styled.div`
   width: 100%;
-  height: 100%;
-  aspect-ratio: 16 / 9;
-  background-color: #eee;
+  height: 200px;
+  background-color: #f0f0f0;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 8px;
   color: #666;
-  font-size: 14px;
+  border-radius: 5px;
+  margin: 0.5rem 0;
 `;
+
+const Interactions = styled.div`
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+`;
+
+const Button = styled.button`
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+  color: #333;
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    color: #007bff;
+  }
+`;
+
+export default Postcard;
