@@ -105,7 +105,6 @@ interface UserProfile {
   phone_num: string;
 }
 
-// Hàm xử lý dữ liệu comment thành cấu trúc cây
 const buildCommentTree = (comments: CommentApiItem[]): CommentItem[] => {
   const commentsMap: { [key: string]: CommentItem } = {};
   const rootComments: CommentItem[] = [];
@@ -152,7 +151,6 @@ const buildCommentTree = (comments: CommentApiItem[]): CommentItem[] => {
   return rootComments;
 };
 
-// Hàm lưu trữ và lấy dữ liệu comment từ localStorage
 const cacheComments = (postId: string, comments: CommentItem[]) => {
   localStorage.setItem(`comments_${postId}`, JSON.stringify(comments));
 };
@@ -180,7 +178,7 @@ const PostDetail: React.FC = () => {
   const [isSendingReply, setIsSendingReply] = useState<boolean>(false);
 
   const socketRef = useRef<Socket | null>(null);
-  const popupRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const popupRefs = useRef<React.RefObject<HTMLDivElement>[]>([]); // Sửa type của popupRefs
 
   const handleDisplayDetailCmts = useCallback((data: CommentDataFromBE) => {
     console.log('Received comment from BE:', data);
@@ -240,7 +238,7 @@ const PostDetail: React.FC = () => {
       console.log('Updated comments:', updatedComments);
       return updatedComments;
     });
-    setIsSendingReply(false); // Reset cờ sau khi nhận reply từ BE
+    setIsSendingReply(false);
   }, [postId]);
 
   useEffect(() => {
@@ -337,13 +335,13 @@ const PostDetail: React.FC = () => {
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
-      if (popupRefs.current[0] && !popupRefs.current[0]?.contains(event.target as Node)) {
+      if (popupRefs.current[0]?.current && !popupRefs.current[0].current.contains(event.target as Node)) {
         setShowPopup(false);
       }
       if (
         activeCommentIndex !== null &&
-        popupRefs.current[activeCommentIndex] &&
-        !popupRefs.current[activeCommentIndex]?.contains(event.target as Node)
+        popupRefs.current[activeCommentIndex]?.current &&
+        !popupRefs.current[activeCommentIndex].current.contains(event.target as Node)
       ) {
         setActiveCommentIndex(null);
       }
@@ -578,7 +576,7 @@ const PostDetail: React.FC = () => {
             <div className={styles.dotsContainer}>
               <button className={styles.dotsButton} onClick={() => setShowPopup(!showPopup)}>⋮</button>
               {showPopup && (
-                <div ref={(el) => (popupRefs.current[0] = el)}>
+                <div ref={popupRefs.current[0] = popupRefs.current[0] || React.createRef()}>
                   <ReportPopup type="Post" user_id={post.user_id} post_id={post.post_id} />
                 </div>
               )}
@@ -655,88 +653,99 @@ const PostDetail: React.FC = () => {
             </div>
 
             <div className={styles.commentList}>
-              {commentsList.map((item, index) => (
-                <div key={item.comment_id} className={styles.commentItem}>
-                  <div className={styles.commentHeader}>
-                    <div className={styles.userInfo}>
-                      <div className={styles.commentAvatar}></div>
-                      <span className={styles.commentUsername}>{item.userName}</span>
-                      <span className={styles.timestamp}>{formatRelativeTime(item.timestamp)}</span>
-                    </div>
-                    <div className={styles.dotsContainer}>
-                      <button
-                        className={styles.dotsButton}
-                        onClick={() => setActiveCommentIndex(index)}
-                      >
-                        ⋮
-                      </button>
-                      {activeCommentIndex === index && (
-                        <div ref={(el) => (popupRefs.current[index] = el)}>
-                          <ReportPopup type="Comment" user_id={post.user_id} post_id={post.post_id} />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className={styles.commentText}>{item.text}</div>
-                  <div className={styles.commentActions}>
-                    <button
-                      className={styles.commentActionButton}
-                      onClick={() => handleCommentLike(index)}
-                    >
-                      <img src={item.liked ? likeFilled : like} alt="Thích" />
-                      {item.likeCount}
-                    </button>
-                    <button
-                      className={styles.commentActionButton}
-                      onClick={() => handleCommentDislike(index)}
-                    >
-                      <img src={item.disliked ? dislikeFilled : dislike} alt="Không thích" />
-                      {item.dislikeCount}
-                    </button>
-                    <button
-                      className={styles.commentActionButton}
-                      onClick={() => handleCommentReply(index)}
-                    >
-                      <img src={item.replied ? replyFilled : replyIcon} alt="Trả lời" />
-                      {item.replyCount}
-                    </button>
-                  </div>
-
-                  {item.replied && (
-                    <div className={styles.commentBox}>
-                      <textarea
-                        className={styles.replyInput}
-                        placeholder="Viết trả lời..."
-                        value={item.replyText || ''}
-                        onChange={(e) => handleReplyInputChange(index, e.target.value)}
-                      />
-                      <button
-                        className={styles.circularButton}
-                        onClick={(e) => handlePostReply(index, e)}
-                        disabled={isSendingReply}
-                      >
-                        <img src={sendIcon} alt="Gửi trả lời" />
-                      </button>
-                    </div>
-                  )}
-
-                  {item.replies.length > 0 && (
-                    <div className={styles.replyList}>
-                      {item.replies.map((reply, replyIndex) => (
-                        <div key={reply.comment_id} className={styles.replyItem}>
-                          <div className={styles.replyHeader}>
-                            <div className={styles.replyAvatar}></div>
-                            <span className={styles.replyUserName}>{reply.userName}</span>
-                            <span className={styles.timestamp}>{formatRelativeTime(reply.timestamp)}</span>
+              {commentsList.map((item, index) => {
+                // Tạo hoặc tái sử dụng ref cho mỗi comment
+                if (!popupRefs.current[index]) {
+                  popupRefs.current[index] = React.createRef();
+                }
+                return (
+                  <div key={item.comment_id} className={styles.commentItem}>
+                    <div className={styles.commentHeader}>
+                      <div className={styles.userInfo}>
+                        <div className={styles.commentAvatar}></div>
+                        <span className={styles.commentUsername}>{item.userName}</span>
+                        <span className={styles.timestamp}>{formatRelativeTime(item.timestamp)}</span>
+                      </div>
+                      <div className={styles.dotsContainer}>
+                        <button
+                          className={styles.dotsButton}
+                          onClick={() => setActiveCommentIndex(index)}
+                        >
+                          ⋮
+                        </button>
+                        {activeCommentIndex === index && (
+                          <div ref={popupRefs.current[index]}>
+                            <ReportPopup
+                              type="Comment"
+                              user_id={post.user_id}
+                              post_id={post.post_id}
+                              comment_id={item.comment_id}
+                            />
                           </div>
-                          <div className={styles.replyText}>{reply.text}</div>
-                        </div>
-                      ))}
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
+
+                    <div className={styles.commentText}>{item.text}</div>
+                    <div className={styles.commentActions}>
+                      <button
+                        className={styles.commentActionButton}
+                        onClick={() => handleCommentLike(index)}
+                      >
+                        <img src={item.liked ? likeFilled : like} alt="Thích" />
+                        {item.likeCount}
+                      </button>
+                      <button
+                        className={styles.commentActionButton}
+                        onClick={() => handleCommentDislike(index)}
+                      >
+                        <img src={item.disliked ? dislikeFilled : dislike} alt="Không thích" />
+                        {item.dislikeCount}
+                      </button>
+                      <button
+                        className={styles.commentActionButton}
+                        onClick={() => handleCommentReply(index)}
+                      >
+                        <img src={item.replied ? replyFilled : replyIcon} alt="Trả lời" />
+                        {item.replyCount}
+                      </button>
+                    </div>
+
+                    {item.replied && (
+                      <div className={styles.commentBox}>
+                        <textarea
+                          className={styles.replyInput}
+                          placeholder="Viết trả lời..."
+                          value={item.replyText || ''}
+                          onChange={(e) => handleReplyInputChange(index, e.target.value)}
+                        />
+                        <button
+                          className={styles.circularButton}
+                          onClick={(e) => handlePostReply(index, e)}
+                          disabled={isSendingReply}
+                        >
+                          <img src={sendIcon} alt="Gửi trả lời" />
+                        </button>
+                      </div>
+                    )}
+
+                    {item.replies.length > 0 && (
+                      <div className={styles.replyList}>
+                        {item.replies.map((reply, replyIndex) => (
+                          <div key={reply.comment_id} className={styles.replyItem}>
+                            <div className={styles.replyHeader}>
+                              <div className={styles.replyAvatar}></div>
+                              <span className={styles.replyUserName}>{reply.userName}</span>
+                              <span className={styles.timestamp}>{formatRelativeTime(reply.timestamp)}</span>
+                            </div>
+                            <div className={styles.replyText}>{reply.text}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
