@@ -10,19 +10,13 @@ const authorizedAxiosInstance = axios.create();
 //? setTimout cho 1 request : 10 mins
 authorizedAxiosInstance.defaults.timeout = 1000 * 60 * 10;
 
-//? withCredentials: Sẽ cho phép axios tự động đính kèm và gửi cookie trong mỗi request lên BE
-//? Phục vụ trong trường hợp nếu ta sử dụng JWT Tokens(refresh và access token) theo cơ chế httpOnly Cookies
-// authorizedAxiosInstance.defaults.withCredentials = true;
-
-
-
-//? Sử dụng anxios interceptor
 
 //? Can thiệp vào giữa những request API
 authorizedAxiosInstance.interceptors.request.use((config) => {
     // Do something before request is sent
     // Lấy accessToken từ localStorage và đính kèm vào header
     const accessToken = localStorage.getItem('accessToken');
+    // const refreshToken = localStorage.getItem('refreshToken');
     // Tại sao cần Bearer?
     // --> Nên tuân thủ theo tiêu chuẩn OAuth 2.0 trong việc xác định loại token đang sử dụng
     // --> Bearer là định nghĩa loại token dành cho việc xác thực và ủy quyền, tham khảo các loại token khác như:
@@ -56,12 +50,10 @@ authorizedAxiosInstance.interceptors.response.use((response) => {
     // Do something with response error
     // Xử Lý Refresh Token tự động - Nếu BE response 401 thì logout luôn
     if (error.response?.status === 401) {
-        //Nếu dùng cookie thì nhớ xóa userinfo trong localstorage
-        //localStorage.removeItem('userInfo');
         console.log("Error 401");
-        handleLogOutAPI().then(() => {
-            location.href = '/login';
-        })
+        // handleLogOutAPI().then(() => {
+        //     location.href = '/login';
+        // })
     }
     // Xử lý nếu BE response lên 410 -> gọi api refresh Token để làm mới lại Token
     const originalRequest = error.config
@@ -76,18 +68,19 @@ authorizedAxiosInstance.interceptors.response.use((response) => {
                     .then((res) => {
                         // Lấy và gán lại access token vào local
                         const { accessToken } = res.data;
+                        const {refreshToken} = res.data;
                         console.log("new AccessToken: ", accessToken);
+                        console.log("new refreshToken: ", refreshToken);
+
                         localStorage.setItem('accessToken', accessToken);
                         authorizedAxiosInstance.defaults.headers.Authorization = `Bearer ${accessToken}`
-
-
                     })
                     .catch((_error) => {
                         // Nếu mà refresh token api bị lỗi thì cút cmm lun
                         console.log("API ERROR");
-                        handleLogOutAPI().then(() => {
-                            location.href = '/login';
-                        })
+                        // handleLogOutAPI().then(() => {
+                        //     location.href = '/login';
+                        // })
 
                         return Promise.reject(_error);
                     })
@@ -102,7 +95,6 @@ authorizedAxiosInstance.interceptors.response.use((response) => {
                 // })
             }
         }
-
         // sau đó thì return cái refreshTokenPromise trong case success ở đây
         return refreshTokenPromise.then(() => {
             //return lại axios instance kết hợp với originalConfig

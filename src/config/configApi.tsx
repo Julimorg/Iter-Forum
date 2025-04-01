@@ -1,2 +1,5 @@
-//? API Login
-export const Login_API = 'http://localhost:8017'
+
+//? API Login from BE
+export const API_BE = 'http://localhost:3000';
+// export const API_BE = 'http://10.11.77.106:3000';
+

@@ -1,88 +1,251 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Home from '../../assets/home.png';
 import Popular from '../../assets/popular.png';
 import Explore from '../../assets/explore.png';
-import styles from './Sidebar.module.css'; // Import CSS module
+import ExpandIcon from '../../assets/expand.png';
+import CollapseIcon from '../../assets/collapse.png';
+import styles from './Sidebar.module.css';
+import axios from 'axios';
+import { API_BE } from '../../config/configApi';
 
-interface SiderbarProps{
+interface TagSubscribed {
+  tag_title: string;
+  post_count: number;
+  tag_id: string;
+}
+
+interface SidebarProps {
   onSignOutClick?: () => void;
 }
-const Sidebar: React.FC<SiderbarProps>= ({onSignOutClick}) => {
+
+const Sidebar: React.FC<SidebarProps> = ({ onSignOutClick }) => {
+  const [subscribedTags, setSubscribedTags] = useState<TagSubscribed[]>([]);
+  const [showAllTags, setShowAllTags] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Function to scroll to the top
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  useEffect(() => {
+    const fetchSubscribedTags = async () => {
+      const accessToken = localStorage.getItem('accessToken');
+
+      if (!accessToken) {
+        console.error('No access token found in localStorage');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const response = await axios.get(`${API_BE}/api/v1/recommend`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const subscribedTagsData = response.data.data.subscribed_tags;
+        setSubscribedTags(subscribedTagsData);
+      } catch (error) {
+        console.error('Error fetching subscribed tags:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSubscribedTags();
+  }, []);
+
   return (
-    <div className={styles.sidebar}>
-      {/* Điều hướng */}
-      <nav>
-        <ul className={styles.navList}>
-          <li className={styles.navItem}>
-            <Link to="/home" onClick={scrollToTop} className={styles.navLink}>
-              <img src={Home} alt="Home" />
-              Home
-            </Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link to="/home/popular" onClick={scrollToTop} className={styles.navLink}>
-              <img src={Popular} alt="Popular" />
-              Popular
-            </Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link to="/home/explore" onClick={scrollToTop} className={styles.navLink}>
-              <img src={Explore} alt="Explore" />
-              Explore
-            </Link>
-          </li>
-        </ul>
-      </nav>
+    <>
+      <style>
+        {`
+          @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap');
 
-      {/* Subscribed tags */}
-      <div>
-        {/* Subscribed tags */}
-        <div>
-          <h3 className={styles.subscribedTagsHeader}>SUBSCRIBED TAGS</h3>
-          <ul className={styles.tagList}>
+          body {
+            font-family: 'Lexend', sans-serif;
+            margin: 0;
+          }
 
-            <li className={styles.tagItem}>
-              <Link to={`/home/tag/${encodeURIComponent('Web Development')}`} className={styles.tagLink}>
-                <span className={styles.tagName}>Web Development</span>
-                <span className={styles.newPosts}>5 NEW POSTS</span>
+          .blank {
+            margin: 0;
+            height: 5vh;
+          }
+
+          .sidebar {
+            width: 20vw;
+            min-width: 250px;
+            max-width: 300px;
+            background-color: #f8f9fa;
+            padding: 2vh 2vw;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto;
+          }
+
+          .sidebar nav ul,
+          .sidebar .subscribed-tags ul,
+          .sidebar .about-us ul,
+          .sidebar .advanced ul {
+            list-style-type: none;
+            padding: 0;
+          }
+
+          .sidebar nav ul li,
+          .sidebar .subscribed-tags ul li,
+          .sidebar .about-us ul li,
+          .sidebar .advanced ul li {
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .sidebar nav ul li a,
+          .sidebar .subscribed-tags ul li a,
+          .sidebar .about-us ul li a,
+          .sidebar .advanced ul li a,
+          .sidebar .new-posts {
+            text-decoration: none;
+            color: #000;
+            display: flex;
+            align-items: center;
+            padding: 1vh 1vw;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            justify-content: flex-start;
+            gap: 20px;
+          }
+
+          .sidebar .subscribed-tags ul li a {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .sidebar .subscribed-tags h3,
+          .sidebar .about-us h3 {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #6c757d;
+          }
+
+          .sidebar .subscribed-tags ul li {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 0.5rem;
+            min-height: 6vh;
+          }
+
+          .sidebar .subscribed-tags ul li .tag-name {
+            margin-bottom: 5px;
+          }
+
+          .sidebar .new-posts {
+            font-size: 12px;
+            color: #6c757d;
+          }
+
+          .sidebar nav ul li a.active,
+          .sidebar nav ul li a:hover,
+          .sidebar .subscribed-tags ul li a:hover,
+          .sidebar .about-us ul li a:hover,
+          .sidebar .advanced ul li a:hover {
+            background-color: #e9ecef;
+          }
+
+          .main-content {
+            margin-left: calc(20vw + 2vw);
+            padding: 2vh 2vw;
+            flex-grow: 1;
+          }
+          .buttonLogOut {
+            border: none;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            padding: 1vh 1vw;
+            transition: background-color 0.3s;
+            justify-content: flex-start;
+            gap: 20px;
+          }
+          .buttonLogOut:hover {
+            background-color: #e9ecef;
+            cursor: pointer;
+          }
+        `}
+      </style>
+      <div className="sidebar">
+        <div className="blank"></div>
+        <nav>
+          <ul>
+            <li>
+              <Link to="/home" onClick={scrollToTop}>
+                <img src={Home} alt="Home" />
+                Home
               </Link>
             </li>
-
-            <li className={styles.tagItem}>
-              <Link to={`/home/tag/${encodeURIComponent('JavaScript')}`} className={styles.tagLink}>
-                <span className={styles.tagName}>JavaScript</span>
-                <span className={styles.newPosts}>16 NEW POSTS</span>
+            <li className={styles.navItem}>
+              <Link to="/home/popular" onClick={scrollToTop} className={styles.navLink}>
+                <img src={Popular} alt="Popular" />
+                Popular
               </Link>
             </li>
-
-            <li className={styles.tagItem}>
-              <Link to={`/home/tag/${encodeURIComponent('ReactJS')}`} className={styles.tagLink}>
-                <span className={styles.tagName}>ReactJS</span>
-                <span className={styles.newPosts}>1 NEW POST</span>
-              </Link>
-            </li>
-
-            {/* All Subscribed Tags */}
-            <li className={styles.tagItem}>
-              <Link to={`/home/all-subscribed-tags`} className={styles.tagLink}>
-                <span className={styles.tagName}>All Subscribed tags</span>
+            <li className={styles.navItem}>
+              <Link to="/home/explore" onClick={scrollToTop} className={styles.navLink}>
+                <img src={Explore} alt="Explore" />
+                Explore
               </Link>
             </li>
           </ul>
+        </nav>
+
+        {/* Subscribed tags */}
+        <div>
+          <h3 className={styles.subscribedTagsHeader}>SUBSCRIBED TAGS</h3>
+          {isLoading ? (
+            <div>Loading subscribed tags...</div>
+          ) : (
+            <ul className={styles.tagList}>
+              {(showAllTags ? subscribedTags : subscribedTags.slice(0, 3)).map((tag, index) => (
+                <li key={index} className={styles.tagItem}>
+                  <Link
+                    to={`/home/tag/${tag.tag_id}`}
+                    className={styles.tagLink}
+                  >
+                    <span className={styles.tagName}>{tag.tag_title} {tag.post_count} </span>
+                  </Link>
+                </li>
+              ))}
+
+              {/* Nút "Show All" hoặc "Collapse" */}
+              {subscribedTags.length > 3 && (
+                <li className={styles.tagItem}>
+                  <button
+                    className={`${styles.tagLink} ${styles.tagItemButton}`}
+                    onClick={() => setShowAllTags(!showAllTags)}
+                  >
+                    <span className={styles.tagName}>
+                      <img
+                        src={showAllTags ? CollapseIcon : ExpandIcon}
+                        alt={showAllTags ? 'Collapse' : 'Expand'}
+                        className={styles.tagIcon}
+                      />
+                      {showAllTags ? 'Collapse' : 'Show All'}
+                    </span>
+                  </button>
+                </li>
+              )}
+            </ul>
+          )}
         </div>
 
-
-
-      </div>
-
-      {/* About Us */}
+        {/* About Us */}
         <div>
           <h3 className={styles.aboutUsHeader}>ABOUT US</h3>
           <ul className={styles.tagList}>
@@ -113,14 +276,15 @@ const Sidebar: React.FC<SiderbarProps>= ({onSignOutClick}) => {
         <div>
           <ul className={styles.tagList}>
             <li>
-              <button onClick = {onSignOutClick} className={styles.logoutLink}>
-              <i className="fas fa-sign-out-alt"></i> Log out
+              <button onClick={onSignOutClick} className="buttonLogOut">
+                <i className="fas fa-sign-out-alt"></i>
+                <p>Log out</p>
               </button>
             </li>
           </ul>
         </div>
-
-    </div>
+      </div>
+    </>
   );
 };
 

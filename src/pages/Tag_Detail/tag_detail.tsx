@@ -1,77 +1,147 @@
-import React, { useState } from 'react';
-import styles from './tag_detail.module.css'; // Import CSS Module
-import Post_Card from '../../components/Post_Card/postcard'; // Import Post_Card component
+import React, { useState, useEffect } from 'react';
+import styles from './tag_detail.module.css';
+import Post_Card from '../../components/Post_Card/postcard';
 import { useParams, useNavigate } from 'react-router-dom';
-import backIcon from '../../assets/back_arrow.png'; // Import back icon
-import bellIcon from '../../assets/bell.png'; // Import bell icon
+import backIcon from '../../assets/back_arrow.png';
+import bellIcon from '../../assets/bell.png';
+import authorizedAxiosInstance from '../../services/Auth';
+import { API_BE } from '../../config/configApi';
+
+interface Post {
+    user_id: string;
+    user_name: string;
+    ava_img_path: string | null;
+    post_id: string;
+    post_title: string;
+    post_content: string;
+    img_url: string[];
+    date_updated: string;
+    upvote: number;
+    downvote: number;
+    comments_num: number;
+    tags: string[];
+}
+
+interface TagData {
+    recommend_posts: Post[];
+    tag_id: string;
+    tag_name: string;
+    tag_category: string;
+    tag_description: string;
+    num_posts: number;
+}
+
+interface ApiResponse {
+    is_success: boolean;
+    status_code: number;
+    message: string;
+    data: TagData;
+    timestamp: number;
+}
 
 const Tag_Detail: React.FC = () => {
     const navigate = useNavigate();
-    const { tagName } = useParams<{ tagName: string }>();
+    const { tagId } = useParams<{ tagId: string }>();
+    const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+    const [tagData, setTagData] = useState<TagData | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const [isSubscribed, setIsSubscribed] = useState(false); // State cho nút Subscribe
+    useEffect(() => {
+        const fetchTagData = async () => {
+            if (!tagId) {
+                setError("Tag ID not provided");
+                setLoading(false);
+                return;
+            }
 
-    const tagContent = {
-        ReactJS: "Learn about ReactJS, the powerful JavaScript library for building user interfaces.",
-        JavaScript: "Discover the versatility of JavaScript, the language of the web.",
-        "Web Development": "Explore the world of web development and modern technologies.",
-    };
+            try {
+                setLoading(true);
+                const accessToken = localStorage.getItem('accessToken');
+                if (!accessToken) {
+                    setError("Please login to view tag details");
+                    setLoading(false);
+                    return;
+                }
 
-    const handleBack = () => {
+                const response = await authorizedAxiosInstance.get<ApiResponse>(
+                    `${API_BE}/api/v1/recommend/tags/${tagId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${accessToken}`,
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                );
+
+                console.log('Fetched tags detail:', response.data);
+                if (response.data.is_success) {
+                    setTagData(response.data.data);
+                    setError(null);
+                } else {
+                    setError(response.data.message || "Failed to fetch tag details");
+                }
+            } catch (error: any) {
+                console.error('Error fetching tag data:', error);
+                setError(error.response?.data?.message || "Failed to fetch tag details");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTagData();
+    }, [tagId]);
+
+    const handleBack = (): void => {
         if (window.history.length > 1) {
-            navigate(-1); // Quay lại trang trước đó
+            navigate(-1);
         } else {
-            navigate("/home"); // Điều hướng đến trang mặc định
+            navigate('/home');
         }
     };
 
-    const handleSubscribeToggle = () => {
-        setIsSubscribed(!isSubscribed); // Chuyển đổi trạng thái Subscribe
+    const handleSubscribeToggle = (): void => {
+        setIsSubscribed(prev => !prev);
     };
 
-    const tagPosts = [
-        {
-            user: 'John Doe',
-            caption: 'Mastering React in 2023',
-            likes: 123,
-            dislikes: 10,
-            comments: 25,
-        },
-        {
-            user: 'Jane Smith',
-            caption: '10 Tips for Learning JavaScript',
-            likes: 95,
-            dislikes: 5,
-            comments: 15,
-        },
-        {
-            user: 'AI Enthusiast',
-            caption: 'Exploring Artificial Intelligence Trends',
-            likes: 300,
-            dislikes: 15,
-            comments: 40,
-        },
-    ];
+    const handleRemovePost = (postId: string): void => {
+        setTagData(prev => {
+            if (!prev) return prev;
+            return {
+                ...prev,
+                recommend_posts: prev.recommend_posts.filter(post => post.post_id !== postId),
+                num_posts: prev.num_posts - 1,
+            };
+        });
+    };
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>{error}</div>;
+    }
+
+    if (!tagData) {
+        return <div>No data found for this tag</div>;
+    }
 
     return (
         <div className={styles.wrapper}>
-            {/* Nút Back */}
             <button className={styles.backButton} onClick={handleBack}>
                 <img src={backIcon} alt="Back" />
                 Back
             </button>
-    
+
             <div className={styles['popular-container']}>
-                {/* Header cho phần tag */}
                 <div className={styles.tagHeader}>
-                    {/* Bên trái: Tên tag và số lượng post */}
                     <div className={styles.tagInfo}>
-                        <h1 className={styles.tagName}>{tagName}</h1>
-                        <p className={styles.postCount}>{`${tagPosts.length} Posts`}</p>
+                        <h1 className={styles.tagName}>{tagData.tag_name}</h1>
+                        <p className={styles.postCount}>{`${tagData.num_posts} Posts`}</p>
                     </div>
-    
-                    {/* Bên phải: Nút subscribe và số người đăng ký */}
-                    <div className={styles.subscribeSection}>
+
+                    {/* <div className={styles.subscribeSection}>
                         <button
                             className={isSubscribed ? styles.subscribedButton : styles.subscribeButton}
                             onClick={handleSubscribeToggle}
@@ -82,46 +152,49 @@ const Tag_Detail: React.FC = () => {
                                     Subscribed
                                 </>
                             ) : (
-                                "Subscribe"
+                                'Subscribe'
                             )}
                         </button>
                         <p className={styles.subscriberCount}>
-                            {isSubscribed ? "14,000 Subscribers" : "13,999 Subscribers"}
+                            {isSubscribed ? '14,000 Subscribers' : '13,999 Subscribers'}
                         </p>
-                    </div>
+                    </div> */}
                 </div>
-    
-                {/* Mô tả tag */}
-                <p className={styles.tagDescription}>
-                    {tagContent[tagName as keyof typeof tagContent]}
-                </p>
-    
-                {/* Dòng kẻ ngăn cách */}
+
+                <p className={styles.tagDescription}>{tagData.tag_description}</p>
+
                 <hr className={styles.separator} />
-    
-                {/* Trending Posts Section */}
+
                 <section className={styles['trending-posts']}>
                     <div className={styles['trending_post_content']}>
-                        {tagPosts.map((post, index) => (
-                            <Post_Card
-                                key={index}
-                                user={post.user}
-                                caption={post.caption}
-                                likes={post.likes}
-                                dislikes={post.dislikes}
-                                tags={['ReactJS', 'JavaScript', 'Web Development']}
-                                comments={post.comments}
-                                onRemove={() => console.log(`Post ${index} removed.`)}
+                        {tagData.recommend_posts && tagData.recommend_posts.length > 0 ? (
+                            tagData.recommend_posts.map((post) => (
+                                <Post_Card
+                                key={post.post_id}
+                                user={post.user_name}
+                                user_id={post.user_id}
+                                post_id={post.post_id}
+                                title={post.post_title}
+                                caption={post.post_content}
+                                likes={post.upvote}
+                                dislikes={post.downvote}
+                                comments={post.comments_num}
+                                tags={post.tags}
+                                images={post.img_url}
+                                avatar={post.ava_img_path}
+                                onRemove={() => handleRemovePost(post.post_id)}
                                 isTrending={true}
-                            />
-                        ))}
+                                date_updated={post.date_updated} // Đã có date_updated
+                                />
+                            ))
+                        ) : (
+                            <p>No posts found for this tag.</p>
+                        )}
                     </div>
                 </section>
             </div>
         </div>
     );
-    
-    
 };
 
 export default Tag_Detail;

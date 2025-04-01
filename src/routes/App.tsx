@@ -11,48 +11,56 @@ import Explore from "../pages/Explore_Page/Explore";
 import PostDetail from "../pages/Post_Detail/post_detail";
 import TagDetail from "../pages/Tag_Detail/tag_detail";
 import AllSubscribedTags from "../pages/All_Subscribed_Tags/all_subcribed_tags";
-// Config react-toastify
-import { ToastContainer } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
+import ViewUserProfile from "../pages/ViewUser_Page/ViewUserProfile";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-//! TUYỆT ĐỐI KHÔNG ĐƯỢC ADD STYLE VÀO ĐÂY
-//! VÌ ĐÂY LÀ FILE ROUTES CHÍNH, NÓ CHỈ ĐỂ QUẢN LÝ CÁC ROUTES, KHÔNG ĐỂ QUẢN LÝ STYLE
-//! ADD VÀO LÀ TAO CHÉM
-//! --- Fong ---
-
-
-//? Xác định route cần auth tài khoản thì mới truy cập vào Home
-//? Outlet để hiện thị Child Route
 const AuthorizedRoute = () => {
-  const userInfo = localStorage.getItem('userInfo');
-  const user = userInfo ? JSON.parse(userInfo) : null;
-  if (!user) return <Navigate to='/login' replace={true} />;
-  return <Outlet />
-}
+  const accessToken = localStorage.getItem("accessToken");
+  if (!accessToken) {
+    console.log("No accessToken found, redirecting to /login");
+    return <Navigate to="/login" replace={true} />;
+  }
+  console.log("AccessToken found, rendering Outlet");
+  return <Outlet />;
+};
+
 const UnAuthorizedRoute = () => {
-  const userInfo = localStorage.getItem('userInfo');
-  const user = userInfo ? JSON.parse(userInfo) : null;
-  if (user) return <Navigate to='/home' replace={true} />;
-  return <Outlet />
-}
+  const accessToken = localStorage.getItem("accessToken"); // Đổi từ userInfo sang accessToken
+  if (accessToken) {
+    console.log("AccessToken exists, redirecting to /home");
+    return <Navigate to="/home" replace={true} />;
+  }
+  return <Outlet />;
+};
 
 function App() {
   return (
     <>
       <Routes>
         <Route path="/" element={<Welcome />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/sign-up" element={<SignUp />} />
-
-        {/* Nested Routes in Home */}
-        <Route path="/home" element={<Home />}>
-          <Route path="profile" element={<UserProfile />} />
-          <Route path="create-post" element={<CreatePost />} />
-          <Route path="popular" element={<Popular />} />
-          <Route path="explore" element={<Explore />} />
-          <Route path="post-detail" element={<PostDetail />} />
+        {/* Unauthorize routes */}
+        <Route element={<UnAuthorizedRoute />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/sign-up" element={<SignUp />} />
         </Route>
-      </Routes >
+
+        {/* Authorize routes */}
+        <Route element={<AuthorizedRoute />}>
+          <Route path="/home" element={<Home />}>
+            <Route path="profile" element={<UserProfile />} />
+            <Route path="create-post" element={<CreatePost />} />
+            <Route path="popular" element={<Popular />} />
+            <Route path="explore" element={<Explore />} />
+            <Route path="post-detail/:postId" element={<PostDetail />} />
+            <Route path="tag/:tagId" element={<TagDetail />} />
+            <Route path="all-subscribed-tags" element={<AllSubscribedTags />} />
+            <Route path="user" element={<ViewUserProfile />} />
+            <Route path="user-detail/:userId" element={<ViewUserProfile />} />
+          </Route>
+
+        </Route>
+      </Routes>
       <ToastContainer position="bottom-left" theme="colored" />
     </>
   );

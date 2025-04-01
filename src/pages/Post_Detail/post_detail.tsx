@@ -1,457 +1,748 @@
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import io, { Socket } from 'socket.io-client';
 import styles from './post_detail.module.css';
 import like from '../../assets/like.png';
 import dislike from '../../assets/dislike.png';
 import commentIcon from '../../assets/comment.png';
 import likeFilled from '../../assets/like_filled.png';
 import dislikeFilled from '../../assets/dislike_filled.png';
-import replyIcon from '../../assets/comment.png';     
-import replyFilled from '../../assets/comment.png'; 
+import replyIcon from '../../assets/comment.png';
+import replyFilled from '../../assets/comment.png';
 import backIcon from '../../assets/back_arrow.png';
-import Trending from '../../assets/trending.png';
-import Bell from '../../assets/bell.png';
 import sendIcon from '../../assets/send.png';
+import ReportPopup from '../../components/Report_Popup/Report_popup';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import { Navigation, Pagination } from 'swiper/modules';
+import authorizedAxiosInstance from '../../services/Auth';
+import { API_BE } from '../../config/configApi';
 
-interface PostState {
-  user: string;
-  caption: string;
-  image?: string;
-  likes: number;
-  dislikes: number;
+interface PostData {
+  user_id: string;
+  user_name: string;
+  ava_img_path: string | null;
+  post_id: string;
+  post_title: string;
+  post_content: string;
+  img_url: string[];
+  date_updated: string;
+  upvote: number;
+  downvote: number;
   tags: string[];
-  isTrending?: boolean;
+  comments: CommentApiItem[];
 }
 
-const PostDetail: React.FC = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  // Sử dụng type assertion để khai báo rõ loại của location.state  
-  const { user, caption, image, likes, dislikes, tags, isTrending } = (location.state as PostState) || {};
+interface CommentApiItem {
+  user_id: string;
+  user_name: string;
+  ava_img_path: string | null;
+  comment_id: string;
+  comment_parent_id: string | null;
+  date_comment: string;
+  comment_content: string;
+  upvote: number | null;
+  downvote: number | null;
+}
 
-  const [currentLikes, setCurrentLikes] = useState<number>(likes || 0);
-  const [currentDislikes, setCurrentDislikes] = useState<number>(dislikes || 0);  
+interface ApiResponse {
+  is_success: boolean;
+  status_code: number;
+  message: string;
+  data: PostData;
+  timestamp: number;
+}
+
+interface ReplyItem {
+  comment_id: string;
+  text: string;
+  userName: string;
+  timestamp: string;
+}
+
+interface CommentItem {
+  comment_id: string;
+  text: string;
+  userName: string;
+  timestamp: string;
+  likeCount: number;
+  dislikeCount: number;
+  replyCount: number;
+  liked: boolean;
+  disliked: boolean;
+  replied: boolean;
+  replyText?: string;
+  replies: ReplyItem[];
+}
+
+interface InteractData {
+  post_id: string;
+  like: number;
+  dislike: number;
+}
+
+interface CommentDataFromBE {
+  post_id: string;
+  cmt_id: string;
+  cmt_parent_id: string;
+  cmt_content: string;
+  user_id: string;
+  user_name: string;
+  ava_img_path: string | null;
+  date_cmt: string;
+}
+
+interface UserProfile {
+  user_id: string;
+  user_name: string;
+  last_name: string | null;
+  first_name: string | null;
+  age: number;
+  ava_img_path: string;
+  email: string;
+  phone_num: string;
+}
+
+// Hàm xử lý dữ liệu comment thành cấu trúc cây
+const buildCommentTree = (comments: CommentApiItem[]): CommentItem[] => {
+  const commentsMap: { [key: string]: CommentItem } = {};
+  const rootComments: CommentItem[] = [];
+
+  comments.forEach((comment: CommentApiItem) => {
+    const commentItem: CommentItem = {
+      comment_id: comment.comment_id,
+      text: comment.comment_content,
+      userName: comment.user_name,
+      timestamp: comment.date_comment,
+      likeCount: comment.upvote || 0,
+      dislikeCount: comment.downvote || 0,
+      replyCount: 0,
+      liked: false,
+      disliked: false,
+      replied: false,
+      replies: [],
+    };
+    commentsMap[comment.comment_id] = commentItem;
+  });
+
+  comments.forEach((comment: CommentApiItem) => {
+    if (!comment.comment_parent_id) {
+      rootComments.push(commentsMap[comment.comment_id]);
+    } else {
+      const parentComment = commentsMap[comment.comment_parent_id];
+      if (parentComment) {
+        parentComment.replies.push({
+          comment_id: comment.comment_id,
+          text: comment.comment_content,
+          userName: comment.user_name,
+          timestamp: comment.date_comment,
+        });
+        parentComment.replyCount = parentComment.replies.length;
+      }
+    }
+  });
+
+  rootComments.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  rootComments.forEach((comment) => {
+    comment.replies.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  });
+
+  return rootComments;
+};
+
+// Hàm lưu trữ và lấy dữ liệu comment từ localStorage
+const cacheComments = (postId: string, comments: CommentItem[]) => {
+  localStorage.setItem(`comments_${postId}`, JSON.stringify(comments));
+};
+
+const getCachedComments = (postId: string): CommentItem[] => {
+  const cached = localStorage.getItem(`comments_${postId}`);
+  return cached ? JSON.parse(cached) : [];
+};
+
+const PostDetail: React.FC = () => {
+  const { postId } = useParams<{ postId: string }>();
+  const navigate = useNavigate();
+  const [post, setPost] = useState<PostData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentLikes, setCurrentLikes] = useState<number>(0);
+  const [currentDislikes, setCurrentDislikes] = useState<number>(0);
   const [liked, setLiked] = useState<boolean>(false);
   const [disliked, setDisliked] = useState<boolean>(false);
-  
-  const tagContent = {
-    ReactJS: "Learn about ReactJS, the powerful JavaScript library for building user interfaces.",
-    JavaScript: "Discover the versatility of JavaScript, the language of the web.",
-    "Web Development": "Explore the world of web development and modern technologies.",
-  };
+  const [showPopup, setShowPopup] = useState<boolean>(false);
+  const [activeCommentIndex, setActiveCommentIndex] = useState<number | null>(null);
+  const [commentsList, setComments] = useState<CommentItem[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isSendingReply, setIsSendingReply] = useState<boolean>(false);
 
-  // Thêm state để kiểm soát hiển thị tag
-  const [showTags, setShowTags] = useState<boolean>(true);
+  const socketRef = useRef<Socket | null>(null);
+  const popupRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  const [tagStatus, setTagStatus] = useState<Record<string, boolean>>({
-    "ReactJS": false, // false: "Subscribe", true: "Subscribed"
-    "JavaScript": false, // Đặt trạng thái ban đầu cho mỗi tag
-    "Web Development": true,
-  });
-  
-
-  const handleSubscribeToggle = (tag: string) => {
-    setTagStatus((prevStatus) => ({
-      ...prevStatus,
-      [tag]: !prevStatus[tag], // Đảo ngược trạng thái của tag được chọn
-    }));
-  };
-  
-
-  // Hàm xử lý khi ấn "Clear"
-  const handleClearTags = () => {
-    setShowTags(false);
-  };
-
-
-  // Định nghĩa kiểu cho CommentItem
-  // Định nghĩa kiểu cho CommentItem
-  interface ReplyItem {
-    text: string; // Nội dung reply
-    userName: string; // Tên người reply (tạm thời là "User")
-  }
-  
-  
-  interface CommentItem {
-    text: string;
-    likeCount: number;
-    dislikeCount: number;
-    replyCount: number;
-    liked: boolean;
-    disliked: boolean;
-    replied: boolean; // Trạng thái đã bật reply
-    replyText?: string; // Nội dung reply đang nhập
-    replies: ReplyItem[]; // Mảng các reply
-  }
-  
-  
-
-  
-  // Sử dụng state cho comments (mảng các CommentItem)
-  const [comments, setComments] = useState<CommentItem[]>([
-    {
-      text: "Sample comment",
+  const handleDisplayDetailCmts = useCallback((data: CommentDataFromBE) => {
+    console.log('Received comment from BE:', data);
+    const newCommentItem: CommentItem = {
+      comment_id: data.cmt_id,
+      text: data.cmt_content,
+      userName: data.user_name,
+      timestamp: data.date_cmt,
       likeCount: 0,
       dislikeCount: 0,
       replyCount: 0,
       liked: false,
       disliked: false,
-      replyText: '',
-      replies: [],
       replied: false,
-    },
-  ]);
-  
-  const [newComment, setNewComment] = useState('');
-
-  // Xử lý like cho bài đăng chính
-  const handleLike = () => {
-    if (liked) {
-      setLiked(false);
-      setCurrentLikes(prev => prev - 1);
-    } else {
-      if (disliked) {
-        setDisliked(false);
-        setCurrentDislikes(prev => prev - 1);
-      }
-      setLiked(true);
-      setCurrentLikes(prev => prev + 1);
-    }
-  };
-
-  // Xử lý dislike cho bài đăng chính
-  const handleDislike = () => {
-    if (disliked) {
-      setDisliked(false);
-      setCurrentDislikes(prev => prev - 1);
-    } else {
-      if (liked) {
-        setLiked(false);
-        setCurrentLikes(prev => prev - 1);
-      }
-      setDisliked(true);
-      setCurrentDislikes(prev => prev + 1);
-    }
-  };
-
-  // Xử lý thêm comment mới
-const handleAddComment = () => {
-  if (newComment.trim()) {
-    const newCommentItem: CommentItem = {
-      text: newComment,
-      likeCount: 0, // Bắt đầu với 0 like
-      dislikeCount: 0, // Bắt đầu với 0 dislike
-      replyCount: 0, // Bắt đầu với 0 reply
-      liked: false, // Chưa like
-      disliked: false, // Chưa dislike
-      replied: false, // Chưa reply
-      replyText: '', // Nội dung reply rỗng
-      replies: [], // Mảng các reply rỗng
+      replies: [],
     };
-    setComments(prev => [...prev, newCommentItem]);
-    setNewComment('');
-  }
-};
 
-// Xử lý like cho comment
-// Xử lý like cho comment
-const handleCommentLike = (index: number) => {
-  setComments(prevComments =>
-    prevComments.map((comment, i) => {
-      if (i === index) {
-        const isLiked = !comment.liked;
-        return {
-          ...comment,
-          liked: isLiked,
-          disliked: isLiked ? false : comment.disliked, // Remove dislike if now liked
-          likeCount: isLiked ? comment.likeCount + 1 : comment.likeCount - 1,
-          dislikeCount: isLiked && comment.disliked ? comment.dislikeCount - 1 : comment.dislikeCount,
-        };
+    setComments((prev) => {
+      const isDuplicate = prev.some((comment) => comment.comment_id === data.cmt_id);
+      if (isDuplicate) {
+        console.log(`Duplicate comment_id detected: ${data.cmt_id}, skipping...`);
+        return prev;
       }
-      return comment;
-    })
-  );
-};
 
-// Xử lý dislike cho comment
-const handleCommentDislike = (index: number) => {
-  setComments(prevComments =>
-    prevComments.map((comment, i) => {
-      if (i === index) {
-        const isDisliked = !comment.disliked;
-        return {
-          ...comment,
-          disliked: isDisliked,
-          liked: isDisliked ? false : comment.liked, // Remove like if now disliked
-          dislikeCount: isDisliked ? comment.dislikeCount + 1 : comment.dislikeCount - 1,
-          likeCount: isDisliked && comment.liked ? comment.likeCount - 1 : comment.likeCount,
-        };
-      }
-      return comment;
-    })
-  );
-};
+      console.log(`Processing comment/reply with cmt_id: ${data.cmt_id}`);
+      const updatedComments = data.cmt_parent_id === ''
+        ? [newCommentItem, ...prev]
+        : prev.map((comment) => {
+            if (comment.comment_id === data.cmt_parent_id) {
+              const isReplyDuplicate = comment.replies.some(
+                (reply) => reply.comment_id === data.cmt_id
+              );
+              if (isReplyDuplicate) {
+                console.log(`Duplicate reply_id detected: ${data.cmt_id}, skipping...`);
+                return comment;
+              }
+              console.log(`Adding reply ${data.cmt_id} to comment ${comment.comment_id}`);
+              return {
+                ...comment,
+                replies: [
+                  ...comment.replies,
+                  {
+                    comment_id: data.cmt_id,
+                    text: data.cmt_content,
+                    userName: data.user_name,
+                    timestamp: data.date_cmt,
+                  },
+                ],
+                replyCount: comment.replies.length + 1,
+                replied: false,
+              };
+            }
+            return comment;
+          });
 
-
-
-// Xử lý reply toggle
-const handleCommentReply = (index: number) => {
-  setComments(prevComments => {
-    return prevComments.map((comment, i) => {
-      if (i === index) {
-        return {
-          ...comment,
-          replied: !comment.replied, // Toggle trạng thái replied
-        };
-      }
-      return comment;
+      cacheComments(postId!, updatedComments);
+      console.log('Updated comments:', updatedComments);
+      return updatedComments;
     });
-  });
-};
+    setIsSendingReply(false); // Reset cờ sau khi nhận reply từ BE
+  }, [postId]);
 
+  useEffect(() => {
+    const initializeSocket = async () => {
+      try {
+        const profileResponse = await authorizedAxiosInstance.get<{ data: UserProfile }>(
+          'http://localhost:3000/api/v1/users/profile'
+        );
+        const fetchedUserId = profileResponse.data.data.user_id;
+        setUserId(fetchedUserId);
+        console.log('Fetched user_id:', fetchedUserId);
 
-// Xử lý nội dung reply
-const handleReplyInputChange = (index: number, text: string) => {
-  setComments(prevComments => {
-    return prevComments.map((comment, i) => {
-      if (i === index) {
-        return {
-          ...comment,
-          replyText: text, // Cập nhật nội dung reply
+        socketRef.current = io('http://localhost:3000', { transports: ['websocket'] });
+
+        if (fetchedUserId && postId) {
+          socketRef.current.emit('joinRoom', fetchedUserId);
+          socketRef.current.emit('joinRoomPost', postId);
+          console.log(`Joined room User: ${fetchedUserId}, Post: ${postId}`);
+        }
+
+        socketRef.current.on('connect', () => {
+          console.log('WebSocket connected');
+        });
+
+        socketRef.current.on('displayDetailCmts', handleDisplayDetailCmts);
+
+        socketRef.current.on('updateInteractFromServer', (data: InteractData) => {
+          console.log('Received interaction update:', data);
+          setCurrentLikes(data.like);
+          setCurrentDislikes(data.dislike);
+        });
+
+        socketRef.current.on('connect_error', (err) => {
+          console.error('WebSocket connection error:', err);
+        });
+
+        return () => {
+          if (socketRef.current) {
+            socketRef.current.off('displayDetailCmts', handleDisplayDetailCmts);
+            socketRef.current.emit('leaveRoom', fetchedUserId);
+            socketRef.current.disconnect();
+            console.log('WebSocket disconnected');
+          }
         };
+      } catch (err) {
+        console.error('Lỗi khởi tạo WebSocket hoặc lấy profile:', err);
       }
-      return comment;
-    });
-  });
-};
+    };
 
-// Đăng reply
-const handlePostReply = (index: number) => {
-  setComments(prevComments => {
-    return prevComments.map((comment, i) => {
-      if (i === index && comment.replyText?.trim()) {
-        const newReply: ReplyItem = {
-          text: comment.replyText, // Nội dung reply
-          userName: "User", // Tên người reply tạm thời
-        };
+    initializeSocket();
+  }, [postId, handleDisplayDetailCmts]);
 
-        return {
-          ...comment,
-          replies: [...comment.replies, newReply], // Thêm reply vào danh sách replies
-          replyText: '', // Xóa nội dung sau khi đăng
-          replyCount: comment.replyCount + 1, // Cập nhật số lượng reply
-        };
+  useEffect(() => {
+    const fetchPostDetail = async () => {
+      if (!postId) {
+        setError("Không có ID bài viết");
+        setLoading(false);
+        return;
       }
-      return comment;
+
+      const cachedComments = getCachedComments(postId);
+      if (cachedComments.length > 0) {
+        setComments(cachedComments);
+      }
+
+      try {
+        const response = await authorizedAxiosInstance.get<ApiResponse>(
+          `${API_BE}/api/v1/posts/${postId}`
+        );
+
+        if (response.data.is_success) {
+          const postData = response.data.data;
+          setPost(postData);
+          setCurrentLikes(postData.upvote);
+          setCurrentDislikes(postData.downvote);
+
+          const commentTree = buildCommentTree(postData.comments);
+          setComments(commentTree);
+          cacheComments(postId, commentTree);
+
+          setError(null);
+        } else {
+          setError(response.data.message || "Không thể tải chi tiết bài viết");
+        }
+      } catch (err: any) {
+        setError(err.response?.data?.message || "Bài viết không tồn tại hoặc lỗi server");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPostDetail();
+  }, [postId]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (popupRefs.current[0] && !popupRefs.current[0]?.contains(event.target as Node)) {
+        setShowPopup(false);
+      }
+      if (
+        activeCommentIndex !== null &&
+        popupRefs.current[activeCommentIndex] &&
+        !popupRefs.current[activeCommentIndex]?.contains(event.target as Node)
+      ) {
+        setActiveCommentIndex(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [activeCommentIndex]);
+
+  const handleLike = () => {
+    if (!socketRef.current || !postId || !userId) return;
+
+    const newLikeCount = liked ? currentLikes - 1 : currentLikes + 1;
+    const newDislikeCount = disliked && !liked ? currentDislikes - 1 : currentDislikes;
+
+    socketRef.current.emit('newInteractFromClient', {
+      post_id: postId,
+      user_post_id: userId,
+      is_upvote: true,
+      upvote: newLikeCount,
+      downvote: newDislikeCount,
     });
-  });
-};
 
-
-
-  // Xử lý khi nhấn tag (nếu cần)
-  const handleTagClick = (tag: string) => {
-    navigate(`/home/tag/${encodeURIComponent(tag)}`);
+    console.log('Sent like:', { upvote: newLikeCount, downvote: newDislikeCount });
+    setLiked(!liked);
+    if (disliked) setDisliked(false);
   };
 
-  // Hàm quay lại trang home (nút Back)
+  const handleDislike = () => {
+    if (!socketRef.current || !postId || !userId) return;
+
+    const newDislikeCount = disliked ? currentDislikes - 1 : currentDislikes + 1;
+    const newLikeCount = liked && !disliked ? currentLikes - 1 : currentLikes;
+
+    socketRef.current.emit('newInteractFromClient', {
+      post_id: postId,
+      user_post_id: userId,
+      is_upvote: false,
+      upvote: newLikeCount,
+      downvote: newDislikeCount,
+    });
+
+    console.log('Sent dislike:', { upvote: newLikeCount, downvote: newDislikeCount });
+    setDisliked(!disliked);
+    if (liked) setLiked(false);
+  };
+
+  const handleAddComment = () => {
+    if (!newComment.trim() || !socketRef.current || !postId || !userId) return;
+
+    const commentData = {
+      user_id: userId,
+      post_id: postId,
+      cmt_cont: newComment,
+      level_parent: -1,
+      cmt_parent_id: '',
+      user_parent_id: null,
+      user_post_id: userId,
+    };
+
+    socketRef.current.emit('newCommentFromClient', commentData);
+    console.log('Sent new comment:', commentData);
+    setNewComment('');
+  };
+
+  const handleCommentLike = (index: number) => {
+    setComments((prevComments) =>
+      prevComments.map((comment, i) => {
+        if (i === index) {
+          const isLiked = !comment.liked;
+          return {
+            ...comment,
+            liked: isLiked,
+            disliked: isLiked ? false : comment.disliked,
+            likeCount: isLiked ? comment.likeCount + 1 : comment.likeCount - 1,
+            dislikeCount: isLiked && comment.disliked ? comment.dislikeCount - 1 : comment.dislikeCount,
+          };
+        }
+        return comment;
+      })
+    );
+  };
+
+  const handleCommentDislike = (index: number) => {
+    setComments((prevComments) =>
+      prevComments.map((comment, i) => {
+        if (i === index) {
+          const isDisliked = !comment.disliked;
+          return {
+            ...comment,
+            disliked: isDisliked,
+            liked: isDisliked ? false : comment.liked,
+            dislikeCount: isDisliked ? comment.dislikeCount + 1 : comment.dislikeCount - 1,
+            likeCount: isDisliked && comment.liked ? comment.likeCount - 1 : comment.likeCount,
+          };
+        }
+        return comment;
+      })
+    );
+  };
+
+  const handleCommentReply = (index: number) => {
+    setComments((prevComments) =>
+      prevComments.map((comment, i) => {
+        if (i === index) {
+          return { ...comment, replied: !comment.replied };
+        }
+        return comment;
+      })
+    );
+  };
+
+  const handleReplyInputChange = (index: number, text: string) => {
+    setComments((prevComments) =>
+      prevComments.map((comment, i) => {
+        if (i === index) {
+          return { ...comment, replyText: text };
+        }
+        return comment;
+      })
+    );
+  };
+
+  const handlePostReply = useCallback((index: number, event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (!socketRef.current || !postId || !userId || isSendingReply) return;
+
+    setIsSendingReply(true);
+
+    const comment = commentsList[index];
+    if (comment.replyText?.trim()) {
+      const replyData = {
+        user_id: userId,
+        post_id: postId,
+        cmt_cont: comment.replyText,
+        level_parent: 0,
+        cmt_parent_id: comment.comment_id,
+        user_parent_id: userId,
+        user_post_id: userId,
+      };
+
+      socketRef.current?.emit('newCommentFromClient', replyData);
+      console.log('Sent reply:', replyData);
+      console.log("Userid ne", userId);
+
+      setComments((prevComments) =>
+        prevComments.map((c, i) =>
+          i === index ? { ...c, replyText: '', replied: false } : c
+        )
+      );
+    }
+  }, [postId, userId, isSendingReply, commentsList]);
+
+  const handleTagClick = () => {
+    alert("Sắp ra mắt");
+  };
+
+  const handleUserNavigation = () => {
+    navigate(`/home/user-detail/${post?.user_id}`);
+  };
+
   const handleBack = () => {
     if (window.history.length > 1) {
-        navigate(-1); // Quay lại trang trước đó
+      navigate(-1);
     } else {
-        navigate("/home"); // Điều hướng đến trang mặc định
+      navigate('/home');
     }
-};
+  };
 
+  const formatRelativeTime = (date: string): string => {
+    const now = new Date();
+    const updatedDate = new Date(date);
+    const diffInMs = now.getTime() - updatedDate.getTime();
+    const diffInSeconds = Math.floor(diffInMs / 1000);
 
-  if (!user || !caption) {
-    return <div className={styles.error}>Error: Missing data for the post.</div>;
+    const minutes = Math.floor(diffInSeconds / 60);
+    if (minutes < 1) return `${diffInSeconds} giây trước`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 1) return `${minutes} phút trước`;
+
+    const days = Math.floor(hours / 24);
+    if (days < 1) return `${hours} giờ trước`;
+
+    const weeks = Math.floor(days / 7);
+    if (weeks < 1) return `${days} ngày trước`;
+
+    const months = Math.floor(days / 30);
+    if (months < 1) return `${weeks} tuần trước`;
+
+    const years = Math.floor(months / 12);
+    if (years < 1) return `${months} tháng trước`;
+
+    return `${years} năm trước`;
+  };
+
+  if (loading) {
+    return <div className={styles.wrapper}>Đang tải...</div>;
+  }
+
+  if (error || !post) {
+    return <div className={styles.wrapper}>{error || "Không tìm thấy bài viết"}</div>;
   }
 
   return (
     <div className={styles.wrapper}>
-      {/* Nút Back */}
       <button className={styles.backButton} onClick={handleBack}>
-        <img src={backIcon} alt="Back" />
-        Back
+        <img src={backIcon} alt="Quay lại" />
+        Quay lại
       </button>
-  
-      {/* Container chính của bài post */}
+
       <div className={styles.container}>
         <div className={styles.postContent}>
-          {/* Nội dung bài post */}
           <div className={styles.header}>
-            <div className={styles.profilePic}></div>
-            <div className={styles.name}>{user}</div>
-          </div>
-          <div className={styles.caption}>{caption}</div>
-  
-          {isTrending && (
-            <div className={styles.trending}>
-              <img src={Trending} alt="Trending" />
-              Trending
+            <div className={styles.userInfo}>
+              <div className={styles.profilePic}></div>
+              <div>
+                <div
+                  className={styles.name}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUserNavigation();
+                  }}
+                >
+                  {post.user_name}
+                </div>
+                <div className={styles.timestamp}>{formatRelativeTime(post.date_updated)}</div>
+              </div>
             </div>
-          )}
-  
-          {/* Hiển thị các tag của bài post */}
-          {tags && tags.length > 0 && (
-            <div className={styles.postTags}>
-              {tags.map((tag, index) => (
-                <button key={index} className={styles.tagButton} onClick={() => handleTagClick(tag)}>
+            <div className={styles.dotsContainer}>
+              <button className={styles.dotsButton} onClick={() => setShowPopup(!showPopup)}>⋮</button>
+              {showPopup && (
+                <div ref={(el) => (popupRefs.current[0] = el)}>
+                  <ReportPopup type="Post" user_id={post.user_id} post_id={post.post_id} />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className={styles.title}>{post.post_title}</div>
+          <div className={styles.content}>{post.post_content}</div>
+
+          <div className={styles.postTags}>
+            {post.tags &&
+              post.tags.length > 0 &&
+              post.tags.map((tag, index) => (
+                <button key={index} className={styles.tagButton} onClick={() => handleTagClick()}>
                   #{tag}
                 </button>
               ))}
-            </div>
+          </div>
+
+          {post.img_url && post.img_url.length > 0 && (
+            post.img_url.length > 1 ? (
+              <div className={styles.swiperContainer}>
+                <Swiper
+                  modules={[Navigation, Pagination]}
+                  spaceBetween={0}
+                  slidesPerView={1}
+                  navigation
+                  pagination={{ clickable: true }}
+                  style={{ width: '100%', height: 'auto' }}
+                >
+                  {post.img_url.map((image, index) => (
+                    <SwiperSlide key={index} style={{ width: '100%' }}>
+                      <img
+                        src={image}
+                        alt={`Hình ảnh bài viết ${index + 1}`}
+                        className={styles.swiperImage}
+                        style={{ width: '100%', height: 'auto' }}
+                      />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              </div>
+            ) : (
+              <img src={post.img_url[0]} alt="Hình ảnh bài viết" className={styles.singleImage} />
+            )
           )}
-  
-          <div className={styles.imagePlaceholder}></div>
+
           <div className={styles.interactions}>
             <button className={styles.button} onClick={handleLike}>
-              <img src={liked ? likeFilled : like} alt="Like" />
+              <img src={liked ? likeFilled : like} alt="Thích" />
               {currentLikes}
             </button>
             <button className={styles.button} onClick={handleDislike}>
-              <img src={disliked ? dislikeFilled : dislike} alt="Dislike" />
+              <img src={disliked ? dislikeFilled : dislike} alt="Không thích" />
               {currentDislikes}
             </button>
             <button className={styles.button}>
-              <img src={commentIcon} alt="Comments" />
-              {comments.length}
+              <img src={commentIcon} alt="Bình luận" />
+              {commentsList.length}
             </button>
           </div>
-  
-          {/* Phần bình luận */}
+
           <div className={styles.commentSection}>
             <div className={styles.commentBox}>
               <textarea
                 className={styles.commentInput}
-                placeholder="Write a comment..."
+                placeholder="Viết bình luận..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
               />
               <button className={styles.circularButton} onClick={handleAddComment}>
-                <img src={sendIcon} alt="Send" />
+                <img src={sendIcon} alt="Gửi" />
               </button>
-
             </div>
 
-  
-            {/* Danh sách bình luận */}
             <div className={styles.commentList}>
-              {comments.map((item, index) => (
-                <div key={index} className={styles.commentItem}>
+              {commentsList.map((item, index) => (
+                <div key={item.comment_id} className={styles.commentItem}>
                   <div className={styles.commentHeader}>
-                    <div className={styles.commentAvatar}></div>
-                    <span className={styles.commentUsername}>User</span>
+                    <div className={styles.userInfo}>
+                      <div className={styles.commentAvatar}></div>
+                      <span className={styles.commentUsername}>{item.userName}</span>
+                      <span className={styles.timestamp}>{formatRelativeTime(item.timestamp)}</span>
+                    </div>
+                    <div className={styles.dotsContainer}>
+                      <button
+                        className={styles.dotsButton}
+                        onClick={() => setActiveCommentIndex(index)}
+                      >
+                        ⋮
+                      </button>
+                      {activeCommentIndex === index && (
+                        <div ref={(el) => (popupRefs.current[index] = el)}>
+                          <ReportPopup type="Comment" user_id={post.user_id} post_id={post.post_id} />
+                        </div>
+                      )}
+                    </div>
                   </div>
+
                   <div className={styles.commentText}>{item.text}</div>
                   <div className={styles.commentActions}>
-                    <button className={styles.commentActionButton} onClick={() => handleCommentLike(index)}>
-                      <img src={item.liked ? likeFilled : like} alt="Like" />
+                    <button
+                      className={styles.commentActionButton}
+                      onClick={() => handleCommentLike(index)}
+                    >
+                      <img src={item.liked ? likeFilled : like} alt="Thích" />
                       {item.likeCount}
                     </button>
-                    <button className={styles.commentActionButton} onClick={() => handleCommentDislike(index)}>
-                      <img src={item.disliked ? dislikeFilled : dislike} alt="Dislike" />
+                    <button
+                      className={styles.commentActionButton}
+                      onClick={() => handleCommentDislike(index)}
+                    >
+                      <img src={item.disliked ? dislikeFilled : dislike} alt="Không thích" />
                       {item.dislikeCount}
                     </button>
-                    <button className={styles.commentActionButton} onClick={() => handleCommentReply(index)}>
-                      <img src={item.replied ? replyFilled : replyIcon} alt="Reply" />
+                    <button
+                      className={styles.commentActionButton}
+                      onClick={() => handleCommentReply(index)}
+                    >
+                      <img src={item.replied ? replyFilled : replyIcon} alt="Trả lời" />
                       {item.replyCount}
                     </button>
                   </div>
-  
-                  {/* Khu vực nhập reply */}
+
                   {item.replied && (
                     <div className={styles.commentBox}>
                       <textarea
                         className={styles.replyInput}
-                        placeholder="Write a reply..."
+                        placeholder="Viết trả lời..."
                         value={item.replyText || ''}
                         onChange={(e) => handleReplyInputChange(index, e.target.value)}
                       />
-                      <button className={styles.circularButton} onClick={() => handlePostReply(index)}>
-                        <img src={sendIcon} alt="Send Reply" />
+                      <button
+                        className={styles.circularButton}
+                        onClick={(e) => handlePostReply(index, e)}
+                        disabled={isSendingReply}
+                      >
+                        <img src={sendIcon} alt="Gửi trả lời" />
                       </button>
-
                     </div>
                   )}
 
-  
-                  {/* Hiển thị các reply */}
-                  <div className={styles.replyList}>
-                    {item.replies.map((reply, replyIndex) => (
-                      <div key={replyIndex} className={styles.replyItem}>
-                        <div className={styles.replyHeader}>
-                          <div className={styles.replyAvatar}></div>
-                          <span className={styles.replyUserName}>User</span>
+                  {item.replies.length > 0 && (
+                    <div className={styles.replyList}>
+                      {item.replies.map((reply, replyIndex) => (
+                        <div key={reply.comment_id} className={styles.replyItem}>
+                          <div className={styles.replyHeader}>
+                            <div className={styles.replyAvatar}></div>
+                            <span className={styles.replyUserName}>{reply.userName}</span>
+                            <span className={styles.timestamp}>{formatRelativeTime(reply.timestamp)}</span>
+                          </div>
+                          <div className={styles.replyText}>{reply.text}</div>
                         </div>
-                        <div className={styles.replyText}>{reply.text}</div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
-        </div> {/* Kết thúc div .postContent */}
-      </div> {/* Kết thúc div .container */}
-  
-
-      {/* Phần Tag Section
-      
-      Chỉ hiển thị nếu showTags === true 
-      
-      {showTags && (
-        <div className={styles.tagSection}>
-          <div className={styles.tagHeader}>
-            <span className={styles.tagTitle}>TAGS</span>
-            <button className={styles.clearTags} onClick={handleClearTags}>Clear</button>
-          </div>
-
-          {Object.entries(tagStatus).map(([tag, status]) => (
-            <div className={styles.tagItem} key={tag}>
-              <div className={styles.tagInfo}>
-                <span className={styles.tagName}>{tag}</span>
-                {status ? (
-                  <button
-                    className={styles.subscribedButton}
-                    onClick={() => handleSubscribeToggle(tag)}
-                  >
-                    <img src={Bell} alt="Bell" />
-                    Subscribed
-                  </button>
-                ) : (
-                  <button
-                    className={styles.subscribeButton}
-                    onClick={() => handleSubscribeToggle(tag)}
-                  >
-                    Subscribe
-                  </button>
-                )}
-              </div>
-              <span className={styles.tagPosts}>{"14,045 POSTS"}</span>
-              <p className={styles.tagDescription}>{tagContent[tag as keyof typeof tagContent]}</p>
-            */}
-
-              {/* Nút điều hướng đến chi tiết tag 
-              <button
-                className={styles.viewTagDetail}
-                onClick={() => navigate(`/home/tag/${encodeURIComponent(tag)}`)}
-              >
-                View in tag detail
-              </button>
-
-
-            </div>
-          ))}
-
-
         </div>
-      )}
-              */}
+      </div>
     </div>
   );
-  
 };
 
 export default PostDetail;
