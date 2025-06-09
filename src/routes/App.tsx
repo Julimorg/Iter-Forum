@@ -21,7 +21,9 @@ const AuthorizedRoute = () => {
     console.log("No accessToken found, redirecting to /login");
     return <Navigate to="/login" replace={true} />;
   }
-  console.log("AccessToken found, rendering Outlet");
+  console.log("AccessToken found, rendering Outlet"); 
+
+  
   return <Outlet />;
 };
 
@@ -58,7 +60,6 @@ function App() {
             <Route path="user" element={<ViewUserProfile />} />
             <Route path="user-detail/:userId" element={<ViewUserProfile />} />
           </Route>
-
         </Route>
       </Routes>
       <ToastContainer position="bottom-left" theme="colored" />
