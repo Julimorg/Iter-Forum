@@ -1,8 +1,11 @@
 import axios from "axios";
 import { useAuthStore } from "../hook/useAuthStore";
 
+
+const API_URL = process.env.API_URL;
+
 const axiosClient = axios.create({
-    baseURL: 'https://it-er-forum.onrender.com/api/v1',
+    baseURL: `${API_URL}`,
     headers: {
         'Content-Type': 'application/json',
     }    

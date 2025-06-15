@@ -4,8 +4,8 @@ import styles from "./createpost.module.css";
 import { useEffect, useState } from "react";
 import ButtonTextComponent from "../../components/ButtonTextOnly/ButtonText";
 import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/navigation';
+// import 'swiper/css';
+// import 'swiper/css/navigation';
 import { Navigation, Pagination } from 'swiper/modules';
 import authorizedAxiosInstance from "../../services/Auth";
 import axios from "axios";
@@ -23,7 +23,7 @@ const CreatePost = () => {
     const [tags, setTags] = useState<string[]>([]);
     const [textDescripLimit, setTextDescripLimit] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    // const [error, setError] = useState<string | null>(null);
     
     const handleTextLimit = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         if (e.target.value.length <= DESCRIP_MAX_LENGTH) {
@@ -76,7 +76,7 @@ const CreatePost = () => {
     
             // Kiểm tra dữ liệu trước khi gửi
             if (!title || !textDescripLimit) {
-                setError("Title and content are required");
+                // setError("Title and content are required");
                 setIsSubmitting(false);
                 return;
             }
@@ -125,15 +125,15 @@ const CreatePost = () => {
                 setImageFiles([]);
                 setTags([]);
                 setIsChecked(false);
-                setError(null);
+                // setError(null);
             } catch (error) {
                 console.error("Error creating post:", error);
                 if (axios.isAxiosError(error)) {
                     const errorData = error.response?.data;
                     console.log("Full error response:", errorData); // Log chi tiết lỗi
-                    setError(errorData?.message || "Failed to create post");
+                    // setError(errorData?.message || "Failed to create post");
                 } else {
-                    setError("An unexpected error occurred");
+                    // setError("An unexpected error occurred");
                 }
                 alert("Failed to create post. Please try again.");
             } finally {

@@ -1,0 +1,13 @@
+# set version cho docker compose
+version: '3.8'
+# Chạy services
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./dist:/app/dist:ro
+    restart: unless-stopped

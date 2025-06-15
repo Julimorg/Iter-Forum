@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from './Explore.module.css';
 import Tag_Card from '../../components/Tag_Card/Tag_Card';
 import axios from 'axios';

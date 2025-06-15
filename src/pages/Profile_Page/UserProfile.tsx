@@ -54,7 +54,7 @@ interface UserProfile {
 
 const UserProfile = () => {
   const [profileEditModel, setProfileEditModel] = useState(false);
-  const [error, setError] = useState("");
+  // const [error, setError] = useState("");
   const [fetchUser, setFetchUser] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<PostItem[]>([]);
@@ -69,7 +69,7 @@ const UserProfile = () => {
         const accessToken = localStorage.getItem("accessToken");
 
         if (!accessToken) {
-          setError("Vui lòng đăng nhập để xem thông tin profile");
+          // setError("Vui lòng đăng nhập để xem thông tin profile");
           return;
         }
         const res = await authorizedAxiosInstance.get<ProfileResponse>(
@@ -88,17 +88,17 @@ const UserProfile = () => {
         } else {
           console.error("Dữ liệu API không đúng định dạng", res.data);
           setFetchUser(null);
-          setError("Dữ liệu trả về không hợp lệ");
+          // setError("Dữ liệu trả về không hợp lệ");
         }
       } catch (error: any) {
         console.error("Lỗi khi fetch API Users:", error);
         if (error.response?.status === 404) {
-          setError("Không tìm thấy thông tin profile.");
+          // setError("Không tìm thấy thông tin profile.");
         } else {
-          setError(
-            error.response?.data?.message ||
-            "Không thể tải thông tin người dùng"
-          );
+          // setError(
+          //   error.response?.data?.message ||
+          //   "Không thể tải thông tin người dùng"
+          // );
         }
         setFetchUser(null);
       } finally {
@@ -118,7 +118,7 @@ const UserProfile = () => {
         const accessToken = localStorage.getItem('accessToken');
 
         if (!accessToken) {
-          setError('Vui lòng đăng nhập để xem danh sách bài post');
+          // setError('Vui lòng đăng nhập để xem danh sách bài post');
           return;
         }
 
@@ -140,16 +140,16 @@ const UserProfile = () => {
         } else {
           console.error('Dữ liệu API không đúng định dạng', res.data);
           setPosts([]);
-          setError('Dữ liệu trả về không hợp lệ');
+          // setError('Dữ liệu trả về không hợp lệ');
         }
       } catch (error: any) {
         console.error('Lỗi khi fetch API Posts:', error);
         if (error.response?.status === 404) {
-          setError('Không tìm thấy bài post nào.');
+          // setError('Không tìm thấy bài post nào.');
         } else {
-          setError(
-            error.response?.data?.message || 'Không thể tải danh sách bài post'
-          );
+          // setError(
+          //   error.response?.data?.message || 'Không thể tải danh sách bài post'
+          // );
         }
         setPosts([]);
       } finally {

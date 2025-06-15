@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from './Popular.module.css';
 import Tag_Card from '../../components/Tag_Card/Tag_Card';
 import Post_Card from '../../components/Post_Card/postcard';

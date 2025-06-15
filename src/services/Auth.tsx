@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { toast } from 'react-toastify';
-import { handleLogOutAPI, refreshTokenAPI } from '../apis';
-import { useNavigate } from 'react-router-dom';
+import { refreshTokenAPI } from '../apis';
+// import { useNavigate } from 'react-router-dom';
 
 //? Tạo 1 đối tượng axios để custom và cấu hình cho project
 

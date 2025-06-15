@@ -123,11 +123,11 @@ const RecentPost: React.FC<RecentPostProps> = ({
   title,
   comments,
   image,
-  likes,
-  dislikes,
-  tags,
+  // likes,
+  // dislikes,
+  // tags,
   images = [],
-  isTrending,
+  // isTrending,
   date_updated,
 }) => {
   const navigate = useNavigate();

@@ -1,5 +1,5 @@
 
 
-export const docApi = {
-    Login: async(body: login): Promis
-}
+// export const docApi = {
+//     Login: async(body: login): Promis
+// }

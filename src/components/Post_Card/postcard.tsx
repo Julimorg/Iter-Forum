@@ -11,9 +11,9 @@ import TagPost from '../../components/Tag_Post/Tag_post';
 import Trending from '../../assets/trending.png';
 import ReportPopup from '../Report_Popup/Report_popup';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
+// import 'swiper/css';
+// import 'swiper/css/navigation';
+// import 'swiper/css/pagination';
 import { Navigation, Pagination } from 'swiper/modules';
 import authorizedAxiosInstance from '../../services/Auth';
 
@@ -51,7 +51,7 @@ const Postcard: React.FC<PostcardProps> = ({
   comments,
   tags,
   isTrending,
-  onRemove,
+  // onRemove,
   images = [],
   avatar,
   date_updated,

@@ -13,9 +13,9 @@ import backIcon from '../../assets/back_arrow.png';
 import sendIcon from '../../assets/send.png';
 import ReportPopup from '../../components/Report_Popup/Report_popup';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
+// import 'swiper/css';
+// import 'swiper/css/navigation';
+// import 'swiper/css/pagination';
 import { Navigation, Pagination } from 'swiper/modules';
 import authorizedAxiosInstance from '../../services/Auth';
 import { API_BE } from '../../config/configApi';
@@ -49,7 +49,7 @@ interface CommentApiItem {
 
 interface ApiResponse {
   is_success: boolean;
-  status_code: number;
+  status_code: number;   
   message: string;
   data: PostData;
   timestamp: number;
@@ -155,10 +155,10 @@ const cacheComments = (postId: string, comments: CommentItem[]) => {
   localStorage.setItem(`comments_${postId}`, JSON.stringify(comments));
 };
 
-const getCachedComments = (postId: string): CommentItem[] => {
-  const cached = localStorage.getItem(`comments_${postId}`);
-  return cached ? JSON.parse(cached) : [];
-};
+// const getCachedComments = (postId: string): CommentItem[] => {
+//   const cached = localStorage.getItem(`comments_${postId}`);
+//   return cached ? JSON.parse(cached) : [];
+// };
 
 const PostDetail: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
@@ -596,7 +596,7 @@ const PostDetail: React.FC = () => {
             <div className={styles.commentList}>
               {commentsList.map((item, index) => {
                 if (!popupRefs.current[index]) {
-                  popupRefs.current[index] = React.createRef<HTMLDivElement>();
+                  // popupRefs.current[index] = React.createRef<HTMLDivElement>();
                 }
                 return (
                   <div key={item.comment_id} className={styles.commentItem}>
@@ -657,7 +657,8 @@ const PostDetail: React.FC = () => {
 
                     {item.replies.length > 0 && (
                       <div className={styles.replyList}>
-                        {item.replies.map((reply, replyIndex) => (
+                       {/* replyIndex */}
+                        {item.replies.map((reply, ) => (
                           <div key={reply.comment_id} className={styles.replyItem}>
                             <div className={styles.replyHeader}>
                               <div className={styles.replyAvatar}></div>

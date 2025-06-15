@@ -5,7 +5,7 @@ import TextField from '../../components/TextField_LoginSignUp/Textfield';
 import PasswordField from '../../components/Password_TextField/PasswordField';
 import InputNum from '../../components/TextFieldOnlyNumber/TextField-NumberOnly';
 import { API_BE } from '../../config/configApi';
-import authorizedAxiosInstance from '../../services/Auth';
+// import authorizedAxiosInstance from '../../services/Auth';
 import axios, { AxiosError } from 'axios';
 
 
@@ -88,7 +88,7 @@ const SignUp: React.FC = () => {
                 await submitSignUp(signUpData);
                 setIsVerify(true); // Move to verification step
             } catch (error) {
-                alert(error.message || 'Signup failed. Please try again.');
+                // alert(error.message || 'Signup failed. Please try again.');
             }
         }
     };

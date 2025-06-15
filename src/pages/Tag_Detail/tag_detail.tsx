@@ -3,7 +3,7 @@ import styles from './tag_detail.module.css';
 import Post_Card from '../../components/Post_Card/postcard';
 import { useParams, useNavigate } from 'react-router-dom';
 import backIcon from '../../assets/back_arrow.png';
-import bellIcon from '../../assets/bell.png';
+// import bellIcon from '../../assets/bell.png';
 import authorizedAxiosInstance from '../../services/Auth';
 import { API_BE } from '../../config/configApi';
 
@@ -42,7 +42,7 @@ interface ApiResponse {
 const Tag_Detail: React.FC = () => {
     const navigate = useNavigate();
     const { tagId } = useParams<{ tagId: string }>();
-    const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+    // const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
     const [tagData, setTagData] = useState<TagData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -100,9 +100,9 @@ const Tag_Detail: React.FC = () => {
         }
     };
 
-    const handleSubscribeToggle = (): void => {
-        setIsSubscribed(prev => !prev);
-    };
+    // const handleSubscribeToggle = (): void => {
+    //     setIsSubscribed(prev => !prev);
+    // };
 
     const handleRemovePost = (postId: string): void => {
         setTagData(prev => {

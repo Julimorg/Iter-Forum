@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link,useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+// import { toast } from 'react-toastify';
 import styles from './login.module.css';
 import TextField from '../../components/TextField_LoginSignUp/Textfield';
 import PasswordField from '../../components/Password_TextField/PasswordField';
@@ -59,10 +59,12 @@ const Login: React.FC = () => {
             throw error; // Ném lỗi để xử lý ở nơi gọi hàm
         }
     };
+    
 
-    const handleForgotPassword = (): void => {
-        setStep("sendEmail");
-    };
+    
+    // const handleForgotPassword = (): void => {
+    //     setStep("sendEmail");
+    // };
     const handleLogin = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
         e.preventDefault();
         if (!emailPattern.test(email) && password.length == 0) {
@@ -74,7 +76,7 @@ const Login: React.FC = () => {
         setError("");
         setPasswordError("");
         console.log("Login successful with:", email);
-        const data: LoginData = { email, password };
+        const data: LoginCredentials = { email, password };
         await submitLogIn(data);
     };
     const handleSendEmail = (e: React.FormEvent<HTMLFormElement>): void => {
