@@ -8,14 +8,14 @@ import { persist } from 'zustand/middleware';
 export const useAuthStore = create<AuthState>()(
     persist(
         (set) => ({
-            accessToken: null,
-            refreshToken: null,
-            setTokens: (accessToken, refreshToken) =>
-                set({accessToken, refreshToken}),
-            clearTokens: () => set({accessToken: null, refreshToken: null})
+            access_token: null,
+            refresh_token: null,
+            setTokens: (access_token, refresh_token) =>
+                set({access_token, refresh_token}),
+            clearTokens: () => set({access_token: null, refresh_token: null})
         }),
         {
-            name: "auth-storage",
+            name: "iterForum-storage",
         }
     )
 );

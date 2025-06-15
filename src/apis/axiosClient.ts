@@ -2,7 +2,7 @@ import axios from "axios";
 import { useAuthStore } from "../hook/useAuthStore";
 
 
-const API_URL = process.env.API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
 
 const axiosClient = axios.create({
     baseURL: `${API_URL}`,
@@ -16,7 +16,7 @@ axiosClient.defaults.timeout = 1000 * 60 * 10;
 
 //? Config request xuống server
 axiosClient.interceptors.request.use((config) => {
-    const token = useAuthStore.getState().accessToken;
+    const token = useAuthStore.getState().access_token;
     if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
     }

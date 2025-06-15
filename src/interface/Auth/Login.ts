@@ -1,8 +1,11 @@
-export interface Login{
-    username: string;
+export interface LoginRequest{
+    email: string;
     password: string;
 }
 
-export interface LoginRespsoneData{
-    
+export interface LoginRespsone{
+    data: {
+        access_token: string,
+        refresh_token: string,
+    }
 }

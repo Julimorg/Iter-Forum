@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link,useNavigate } from 'react-router-dom';
-// import { toast } from 'react-toastify';
 import styles from './login.module.css';
 import TextField from '../../components/TextField_LoginSignUp/Textfield';
 import PasswordField from '../../components/Password_TextField/PasswordField';
-import authorizedAxiosInstance from '../../services/Auth';
-import { API_BE } from '../../config/configApi';
+import { useLogin } from './Hooks/useLogin';
+import { toast } from 'react-toastify';
+import { LoginRequest } from '../../interface/Auth/Login';
 
 // Định nghĩa type cho các bước
 type Step = "login" | "sendEmail" | "verifyOtp" | "resetPassword";
@@ -24,44 +24,30 @@ const Login: React.FC = () => {
     const emailPattern: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const passwordPattern: RegExp = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
     const navigate = useNavigate();
-    interface LoginData {
-        data: {
-            access_token: string;
-            refresh_token: string;
-        };
-    }
-    interface LoginCredentials {
-        email: string;
-        password: string;
-    }
-    const submitLogIn = async (data: LoginCredentials): Promise<void> => {
-        try {
-            console.log("Submit login: ", data);
-    
-            // Gửi request POST đến API login
-            const response = await authorizedAxiosInstance.post<LoginData>(
-                `${API_BE}/api/v1/auth/login`,
-                data
-            );
-    
-            console.log("Login response: ", response.data);
-
-            // Lấy access_token và refresh_token từ response
-            const { access_token, refresh_token } = response.data.data;
-    
-            // Lưu thông tin vào localStorage
-            localStorage.setItem("accessToken", access_token);
-            localStorage.setItem("refreshToken", refresh_token);
-    
-            navigate('/home');
-        } catch (error: any) {
-            console.error("Login error: ", error);
-            throw error; // Ném lỗi để xử lý ở nơi gọi hàm
-        }
-    };
     
 
-    
+    const loginMutation = useLogin();
+
+    const submitLogin = (values: {email: string; password: string}) => {
+        loginMutation.mutate(
+            {
+                email: values.email,
+                password: values.password
+            },
+            {
+                onSuccess: () => {
+                    toast.success("Login Successfully");
+                    navigate('/home');
+                },
+                onError: (error: any) => {
+                    toast.error("Login failed: ");
+                    console.error(error.message);
+                }
+            },
+          
+        )
+    }
+
     // const handleForgotPassword = (): void => {
     //     setStep("sendEmail");
     // };
@@ -76,8 +62,8 @@ const Login: React.FC = () => {
         setError("");
         setPasswordError("");
         console.log("Login successful with:", email);
-        const data: LoginCredentials = { email, password };
-        await submitLogIn(data);
+        const data: LoginRequest = {email, password};
+        await submitLogin(data);
     };
     const handleSendEmail = (e: React.FormEvent<HTMLFormElement>): void => {
         e.preventDefault();

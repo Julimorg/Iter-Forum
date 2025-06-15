@@ -1,7 +1,7 @@
 export interface AuthState{
-    accessToken: string | null;
-    refreshToken: string | null;
-    setTokens: (accessToken: string | null , refreshToken: string | null) => void;
+    access_token: string | null;
+    refresh_token: string | null;
+    setTokens: (access_token: string | null , refresh_token: string | null) => void;
     clearTokens: () => void;
 }
 

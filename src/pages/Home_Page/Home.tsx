@@ -8,6 +8,7 @@ import RecentPost from '../../components/Recent_Post_Card/recent_post_card';
 import authorizedAxiosInstance from '../../services/Auth';
 import { handleLogOutAPI } from '../../apis';
 import { API_BE } from '../../config/configApi';
+import { useAuthStore } from '../../hook/useAuthStore';
 
 interface Post {
   user_id: string;
@@ -177,7 +178,7 @@ const Home = () => {
   const navigate = useNavigate();
 
   const handleLogOut = async () => {
-    localStorage.removeItem('userInfo');
+    useAuthStore.getState().clearTokens();
     await handleLogOutAPI();
     navigate('/login');
   };
