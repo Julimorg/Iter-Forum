@@ -8,4 +8,4 @@ export interface LoginRespsone{
         access_token: string,
         refresh_token: string,
     }
-}
+}  

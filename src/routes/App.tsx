@@ -14,6 +14,9 @@ import ViewUserProfile from '../pages/ViewUser_Page/ViewUserProfile';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuthStore } from '../hook/useAuthStore';
+import SendEmail from '../pages/Login_Page/Send_Email/SendEmailPage';
+import ResetPassword from '../pages/Login_Page/Reset_Password/ResetPassword';
+
 
 const AuthorizedRoute = () => {
   const access_token = useAuthStore((state) => state.access_token);
@@ -44,7 +47,9 @@ function App() {
         <Route path="/" element={<Welcome />} />
         {/* Unauthorize routes */}
         <Route element={<UnAuthorizedRoute />}>
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<Login />}/>
+          <Route path = "/send-email" element = {<SendEmail/>}/>
+          <Route path = "/reset-password" element = {<ResetPassword/>}/>
           <Route path="/sign-up" element={<SignUp />} />
         </Route>
 
