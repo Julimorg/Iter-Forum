@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import TextField from '../../../components/TextField_LoginSignUp/Textfield';
 import PasswordField from '../../../components/Password_TextField/PasswordField';
 
@@ -13,8 +13,8 @@ const ResetPassword: React.FC = () => {
   const [error, setError] = useState<string>('');
   const passwordPattern: RegExp = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
   const navigate = useNavigate();
-  const location = useLocation();
-  const email = location.state?.email || '';
+
+
 
   const handleVerifyOtp = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
