@@ -21,8 +21,8 @@ const SendEmail: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-2xl shadow-2xl w-full w-[35rem] h-[30rem] flex flex-col items-center">
-        <div className="w-full h-1 bg-gray-200 rounded-sm mb-8 overflow-hidden">
+      <div className="bg-white p-8 rounded-2xl shadow-2xl  w-[35rem] h-[30rem] flex flex-col items-center">
+        <div className="  bg-gray-200 rounded-sm mb-8 overflow-hidden">
           <div
             className="h-full bg-[dark] transition-all duration-300"
             role="progressbar"

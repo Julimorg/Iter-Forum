@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import TextField from '../../components/TextField_LoginSignUp/Textfield';
 import PasswordField from '../../components/Password_TextField/PasswordField';
 import { useLogin } from './Hooks/useLogin';
@@ -13,9 +13,7 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [passwordError, setPasswordError] = useState<string>('');
-  const [error, setError] = useState<string>('');
   const emailPattern: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-   const isLogin = location.pathname === '/login';
   const navigate = useNavigate();
 
   const loginMutation = useLogin();
@@ -45,12 +43,10 @@ const Login: React.FC = () => {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     if (!emailPattern.test(email) && password.length === 0) {
-      setError('Enter a valid email address.');
       setPasswordError('Password must not empty!');
       console.log('error');
       return;
     }
-    setError('');
     setPasswordError('');
     console.log('Login successful with:', email);
     const data: LoginRequest = { email, password };
