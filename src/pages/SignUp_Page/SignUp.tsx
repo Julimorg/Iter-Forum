@@ -78,6 +78,7 @@ const SignUp: React.FC = () => {
     }
 
     if (isValid) {
+      console.log(setIsVerify);
       mutate({ username, email, age, password });
     }
   };
