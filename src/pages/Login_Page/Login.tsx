@@ -5,8 +5,7 @@ import PasswordField from '../../components/Password_TextField/PasswordField';
 import { useLogin } from './Hooks/useLogin';
 import { toast } from 'react-toastify';
 import { LoginRequest } from '../../interface/Auth/Login';
-
-import LoadingBasicDot from '../../components/Loader/LoadingBasicDot';
+import LoadingBus from '../../components/Loader/LoadingBus';
 
 const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -76,8 +75,11 @@ const Login: React.FC = () => {
           {isLoading ? (
             <>
               <div className="flex items-center justify-center h-[15rem]">
-                <LoadingBasicDot />
+                <LoadingBus />
               </div>
+              <h1 className='flex items-center justify-center'>
+                  Vui lòng đợi ...
+              </h1>
             </>
           ) : (
             <>
@@ -105,7 +107,7 @@ const Login: React.FC = () => {
           )}
           <button
             type="submit"
-            className="w-[10rem] h-[3rem] py-3 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-400 hover:text-gray-800 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-gray-300"
+            className="w-[30rem] h-[3rem] py-3 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-400 hover:text-gray-800 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-gray-300"
             aria-describedby="submit-description"
           >
             Log in

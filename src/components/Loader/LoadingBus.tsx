@@ -1,7 +1,7 @@
 
 import styled from 'styled-components';
 
-const Loader = () => {
+const LoadingBus = () => {
   return (
     <StyledWrapper>
       <div className="loader">
@@ -147,4 +147,4 @@ const StyledWrapper = styled.div`
     }
   }`;
 
-export default Loader;
+export default LoadingBus;

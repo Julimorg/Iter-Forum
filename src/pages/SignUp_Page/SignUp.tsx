@@ -1,267 +1,249 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import styles from './signup.module.css';
 import TextField from '../../components/TextField_LoginSignUp/Textfield';
 import PasswordField from '../../components/Password_TextField/PasswordField';
 import InputNum from '../../components/TextFieldOnlyNumber/TextField-NumberOnly';
-import { API_BE } from '../../config/configApi';
-// import authorizedAxiosInstance from '../../services/Auth';
-import axios, { AxiosError } from 'axios';
-
-
+import { useSignUp } from './Hook/useSignUp';
+import { toast } from 'react-toastify';
+import { AxiosError } from 'axios';
+import LoadingBus from '../../components/Loader/LoadingBus';
 
 const SignUp: React.FC = () => {
-    const navigate = useNavigate();
-    const [isVerify, setIsVerify] = useState<boolean>(false);
-    const [user_name, setName] = useState<string>("");
-    const [email, setEmail] = useState<string>("");
-    const [age, setAge] = useState<number>(0);
-    const [password, setPassword] = useState<string>("");
-    const [confirmPassword, setConfirmPassword] = useState<string>("");
-    const [verificationCode, setVerificationCode] = useState<string>("");
-    const [ageError, setAgeError] = useState<string>("");
-    const [emailError, setEmailError] = useState<string>("");
-    const [passwordError, setPasswordError] = useState<string>("");
-    const [confirmPasswordError, setConfirmPasswordError] = useState<string>("");
+  const navigate = useNavigate();
+  const [isVerify, setIsVerify] = useState<boolean>(false);
+  const [username, setName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [age, setAge] = useState<number>(0);
+  const [password, setPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [verificationCode, setVerificationCode] = useState<string>('');
+  const [ageError, setAgeError] = useState<string>('');
+  const [emailError, setEmailError] = useState<string>('');
+  const [passwordError, setPasswordError] = useState<string>('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string>('');
 
-    const emailPattern: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const passwordPattern: RegExp = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+  const emailPattern: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const passwordPattern: RegExp = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
 
-    interface SignUpData {
-        user_name: string;
-        email: string;
-        age: number;
-        password: string;
+  const { mutate, isPending } = useSignUp({
+    onSuccess: () => {
+      toast.success('Bạn đã đăng ký thành công!');
+      //   setIsVerify(true);
+      navigate('/log-in');
+    },
+    onError: (err: AxiosError<{ message?: string }>) => {
+      const errorMessage = err.response?.data?.message || 'Đã có lỗi xảy ra khi đăng ký!';
+      toast.error(`${errorMessage}`);
+      console.log(err);
+    },
+  });
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault();
+    let isValid = true;
+
+    if (isNaN(age) || age < 13 || age > 101) {
+      setAgeError('Tuổi phải từ 13 đến 101.');
+      isValid = false;
+    } else {
+      setAgeError('');
     }
-    
-    const handleSignUp = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
-        e.preventDefault();
-        let isValid = true;
 
-        //? Kiểm tra tuổi
-        if (isNaN(age) || age < 13 || age > 101) {
-            setAgeError("Age must be between 13 and 101.");
-            isValid = false;
-        } else {
-            setAgeError("");
-        }
+    if (!email) {
+      setEmailError('Email không được để trống.');
+      isValid = false;
+    } else if (!emailPattern.test(email)) {
+      setEmailError('Vui lòng nhập địa chỉ email hợp lệ.');
+      isValid = false;
+    } else {
+      setEmailError('');
+    }
 
-        //? Kiểm tra email
-        if (!email) {
-            setEmailError("Email cannot be empty.");
-            isValid = false;
-        } else if (!emailPattern.test(email)) {
-            setEmailError("Enter a valid email address.");
-            isValid = false;
-        } else {
-            setEmailError("");
-        }
+    if (!password) {
+      setPasswordError('Mật khẩu không được để trống.');
+      isValid = false;
+    } else if (!passwordPattern.test(password)) {
+      setPasswordError(
+        'Mật khẩu phải có ít nhất 6 ký tự và bao gồm chữ hoa, số và ký tự đặc biệt.'
+      );
+      isValid = false;
+    } else {
+      setPasswordError('');
+    }
 
-        //? Kiểm tra password
-        if (!password) {
-            setPasswordError("Password cannot be empty.");
-            isValid = false;
-        } else if (!passwordPattern.test(password)) {
-            setPasswordError("Password must be at least 6 characters and include an uppercase letter, a number, and a special character.");
-            isValid = false;
-        } else {
-            setPasswordError("");
-        }
+    if (confirmPassword !== password) {
+      setConfirmPasswordError('Mật khẩu không khớp.');
+      isValid = false;
+    } else {
+      setConfirmPasswordError('');
+    }
 
-        //? Kiểm tra confirm password
-        if (confirmPassword !== password) {
-            setConfirmPasswordError("Passwords do not match.");
-            isValid = false;
-        } else {
-            setConfirmPasswordError("");
-        }
+    if (isValid) {
+      mutate({ username, email, age, password });
+    }
+  };
 
-        if (isValid) {
-            try {
-                const signUpData: SignUpData = {
-                    user_name,
-                    email,
-                    age,
-                    password
-                };
-                
-                await submitSignUp(signUpData);
-                setIsVerify(true); // Move to verification step
-            } catch (error) {
-                // alert(error.message || 'Signup failed. Please try again.');
-            }
-        }
-    };
+  const handleVerify = (e: React.FormEvent<HTMLFormElement>): void => {
+    e.preventDefault();
+    if (!verificationCode) {
+      alert('Vui lòng nhập mã xác minh.');
+      return;
+    }
+    alert('Xác minh email thành công!');
+  };
 
-    const handleVerify = (e: React.FormEvent<HTMLFormElement>): void => {
-        e.preventDefault();
-        if (!verificationCode) {
-            alert("Please enter the verification code.");
-            return;
-        }
-        alert("Email Verified Successfully!");
-    };
-    
-    //? Hanlde Sign Up API
-    const submitSignUp = async (data: SignUpData): Promise<void> => {
-        try {
-            const response = await axios.post(
-                `${API_BE}/api/v1/auth/register`,
-                {
-                    user_name: data.user_name,
-                    email: data.email,
-                    age: data.age,
-                    password: data.password
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
-    
-            console.log('Signup successful:', response.data);
-            navigate('/login');
-        } catch (error) {
-            const axiosError = error as AxiosError<{ message?: string }>;
-            console.error('Signup failed:', error);
-            // Handle specific error cases
-            if (axiosError.response) {
-                // The request was made and the server responded with a status code
-                // that falls out of the range of 2xx
-                throw new Error(axiosError.response.data.message || 'Signup failed');
-            } else if (axiosError.request) {
-                // The request was made but no response was received
-                throw new Error('No response from server');
-            } else {
-                // Something happened in setting up the request
-                throw new Error('Error setting up request');
-            }
-        }
-    };
-
-
-    return (
-        <div className={styles.containerBodySignUp}>
-            <div className={styles.container}>
-                <div
-                    className={styles.progressBar}
-                    role="progressbar"
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={0}
-                />
-                <div className={styles.formHeader}>
-                    <h2 id="formTitle">{isVerify ? "Verify Your Email" : "Create an Account"}</h2>
-                </div>
-                <form
-                    id={styles.registrationForm}
-                    aria-labelledby="form-title"
-                    aria-describedby="form-description"
-                    className={`${styles.fadeIn} ${isVerify ? styles.verifyEmail : styles.createAccount}`}
-                    onSubmit={isVerify ? handleVerify : handleSignUp}
-                >
-                    {isVerify ? (
-                        <>
-                            <p>We have sent a verification code to <strong>{email}</strong></p>
-                            <TextField
-                                label="Enter Verification Code"
-                                type="text"
-                                id="verification-code"
-                                required={true}
-                                value={verificationCode}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setVerificationCode(e.target.value)}
-                            />
-                            <button type="submit" className={styles.verifyBtn}>
-                                Verify Email
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <div className={styles.field}>
-                                <TextField
-                                    label="User Name"
-                                    type="name"
-                                    id="name"
-                                    required={true}
-                                    autoComplete="name"
-                                    value={user_name}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-                                />
-                                <InputNum
-                                    label="User Age"
-                                    id="age"
-                                    required
-                                    value={age}
-                                    autoComplete='off'
-                                    onChange={(num: number) => setAge(num)}
-                                />
-                            </div>
-                            {ageError && <span className={styles.errorMessage}>{ageError}</span>}
-
-                            <TextField
-                                label="Email"
-                                type="email"
-                                id="email"
-                                required={true}
-                                autoComplete="email"
-                                value={email}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                            />
-                            {emailError && <span className={styles.errorMessage}>{emailError}</span>}
-
-                            <PasswordField
-                                id="password"
-                                label="Password"
-                                value={password}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-                            />
-                            {passwordError && <span className={styles.errorMessage}>{passwordError}</span>}
-
-                            <PasswordField
-                                id="confirm-password"
-                                label="Confirm Password"
-                                value={confirmPassword}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
-                            />
-                            {confirmPasswordError && <span className={styles.errorMessage}>{confirmPasswordError}</span>}
-
-                            <div
-                                id="password-requirements"
-                                className={styles.passwordRequirements}
-                                aria-live="polite"
-                            >
-                                <div className={styles.requirement} data-requirement="length">
-                                    <span className="requirement-icon">✓</span>
-                                    <span>At least 8 characters</span>
-                                </div>
-                                <div className={styles.requirement} data-requirement="uppercase">
-                                    <span className="requirement-icon">✓</span>
-                                    <span>One uppercase letter</span>
-                                </div>
-                                <div className={styles.requirement} data-requirement="number">
-                                    <span className="requirement-icon">✓</span>
-                                    <span>One number</span>
-                                </div>
-                                <div className={styles.requirement} data-requirement="special">
-                                    <span className="requirement-icon">✓</span>
-                                    <span>One special character</span>
-                                </div>
-                            </div>
-                            <button type="submit">
-                                Sign Up
-                            </button>
-
-                            <div className={styles.optional}>
-                                <p>Already have an account?</p>
-                                <Link to="/login">Log In</Link>
-                            </div>
-                        </>
-                    )}
-                </form>
-            </div>
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl p-8  w-[35rem]">
+        <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+          <div
+            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+            style={{ width: isVerify ? '100%' : '50%' }}
+          />
         </div>
-    );
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">
+            {isVerify ? 'Xác minh email' : 'Tạo tài khoản'}
+          </h2>
+        </div>
+        <form
+          id="registrationForm"
+          aria-labelledby="form-title"
+          aria-describedby="form-description"
+          className="space-y-4 animate-fade-in"
+          onSubmit={isVerify ? handleVerify : handleSignUp}
+        >
+          {isVerify ? (
+            <>
+              <p className="text-gray-600 text-center">
+                Chúng tôi đã gửi mã xác minh đến <strong>{email}</strong>
+              </p>
+              <TextField
+                label="Mã xác minh"
+                type="text"
+                id="verification-code"
+                required={true}
+                value={verificationCode}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setVerificationCode(e.target.value)
+                }
+              />
+              <button
+                type="submit"
+                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Xác minh Email
+              </button>
+            </>
+          ) : (
+            <>
+              {isPending ? (
+                <div className="flex items-center justify-center h-[15rem]">
+                  <LoadingBus />
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <TextField
+                      label="Tên của bạn"
+                      type="name"
+                      id="name"
+                      required={true}
+                      autoComplete="name"
+                      value={username}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                    />
+                    <InputNum
+                      label="Tuổi của bạn"
+                      id="age"
+                      required
+                      value={age}
+                      autoComplete="off"
+                      onChange={(num: number) => setAge(num)}
+                    />
+                  </div>
+                  <TextField
+                    label="Email"
+                    type="email"
+                    id="email"
+                    required={true}
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                  />
+                  <PasswordField
+                    id="password"
+                    label="Mật khẩu"
+                    value={password}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setPassword(e.target.value)
+                    }
+                  />
+                  <PasswordField
+                    id="confirm-password"
+                    label="Xác nhận mật khẩu"
+                    value={confirmPassword}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setConfirmPassword(e.target.value)
+                    }
+                  />
+                </>
+              )}
+
+              <div className="space-y-2" aria-live="polite">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className="text-green-500">✓</span>
+                  {ageError ? (
+                    <span className="text-red-500 text-sm">{ageError}</span>
+                  ) : (
+                    <span> Độ tuổi: 13 trở lên</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className="text-green-500">✓</span>
+                  {emailError ? (
+                    <span className="text-red-500 text-sm">{emailError}</span>
+                  ) : (
+                    <span>Đúng định dạng email</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className="text-green-500">✓</span>
+                  {passwordError ? (
+                    <span className="text-red-500 text-sm">{passwordError}</span>
+                  ) : (
+                    <span>
+                      Mật Khẩu: có độ dài từ 6 ký tự trở lên, 1 chữ cái in hoa, 1 ký tự đặc biệt
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className="text-green-500">✓</span>
+                  {confirmPasswordError ? (
+                    <span className="text-red-500 text-sm">{confirmPasswordError}</span>
+                  ) : (
+                    <span>Xác nhận mật khẩu trùng nhau</span>
+                  )}
+                </div>
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                {isPending ? 'Đang Xử lý ...' : 'Đăng ký'}
+              </button>
+
+              <div className="text-center text-sm text-gray-600 flex w-[15em] justify-around">
+                <p>Đã có tài khoản?</p>
+                <Link to="/login" className="text-blue-600 hover:underline">
+                  Đăng Nhập
+                </Link>
+              </div>
+            </>
+          )}
+        </form>
+      </div>
+    </div>
+  );
 };
 
 export default SignUp;
