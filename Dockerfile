@@ -1,5 +1,5 @@
 # Dùng image Node.js phiên bản 18 làm base -> Môi trường để build và chạy application
-FROM node:18-alpine
+FROM node:18-slim
 # Tạo thư mục là "app" trong Docker Container. 
 WORKDIR /app
 # Copy các package vào app 
