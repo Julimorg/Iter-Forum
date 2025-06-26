@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useLocation, Outlet, useNavigate } from 'react-router-dom';
-import styles from './home.module.css';
-import Header from '../../components/Header_HomePage/Header';
-import Sidebar from '../../components/Sidebar/Sidebar';
 import Post_Card from '../../components/Post_Card/postcard';
 import RecentPost from '../../components/Recent_Post_Card/recent_post_card';
 import authorizedAxiosInstance from '../../services/Auth';
 import { handleLogOutAPI } from '../../apis';
 import { API_BE } from '../../config/configApi';
 import { useAuthStore } from '../../hook/useAuthStore';
+import Header from './Header';
+import Sidebar from './Sidebar';
 
 interface Post {
   user_id: string;
@@ -101,16 +100,16 @@ function PostDisplayComponent() {
   };
 
   if (loading) {
-    return <div>Loading posts...</div>;
+    return <div className="text-center text-gray-600 text-lg">Loading posts...</div>;
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return <div className="text-center text-red-500 text-lg">{error}</div>;
   }
 
   return (
-    <div className={styles.flexContainer}>
-      <div className={styles.content}>
+    <div className="flex gap-8 w-full max-w-[65rem] mx-auto">
+      <div className="flex-1 p-5 overflow-hidden">
         {posts.length > 0 ? (
           posts.map((post) => (
             <Post_Card
@@ -132,18 +131,21 @@ function PostDisplayComponent() {
             />
           ))
         ) : (
-          <p>No recommended posts available.</p>
+          <p className="text-gray-600 text-center">No recommended posts available.</p>
         )}
       </div>
       {showRecentPosts && (
-        <div className={styles.recentPost}>
-          <div className={styles.recentPostHeader}>
-            <h2>Recent Post</h2>
-            <button className={styles.clearButton} onClick={clearRecentPosts}>
+        <div className="fixed right-8 top-[12.5%] w-80 bg-gray-100 rounded-lg p-5 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-200 scrollbar-thumb-rounded-full">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold text-gray-800">Recent Post</h2>
+            <button
+              className="text-blue-600 underline bg-transparent rounded px-3 py-1.5 text-sm hover:bg-gray-200 transition-colors duration-200"
+              onClick={clearRecentPosts}
+            >
               Clear
             </button>
           </div>
-          <div className={styles.recentPostContent}>
+          <div className="flex flex-col gap-4 min-h-[50vh]">
             {recentPosts.length > 0 ? (
               recentPosts.map((post) => (
                 <RecentPost
@@ -159,11 +161,11 @@ function PostDisplayComponent() {
                   tags={post.tags}
                   images={post.img_url}
                   isTrending={false}
-                  date_updated={post.date_updated} // Đã truyền date_updated
+                  date_updated={post.date_updated}
                 />
               ))
             ) : (
-              <p>No recent posts available.</p>
+              <p className="text-gray-600 text-center">No recent posts available.</p>
             )}
           </div>
         </div>
@@ -185,12 +187,14 @@ const Home = () => {
 
   return (
     <>
-      <div className={styles.header}>
+      <div className="fixed top-0 left-0 w-full h-16 bg-white border-b-2 border-gray-200 shadow-md z-10">
         <Header />
       </div>
-      <div className={styles.homeBody}>
-        <Sidebar onSignOutClick={handleLogOut} />
-        <div className={styles.mainContent}>
+      <div className="flex pt-16 pb-4 gap-8 h-[calc(100vh-4rem)]">
+        <div className="sticky top-16 w-56 bg-gray-100 h-[calc(100vh-4rem)] mt-[10rem]">
+          <Sidebar onSignOutClick={handleLogOut} />
+        </div>
+        <div className="ml-[16.5%] flex-1">
           {isHomePage ? (
             <PostDisplayComponent />
           ) : (

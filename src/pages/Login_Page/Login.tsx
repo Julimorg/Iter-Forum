@@ -77,7 +77,7 @@ const Login: React.FC = () => {
               <div className="flex items-center justify-center h-[15rem]">
                 <LoadingBus />
               </div>
-              <h1 className='flex items-center justify-center'>
+              <h1 className='flex items-center justify-center text-2xl font-bold text-gray-800 mb-6'>
                   Vui lòng đợi ...
               </h1>
             </>
