@@ -31,7 +31,7 @@ const Sidebar: React.FC<SidebarProps> = () => {
 
   const refresh_token = useAuthStore.getState().refresh_token;
 
-  const { mutate, isPending, isError } = useLogOut({
+  const { mutate, isPending } = useLogOut({
     onSuccess: () => {
       toast.success("LogOut successfully");
       useAuthStore.getState().clearTokens();

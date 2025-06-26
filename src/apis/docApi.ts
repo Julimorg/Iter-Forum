@@ -4,7 +4,7 @@ import { RefreshTokenResponse } from '../interface/Auth/IRefreshToken';
 import { SignUpRequest } from '../interface/Auth/ISignUp';
 import { LoginRequest, LoginRespsone } from '../interface/Auth/Login';
 import { ExploreTagsResponse } from '../interface/IExploreTags';
-import { SubscribedTag, SubscribedTagResponse } from '../interface/ISubscricedTag';
+import { SubscribedTagResponse } from '../interface/ISubscricedTag';
 import axiosClient from './axiosClient';
 
 export const docApi = {

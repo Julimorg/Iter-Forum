@@ -1,6 +1,6 @@
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { useAuthStore } from '../hook/useAuthStore';
-import { use } from 'react';
+
 import { docApi } from './docApi';
 import { toast } from 'react-toastify';
 
