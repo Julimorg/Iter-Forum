@@ -1,16 +1,18 @@
-import { useQuery, UseQueryOptions } from "@tanstack/react-query";
-import { SubscribedTag } from "../../../interface/ISubscricedTag";
-import { QueryKeys } from "../../../constant/query-key";
-import { docApi } from "../../../apis/docApi";
+import { useQuery, UseQueryOptions } from '@tanstack/react-query';
+import { SubscribedTag, SubscribedTagResponse } from '../../../interface/ISubscricedTag';
+import { QueryKeys } from '../../../constant/query-key';
+import { docApi } from '../../../apis/docApi';
 
-
-type UseGetSubscribedTags = Omit<UseQueryOptions<SubscribedTag[], unknown>, "queryKey" | "queryFn">;
+type UseGetSubscribedTags = Omit<
+  UseQueryOptions<SubscribedTagResponse, SubscribedTag[], string[]>,
+  'queryKey' | 'queryFn'
+>;
 
 export const useGetSubscribedTags = (options?: UseGetSubscribedTags) => {
-    return useQuery({
-        ...options,
-        select: (data) =>  data,
-        queryKey: [QueryKeys.SUBSCRIBED_TAGS],
-        queryFn: docApi.GetSubscribedTag,
-    })
-}
+  return useQuery({
+    ...options,
+    queryKey: [QueryKeys.SUBSCRIBED_TAGS],
+    queryFn: docApi.GetSubscribedTag ,
+    select: (response) => response.data.subscribed_tags || [],
+  });
+};

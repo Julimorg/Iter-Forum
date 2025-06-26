@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, Button, Spin } from 'antd';
+import React, { useState, useMemo, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Menu, Button, Spin, Typography, Empty } from 'antd';
 import {
   HomeOutlined,
   FireOutlined,
@@ -9,118 +9,175 @@ import {
   SafetyOutlined,
   LockOutlined,
   FileTextOutlined,
-  LogoutOutlined,
   DownOutlined,
   UpOutlined,
+  LoadingOutlined,
 } from '@ant-design/icons';
 import { useGetSubscribedTags } from './Hooks/useGetTag';
+import { useAuthStore } from '../../hook/useAuthStore';
+import { useLogOut } from '../../hook/useLogOut';
+import { toast } from 'react-toastify';
+import { AxiosError } from 'axios';
 
 interface SidebarProps {
   onSignOutClick?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ onSignOutClick }) => {
+const Sidebar: React.FC<SidebarProps> = () => {
+  const navigate = useNavigate();
   const [showAllTags, setShowAllTags] = useState<boolean>(false);
+
   const { data, isLoading, error } = useGetSubscribedTags();
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const refresh_token = useAuthStore.getState().refresh_token;
+
+  const { mutate, isPending, isError } = useLogOut({
+    onSuccess: () => {
+      toast.success("LogOut successfully");
+      useAuthStore.getState().clearTokens();
+    },
+    onError: (err: AxiosError<{ message?: string }>) => {
+      const errorMessage = err.response?.data?.message || 'Đã có lỗi xảy ra khi đăng ký!';
+      toast.error(`${errorMessage}`);
+      // console.log(err);
+    },
+  });
+  // Debug data
+  // console.log('Subscribed Tags:', data);
+
+  const handleLogOut = async () => {
+    mutate({ refresh_token });
+    // console.log(refresh_token);
+    navigate('/login');
   };
+
+
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const tagItems = useMemo(() => {
+    if (!data || !Array.isArray(data)) return [];
+
+    return [
+      ...(showAllTags ? data : data.slice(0, 3)).map((tag) => ({
+        key: `tag-${tag.tag_id}`,
+        label: (
+          <Link to={`/home/tag/${tag.tag_id}`}>
+            {tag.tag_title} ({tag.post_count})
+          </Link>
+        ),
+      })),
+      ...(data.length > 3
+        ? [
+          {
+            key: 'toggle-tags',
+            label: (
+              <Button
+                type="text"
+                icon={showAllTags ? <UpOutlined /> : <DownOutlined />}
+                onClick={() => setShowAllTags(!showAllTags)}
+                className="w-full text-left text-gray-600 hover:text-blue-500"
+              >
+                {showAllTags ? 'Thu gọn' : 'Xem tất cả'}
+              </Button>
+            ),
+          },
+        ]
+        : []),
+    ];
+  }, [data, showAllTags]);
 
   return (
     <aside className="fixed left-0 top-0 h-full w-64 bg-white shadow-md overflow-y-auto font-lexend mt-10">
-      <div className="h-12" />
-      <Menu mode="vertical" defaultSelectedKeys={['home']} className="border-none">
-        <Menu.Item key="home" icon={<HomeOutlined className="text-gray-600" />}>
-          <Link to="/home" onClick={scrollToTop}>
-            Trang chủ
-          </Link>
-        </Menu.Item>
-        <Menu.Item key="popular" icon={<FireOutlined className="text-gray-600" />}>
-          <Link to="/home/popular" onClick={scrollToTop}>
-            Phổ biến
-          </Link>
-        </Menu.Item>
-        <Menu.Item key="explore" icon={<CompassOutlined className="text-gray-600" />}>
-          <Link to="/home/explore" onClick={scrollToTop}>
-            Khám phá
-          </Link>
-        </Menu.Item>
-      </Menu>
+      <div className="h-16" />
+      <Menu
+        mode="vertical"
+        defaultSelectedKeys={['home']}
+        className="border-none"
+        items={[
+          {
+            key: 'home',
+            icon: <HomeOutlined className="text-gray-600 text-lg" />,
+            label: <Link to="/home" onClick={scrollToTop}>Trang chủ</Link>,
+          },
+          {
+            key: 'popular',
+            icon: <FireOutlined className="text-gray-600 text-lg" />,
+            label: <Link to="/home/popular" onClick={scrollToTop}>Phổ biến</Link>,
+          },
+          {
+            key: 'explore',
+            icon: <CompassOutlined className="text-gray-600 text-lg" />,
+            label: <Link to="/home/explore" onClick={scrollToTop}>Khám phá</Link>,
+          },
+        ]}
+      />
 
-      <div className="px-4 py-2">
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+      <div className="px-4 py-4">
+        <Typography.Text strong className="text-sm text-gray-500 uppercase tracking-wide">
           TAG ĐÃ THEO DÕI
-        </h3>
+        </Typography.Text>
         {isLoading ? (
-          <div className="flex justify-center">
-            <Spin tip="Đang tải tag..." />
+          <div className="flex flex-col items-center justify-center py-6">
+            <Spin indicator={<LoadingOutlined spin />} size="large" />
+            <Typography.Text className="mt-2 text-gray-600">Đang tải tag...</Typography.Text>
           </div>
         ) : error ? (
-          <div className="text-red-500 text-center">Lỗi</div>
+          <Typography.Text className="text-red-500 text-center block py-4">
+            Lỗi:  'Không thể tải tag'
+          </Typography.Text>
+        ) : tagItems.length > 0 ? (
+          <Menu mode="vertical" className="border-none mt-3" items={tagItems} />
         ) : (
-          <Menu mode="vertical" className="border-none">
-            {data?.length ? (
-              <>
-                {(showAllTags ? data : data.slice(0, 3)).map((tag) => (
-                  <Menu.Item key={`tag-${tag.tag_id}`}>
-                    <Link to={`/home/tag/${tag.tag_id}`}>
-                      {tag.tag_title} ({tag.post_count})
-                    </Link>
-                  </Menu.Item>
-                ))}
-                {data.length > 3 && (
-                  <Menu.Item key="toggle-tags">
-                    <Button
-                      type="text"
-                      icon={showAllTags ? <UpOutlined /> : <DownOutlined />}
-                      onClick={() => setShowAllTags(!showAllTags)}
-                      className="w-full text-left text-gray-600"
-                    >
-                      {showAllTags ? 'Thu gọn' : 'Xem tất cả'}
-                    </Button>
-                  </Menu.Item>
-                )}
-              </>
-            ) : (
-              <div className="text-gray-500 text-center">Chưa theo dõi tag nào</div>
-            )}
-          </Menu>
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="Không có tag nào được theo dõi"
+            className="mt-4"
+          />
         )}
       </div>
 
-      <div className="px-4 py-2">
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+      <div className="px-4 py-4">
+        <Typography.Text strong className="text-sm text-gray-500 uppercase tracking-wide">
           VỀ CHÚNG TÔI
-        </h3>
-        <Menu mode="vertical" className="border-none">
-          <Menu.Item key="about" icon={<InfoCircleOutlined className="text-gray-600" />}>
-            <Link to="/about">Giới thiệu</Link>
-          </Menu.Item>
-          <Menu.Item key="rules" icon={<SafetyOutlined className="text-gray-600" />}>
-            <Link to="/rules">Quy tắc</Link>
-          </Menu.Item>
-          <Menu.Item key="privacy" icon={<LockOutlined className="text-gray-600" />}>
-            <Link to="/privacy-policy">Chính sách bảo mật</Link>
-          </Menu.Item>
-          <Menu.Item key="agreement" icon={<FileTextOutlined className="text-gray-600" />}>
-            <Link to="/user-agreement">Thỏa thuận người dùng</Link>
-          </Menu.Item>
-        </Menu>
+        </Typography.Text>
+        <Menu
+          mode="vertical"
+          className="border-none mt-3"
+          items={[
+            {
+              key: 'about',
+              icon: <InfoCircleOutlined className="text-gray-600 text-lg" />,
+              label: <Link to="/about">Giới thiệu</Link>,
+            },
+            {
+              key: 'rules',
+              icon: <SafetyOutlined className="text-gray-600 text-lg" />,
+              label: <Link to="/rules">Quy tắc</Link>,
+            },
+            {
+              key: 'privacy',
+              icon: <LockOutlined className="text-gray-600 text-lg" />,
+              label: <Link to="/privacy-policy">Chính sách bảo mật</Link>,
+            },
+            {
+              key: 'agreement',
+              icon: <FileTextOutlined className="text-gray-600 text-lg" />,
+              label: <Link to="/user-agreement">Thỏa thuận người dùng</Link>,
+            },
+          ]}
+        />
       </div>
 
-      <div className="px-4 py-2">
-        <Menu mode="vertical" className="border-none">
-          <Menu.Item key="logout" icon={<LogoutOutlined className="text-gray-600" />}>
-            <Button
-              type="text"
-              onClick={onSignOutClick}
-              className="w-full text-left text-gray-800"
-            >
-              Đăng xuất
-            </Button>
-          </Menu.Item>
-        </Menu>
+      <div className="px-4 py-4">
+        <Button
+          type="text"
+          onClick={handleLogOut}
+          className="w-full text-left text-gray-800 hover:text-blue-500"
+        >
+         {isPending ? "Đang xử lý..." : " Đăng xuất "}
+        </Button>
       </div>
     </aside>
   );

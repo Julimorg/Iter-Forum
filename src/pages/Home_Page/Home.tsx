@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useLocation, Outlet, useNavigate } from 'react-router-dom';
+import { useLocation, Outlet } from 'react-router-dom';
 import Post_Card from '../../components/Post_Card/postcard';
 import RecentPost from '../../components/Recent_Post_Card/recent_post_card';
 import authorizedAxiosInstance from '../../services/Auth';
-import { handleLogOutAPI } from '../../apis';
 import { API_BE } from '../../config/configApi';
-import { useAuthStore } from '../../hook/useAuthStore';
 import Header from './Header';
 import Sidebar from './Sidebar';
+
 
 interface Post {
   user_id: string;
@@ -50,6 +49,7 @@ function PostDisplayComponent() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const accessToken = localStorage.getItem("accessToken");
+
 
   useEffect(() => {
     const fetchHomePosts = async () => {
@@ -177,13 +177,6 @@ function PostDisplayComponent() {
 const Home = () => {
   const location = useLocation();
   const isHomePage = location.pathname === '/home';
-  const navigate = useNavigate();
-
-  const handleLogOut = async () => {
-    useAuthStore.getState().clearTokens();
-    await handleLogOutAPI();
-    navigate('/login');
-  };
 
   return (
     <>
@@ -192,9 +185,9 @@ const Home = () => {
       </div>
       <div className="flex pt-16 pb-4 gap-8 h-[calc(100vh-4rem)]">
         <div className="sticky top-16 w-56 bg-gray-100 h-[calc(100vh-4rem)] mt-[10rem]">
-          <Sidebar onSignOutClick={handleLogOut} />
+          <Sidebar />
         </div>
-        <div className="ml-[16.5%] flex-1">
+        <div className="flex-1">
           {isHomePage ? (
             <PostDisplayComponent />
           ) : (

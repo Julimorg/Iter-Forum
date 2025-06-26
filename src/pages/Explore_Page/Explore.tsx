@@ -1,98 +1,88 @@
-import { useEffect, useState } from 'react';
-import styles from './Explore.module.css';
-import Tag_Card from '../../components/Tag_Card/Tag_Card';
-import axios from 'axios';
-import { API_BE } from '../../config/configApi';
+import { Card, Skeleton, Typography } from 'antd';
+import { useGetSubscribedTags } from './Hooks/useGetExploreTags';
+import { useMemo } from 'react';
 
-interface Tags {
-  tag_id: string;
-  tag_name: string;
-  tag_category: string;
-  num_posts: number;
-}
+const { Title, Text } = Typography;
 
 const Explore = () => {
-  const [groupedTags, setGroupedTags] = useState<{
-    [category: string]: { tag_id: string; title: string; posts: number; isTrending: boolean }[];
-  }>({});
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { data, isLoading: isFetching } = useGetSubscribedTags();
 
-  useEffect(() => {
-    const fetchTags = async () => {
-      const accessToken = localStorage.getItem('accessToken');
-
-      if (!accessToken) {
-        console.error('No access token found in localStorage');
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        const response = await axios.get(`${API_BE}/api/v1/recommend/tags`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        const data = response.data.data;
-
-        const tagsByCategory = data.reduce(
-          (
-            acc: { [key: string]: { tag_id: string; title: string; posts: number; isTrending: boolean }[] },
-            tag: Tags
-          ) => {
-            const category = tag.tag_category;
-            if (!acc[category]) {
-              acc[category] = [];
-            }
-            acc[category].push({
-              tag_id: tag.tag_id,
-              title: tag.tag_name,
-              posts: tag.num_posts,
-              isTrending: tag.num_posts > 1000,
-            });
-            return acc;
-          },
-          {}
-        );
-
-        setGroupedTags(tagsByCategory);
-      } catch (error) {
-        console.error('Error fetching tags:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTags();
-  }, []);
-
+  // Chuyển đổi dữ liệu từ hook thành groupedTags
+  const groupedTags = useMemo(() => {
+    return (
+      data?.data?.reduce(
+        (acc: { [key: string]: { tag_id: string; title: string; posts: number; isTrending: boolean }[] }, tag) => {
+          const category = tag.tag_category;
+          if (!acc[category]) {
+            acc[category] = [];
+          }
+          acc[category].push({
+            tag_id: tag.tag_id,
+            title: tag.tag_name,
+            posts: tag.num_posts,
+            isTrending: tag.num_posts > 1000,
+          });
+          return acc;
+        },
+        {}
+      ) || {}
+    );
+  }, [data]);
   return (
-    <div className={styles['popular-container']}>
-      <h1 className={styles.title}>Explore new tags:</h1>
+    <div className="container  px-4 py-8  min-h-screen">
+      <Title level={2} className="mb-8 text-gray-800 text-start">
+        Explore Tags
+      </Title>
 
-      {isLoading ? (
-        <div>Loading tags...</div>
+      {isFetching ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, index) => (
+            <Skeleton key={index} active avatar paragraph={{ rows: 2 }} />
+          ))}
+        </div>
       ) : (
         <>
           {Object.entries(groupedTags).map(([category, tags]) => (
-            <section key={category} className={styles['section-tags']}>
-              <h2>{category}</h2>
-              <div className={styles.tags}>
+            <section key={category} className="mb-12">
+              <Title level={4} className="mb-4 text-gray-700">
+                {category}
+              </Title>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {tags.map((tag) => (
-                  <Tag_Card
+                  <Card
                     key={tag.tag_id}
-                    tag_id={tag.tag_id}
-                    title={tag.title}
-                    posts={tag.posts}
-                    isTrending={tag.isTrending}
-                  />
+                    hoverable
+                    className="shadow-md transition-all duration-300 hover:shadow-lg"
+                    cover={
+                      tag.isTrending && (
+                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                          Đang thịnh hành
+                        </div>
+                      )
+                    }
+                  >
+                    <Card.Meta
+                      title={
+                        <Text strong className="text-gray-800">
+                          {tag.title}
+                        </Text>
+                      }
+                      description={
+                        <Text type="secondary">
+                          {tag.posts.toLocaleString()} bài viết
+                        </Text>
+                      }
+                    />
+                  </Card>
                 ))}
               </div>
             </section>
           ))}
+          {Object.keys(groupedTags).length === 0 && (
+            <div className="text-center py-8">
+              <Text type="secondary">Không tìm thấy thẻ nào.</Text>
+            </div>
+          )}
         </>
       )}
     </div>
