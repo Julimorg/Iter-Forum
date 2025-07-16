@@ -11,7 +11,7 @@ import LoadingBus from '../../components/Loader/LoadingBus';
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
   const [isVerify, setIsVerify] = useState<boolean>(false);
-  const [username, setName] = useState<string>('');
+  const [user_name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [age, setAge] = useState<number>(0);
   const [password, setPassword] = useState<string>('');
@@ -29,11 +29,11 @@ const SignUp: React.FC = () => {
     onSuccess: () => {
       toast.success('Bạn đã đăng ký thành công!');
       //   setIsVerify(true);
-      navigate('/log-in');
+      navigate('/login');
     },
     onError: (err: AxiosError<{ message?: string }>) => {
-      const errorMessage = err.response?.data?.message || 'Đã có lỗi xảy ra khi đăng ký!';
-      toast.error(`${errorMessage}`);
+      // const errorMessage = err.response?.data?.message || 'Đã có lỗi xảy ra khi đăng ký!';
+      toast.error(`Lỗi đăng ký`);
       console.log(err);
     },
   });
@@ -79,7 +79,7 @@ const SignUp: React.FC = () => {
 
     if (isValid) {
       console.log(setIsVerify);
-      mutate({ username, email, age, password });
+      mutate({ user_name, email, age, password });
     }
   };
 
@@ -150,7 +150,7 @@ const SignUp: React.FC = () => {
                       id="name"
                       required={true}
                       autoComplete="name"
-                      value={username}
+                      value={user_name}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                     />
                     <InputNum

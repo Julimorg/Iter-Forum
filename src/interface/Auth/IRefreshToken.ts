@@ -5,5 +5,5 @@ export type RefreshTokenResponse = {
   data: {
     access_token: string;
   };
-  timestamp: number;
+
 };

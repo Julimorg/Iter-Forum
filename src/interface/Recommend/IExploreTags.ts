@@ -1,9 +1,5 @@
 export type ExploreTagsResponse = {
-    is_success?: string,
-    status_code?: string,
-    message?: string,
     data: ExploreTagsData[] | null,
-    timestamp: string,
 }
 
 export type ExploreTagsData ={

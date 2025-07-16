@@ -3,8 +3,10 @@ import { LogOutRequest } from '../interface/Auth/ILogOut';
 import { RefreshTokenResponse } from '../interface/Auth/IRefreshToken';
 import { SignUpRequest } from '../interface/Auth/ISignUp';
 import { LoginRequest, LoginRespsone } from '../interface/Auth/Login';
-import { ExploreTagsResponse } from '../interface/IExploreTags';
-import { SubscribedTagResponse } from '../interface/ISubscricedTag';
+import { IResponse } from '../interface/IAPIResponse';
+import { ExploreTagsResponse } from '../interface/Recommend/IExploreTags';
+import { IGetHome } from '../interface/Recommend/IGetHome';
+import { SubscribedTagResponse } from '../interface/Recommend/ISubscricedTag';
 import axiosClient from './axiosClient';
 
 export const docApi = {
@@ -18,15 +20,39 @@ export const docApi = {
     const res = await axiosClient.post(url, body);
     return res.data;
   },
+
   RefreshToken: async (): Promise<RefreshTokenResponse> => {
     const url = '/auth/refresh-token';
     const refreshToken = useAuthStore.getState().refresh_token;
-    const res = await axiosClient.get(url, {
-      headers: {
-        Authorization: `Bearer ${refreshToken}`,
-      },
-    });
-    return res.data;
+
+    if (!refreshToken) {
+      console.error('Không có refresh token trong store');
+      throw new Error('Không có refresh token');
+    }
+
+    console.log('Gửi yêu cầu refresh token:', { url, refreshToken });
+
+    try {
+      console.log("Bat dau refresh token nha");
+      const res = await axiosClient.get<RefreshTokenResponse>(url, {
+        headers: {
+          Authorization: `Bearer ${refreshToken}`,
+        },
+      });
+
+      console.log('Nhận response refresh token:', res.data);
+      if (!res.data.is_success || !res.data.data.access_token) {
+        throw new Error('Response refresh token không hợp lệ');
+      }
+      return res.data;
+    } catch (error: any) {
+      console.error('Lỗi khi gọi API refresh token:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      throw error;
+    }
   },
 
   SignUp: async (body: SignUpRequest): Promise<void> => {
@@ -35,14 +61,20 @@ export const docApi = {
     return res.data;
   },
 
-  GetSubscribedTag: async (): Promise<SubscribedTagResponse> => {
+  GetSubscribedTag: async (): Promise<IResponse<SubscribedTagResponse>> => {
     const url = '/recommend';
     const res = await axiosClient.get(url);
     return res.data;
   },
 
-  GetExploreTags: async() : Promise<ExploreTagsResponse> => {
+  GetExploreTags: async() : Promise<IResponse<ExploreTagsResponse>> => {
     const url = '/recommend/tags';
+    const res = await axiosClient.get(url);
+    return res.data;
+  },
+
+  GetHome: async(): Promise<IResponse<IGetHome>> => {
+    const url = '/recommend/home';
     const res = await axiosClient.get(url);
     return res.data;
   }

@@ -20,91 +20,97 @@ axiosClient.defaults.timeout = 1000 * 60 * 10;
 //? Tại sao? -> Mục đích là tạo 1 promise này để khi nhận yêu cầu refreshToken đầu tiên
 //? hold lại việc gọi API refresh_token cho tới khi xong xuôi thì mới retry lại những api bị lỗi trước đó
 //? thay vì cứ để gọi lại refresh_token leein tục tới mỗi request lỗi
-let refreshTokenPromise: Promise<any> | null = null;
+let refreshTokenPromise: Promise<string | null> | null = null;
 
 //? Config request xuống server
 axiosClient.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().access_token;
-    if (token && config.headers) {
+    if (token && config.headers && config.url !== '/auth/refresh-token') {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // console.log('Request config:', { url: config.url, headers: config.headers });
     return config;
   },
   (error) => {
+    // console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
 
 //? Config resposne từ server
 axiosClient.interceptors.response.use(
-  (resposne) => resposne,
-  (error) => {
-    // const res = error.response;
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
 
-    // if (typeof error?.message === 'string' && error.message.includes('status code')) {
-    //   error.message = '';
-    //   console.log(res);
-    // }
-    // Xử lý lỗi 401 - Token hết hạn hoặc không hợp lệ
-    if (error.response?.status === 401) {
-      //   console.log('Error 401: Unauthorized');
-      //   useAuthStore.getState().logout(); // Gọi hàm logout từ store
-      //   window.location.href = '/login';
-      //   return Promise.reject(error);
-      useAuthStore.getState().clearTokens();
-      window.location.href = '/login';
-      console.log('expire Token');
+    //? Bỏ qua interceptor cho yêu cầu refresh token
+    if (originalRequest.url === '/auth/refresh-token') {
+      // console.log('Bỏ qua interceptor cho yêu cầu refresh token');
+      return Promise.reject(error);
     }
 
-    //? Handle 410 Status - RefreshToken Module
-    const originalRequest = error.config;
-    console.log('originalRequest: ', originalRequest);
+    //? Xử lý lỗi 401 hoặc 410
+    if (
+      (error.response?.status === 401 || error.response?.status === 410) &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true;
 
-    if (error.response?.status === 410 && originalRequest) {
-      if (!refreshTokenPromise) {
-        const refreshToken = useAuthStore.getState().refresh_token;
+      try {
+        if (!refreshTokenPromise) {
+          // console.log('Bắt đầu refresh token...');
+          const refreshToken = useAuthStore.getState().refresh_token;
 
-        if (refreshToken) {
+          if (!refreshToken) {
+            // console.error('Không có refresh token để gửi yêu cầu');
+            throw new Error('Không có refresh token');
+          }
+
           refreshTokenPromise = docApi
             .RefreshToken()
             .then((res) => {
               const { access_token } = res.data;
+              // console.log('Refresh token thành công, access_token mới:', access_token);
 
-              const refresh_token = useAuthStore.getState().refresh_token;
-
-              //?Update AccessToken-RefreshToken
-              useAuthStore.getState().setTokens(access_token, refresh_token);
-
-              //?Update header
+              useAuthStore.getState().setTokens(access_token, refreshToken);
               axiosClient.defaults.headers.Authorization = `Bearer ${access_token}`;
-
-              toast.success('Update Access Token');
+              return access_token;
             })
-            .catch((err) => {
-              console.log('Refresh token error:', err);
+            .catch((refreshError) => {
+              console.error('Lỗi khi refresh token:', {
+                message: refreshError.message,
+                response: refreshError.response?.data,
+                status: refreshError.response?.status,
+              });
               useAuthStore.getState().clearTokens();
               window.location.href = '/login';
-              return Promise.reject(err);
+              return null;
+            })
+            .finally(() => {
+              // console.log('Reset refreshTokenPromise');
+              refreshTokenPromise = null;
             });
-        } else {
-          console.log('No refresh token available');
-          useAuthStore.getState().clearTokens();
-          window.location.href = '/login';
-          return Promise.reject(new Error('No refresh token'));
         }
-      }
 
-      //? Chờ refresh token hoàn thành và retry request gốc
-      return refreshTokenPromise.then(() => {
+        const newAccessToken = await refreshTokenPromise;
+        if (!newAccessToken) {
+          // throw new Error('Không thể lấy access token mới');
+        }
+
+        // console.log('Retry request gốc với access_token mới:', newAccessToken, originalRequest.url);
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return axiosClient(originalRequest);
-      });
+      } catch (err) {
+        // console.error('Lỗi khi xử lý refresh token:', err);
+        return Promise.reject(err);
+      }
     }
 
-    // const err = error as AxiosError<{ message: string }>;
-    // const errorMessage = err.response?.data?.message || err.message || 'Something went wrong';
-    // toast.error(errorMessage);
-
+    const errorMessage =
+      error.response?.data?.message || error.message || 'Đã có lỗi xảy ra';
+    // console.error('Response error:', { message: errorMessage, status: error.response?.status });
+    toast.error(errorMessage);
     return Promise.reject(error);
   }
 );

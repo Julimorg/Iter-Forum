@@ -1,10 +1,11 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
-import { SubscribedTag, SubscribedTagResponse } from '../../../interface/ISubscricedTag';
+import {SubscribedTag, SubscribedTagResponse } from '../../../interface/Recommend/ISubscricedTag';
 import { QueryKeys } from '../../../constant/query-key';
 import { docApi } from '../../../apis/docApi';
+import { IResponse } from '../../../interface/IAPIResponse';
 
 type UseGetSubscribedTags = Omit<
-  UseQueryOptions<SubscribedTagResponse, SubscribedTag[], string[]>,
+  UseQueryOptions<IResponse<SubscribedTagResponse>, SubscribedTag[], string[]>,
   'queryKey' | 'queryFn'
 >;
 
