@@ -67,7 +67,7 @@ export const docApi = {
     return res.data;
   },
 
-  GetExploreTags: async() : Promise<IResponse<ExploreTagsResponse>> => {
+  GetExploreTags: async() : Promise<IResponse<ExploreTagsResponse[]>> => {
     const url = '/recommend/tags';
     const res = await axiosClient.get(url);
     return res.data;

@@ -5,7 +5,7 @@ import { docApi } from "../../../apis/docApi";
 import { IResponse } from "../../../interface/IAPIResponse";
 
 
-type UseGetExploreTagsOptions = Omit<UseQueryOptions<IResponse<ExploreTagsResponse>, unknown>, 'queryKey' | 'queryFn'>
+type UseGetExploreTagsOptions = Omit<UseQueryOptions<IResponse<ExploreTagsResponse[]>, unknown>, 'queryKey' | 'queryFn'>
 
 export const useGetSubscribedTags = (options?: UseGetExploreTagsOptions) => {
     return useQuery ({

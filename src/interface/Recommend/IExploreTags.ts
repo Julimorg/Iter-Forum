@@ -1,8 +1,5 @@
-export type ExploreTagsResponse = {
-    data: ExploreTagsData[] | null,
-}
 
-export type ExploreTagsData ={
+export type ExploreTagsResponse={
     tag_id: string,
     tag_name: string,
     tag_category: string,
