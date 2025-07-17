@@ -3,6 +3,7 @@ export type IGetHome = {
     recent_posts: GetRecentPostData[],
 }
 
+
 export type GetRecommendPostData = {
     user_id:string,
     user_name: string,

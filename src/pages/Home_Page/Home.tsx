@@ -4,14 +4,25 @@ import Post_Card from '../../components/Post_Card/postcard';
 import RecentPost from '../../components/Recent_Post_Card/recent_post_card';
 import Header from './Header';
 import Sidebar from './Sidebar';
-import { useGetRecentPosts, useGetRecommendPosts } from './Hooks/useGetHome';
+import { useGetRecommendPosts } from './Hooks/useGetHome';
 import { Skeleton } from 'antd';
+
+
+//TODO: Sẽ ứng dụng thêm LazyLoading và Infinite Scroll vào để tối ưu fetching Post
+
+//TODO: Tìm cách tối ưu render img khi fetching post 
+
+//TODO: Tìm cách xử lý socket khi vào Home
+        //* --> Bắt socket trực tiếp ở Home
+        //* --> Bắt socket như đã làm ở PostCard và tìm cách tối ưu 
+//TODO Tìm cách RemovePost UI/UX thông qua Cache của ReactQuery
+
+
 
 function PostDisplayComponent() {
   const [showRecentPosts, setShowRecentPosts] = useState<boolean>(true);
   const { data, isLoading, error } = useGetRecommendPosts();
-  const { data: recentData, isLoading: isLoadingRecent, error: recentError } = useGetRecentPosts();
-  console.log(data);
+  // console.log(data);
 
   const removePost = (postId: string) => {
     // Nếu cần xóa bài post khỏi UI mà không refetch API, bạn có thể sử dụng cache của react-query
@@ -24,7 +35,7 @@ function PostDisplayComponent() {
     setShowRecentPosts(false);
   };
 
-  if (isLoading || isLoadingRecent) {
+  if (isLoading ) {
     return (
       <>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -36,12 +47,12 @@ function PostDisplayComponent() {
     );
   }
 
-  if (error || recentError) {
+  if (error ) {
     return <div className="text-center text-red-500 text-lg">Lỗi: {(error as Error).message}</div>;
   }
 
   const recommendPosts = data?.data.recommend_posts || [];
-  const recentPosts = recentData?.data.recent_posts || [];
+  const recentPosts = data?.data.recent_posts || [];
 
   return (
     <div className="flex gap-8 w-full max-w-[65rem] mx-auto">

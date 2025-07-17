@@ -28,7 +28,6 @@ const Sidebar: React.FC<SidebarProps> = () => {
   const [showAllTags, setShowAllTags] = useState<boolean>(false);
 
   const { data, isLoading, error } = useGetSubscribedTags();
-
   const refresh_token = useAuthStore.getState().refresh_token;
 
   const { mutate, isPending } = useLogOut({

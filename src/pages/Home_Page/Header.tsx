@@ -2,12 +2,12 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaBell, FaPlus } from 'react-icons/fa';
-import NotificationElements from '../../components/Notification_Elements/NotificationElements';
 import { API_BE } from '../../config/configApi';
 import BlurText from '../../components/BlurText/BlurText';
 import ButtonIconLeft from '../../components/ButtonIconLeft/ButtonIconLeft';
 import IconButton from '../../components/RoundButtonIcon/RoundButtonIcon';
 import UserProfileButton from '../../components/UserProfileButton/UserProfileButton';
+import NotiModel from './Components/Notification_Modal';
 
 interface SearchedUser {
   user_id: string;
@@ -20,110 +20,10 @@ interface SearchResponse {
   data: SearchedUser[];
 }
 
-interface Notification {
-  notification_id: string;
-  notification_content: string;
-  date_sent: string;
-}
 
-interface NotificationResponse {
-  is_success: boolean;
-  data: {
-    notifications: Notification[];
-  };
-}
 
 const fakeAvatar = "https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e303b9f80d10d582.jpg";
 
-function NotiModel({ isOpen }: { isOpen: boolean }) {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
-
-  const formatTimeAgo = (date: Date): string => {
-    const now = Date.now();
-    const diffMs = now - date.getTime();
-    const diffSeconds = Math.floor(diffMs / 1000);
-    const diffMinutes = Math.floor(diffSeconds / 60);
-    const diffHours = Math.floor(diffMinutes / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffDays > 1) return `${diffDays} ngày trước`;
-    if (diffDays === 1) return `1 ngày trước`;
-    if (diffHours > 1) return `${diffHours} giờ trước`;
-    if (diffHours === 1) return `1 giờ trước`;
-    if (diffMinutes > 1) return `${diffMinutes} phút trước`;
-    if (diffMinutes === 1) return `1 phút trước`;
-    return `Vừa xong`;
-  };
-
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        setError('Vui lòng đăng nhập để xem thông báo');
-        return;
-      }
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await axios.get<NotificationResponse>(`${API_BE}/api/v1/recommend/`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.data.is_success) {
-          setNotifications(response.data.data.notifications);
-        } else {
-          setError('Không thể tải thông báo');
-        }
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Đã xảy ra lỗi khi tải thông báo');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (isOpen) fetchNotifications();
-  }, [isOpen]);
-
-  return (
-    <div
-      className={`absolute top-14 right-0 z-50 w-80 bg-white rounded-2xl shadow-xl transition-all duration-300 ease-in-out ${
-        isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
-      }`}
-    >
-      <div className="p-4 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
-        {isLoading ? (
-          <div className="text-gray-600">Đang tải thông báo...</div>
-        ) : error ? (
-          <div className="text-red-500">{error}</div>
-        ) : notifications.length > 0 ? (
-          notifications.map((noti) => {
-            const parsedContent = JSON.parse(noti.notification_content);
-            const date = new Date(noti.date_sent);
-            const timeAgo = formatTimeAgo(date);
-            return (
-              <NotificationElements
-                key={noti.notification_id}
-                imgSrc={fakeAvatar}
-                title="Thông báo"
-                content={parsedContent.content}
-                time={timeAgo}
-                onClick={() => navigate(`post-detail/${parsedContent.post_id}`)}
-              />
-            );
-          })
-        ) : (
-          <div className="text-gray-600">Không có thông báo</div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 function UserModel({ isOpen }: { isOpen: boolean }) {
   return (

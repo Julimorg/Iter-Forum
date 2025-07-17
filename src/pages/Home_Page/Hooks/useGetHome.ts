@@ -5,32 +5,18 @@ import { QueryKeys } from "../../../constant/query-key";
 import { docApi } from "../../../apis/docApi";
 
 
-type RecommendPostResponse = Pick<IGetHome, 'recommend_posts'>;
-type RecentPostResponse = Pick<IGetHome, 'recent_posts'>;
-
-type UseGetRecommendPostsOptions = Omit<
-  UseQueryOptions<IResponse<RecommendPostResponse>, unknown, IResponse<RecommendPostResponse>>,
+type UseGetHomeOptions = Omit<
+  UseQueryOptions<IResponse<IGetHome>, unknown, IResponse<IGetHome>>,
   'queryKey' | 'queryFn'
 >;
 
-type UseGetRecentPostsOptions = Omit<
-  UseQueryOptions<IResponse<RecentPostResponse>, unknown, IResponse<RecentPostResponse>>,
-  'queryKey' | 'queryFn'
->;
 
-export const useGetRecommendPosts = (options?: UseGetRecommendPostsOptions) => {
+export const useGetRecommendPosts = (options?: UseGetHomeOptions) => {
     return useQuery({
-        queryKey: [QueryKeys.RECOMMEND_POSTS],
+        queryKey: [QueryKeys.GET_HOME],
         queryFn: docApi.GetHome,
         ...options
     })
 }
 
-export const useGetRecentPosts = (options?: UseGetRecentPostsOptions) => {
-  return useQuery({
-    queryKey: [QueryKeys.RECENT_POSTS],
-    queryFn: docApi.GetHome,
-    ...options,
-  });
-};
 
