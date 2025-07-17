@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import { Avatar, Button, Card, Divider, Tag, Typography } from 'antd';
 import io, { Socket } from 'socket.io-client';
 import dislike from '../../assets/dislike.png';
 import like from '../../assets/like.png';
@@ -11,11 +11,9 @@ import TagPost from '../../components/Tag_Post/Tag_post';
 import Trending from '../../assets/trending.png';
 import ReportPopup from '../Report_Popup/Report_popup';
 import { Swiper, SwiperSlide } from 'swiper/react';
-// import 'swiper/css';
-// import 'swiper/css/navigation';
-// import 'swiper/css/pagination';
 import { Navigation, Pagination } from 'swiper/modules';
 import authorizedAxiosInstance from '../../services/Auth';
+import 'antd/dist/reset.css';
 
 interface PostcardProps {
   post_id: string;
@@ -40,6 +38,8 @@ interface InteractData {
   dislike: number;
 }
 
+const { Text, Title } = Typography;
+
 const Postcard: React.FC<PostcardProps> = ({
   post_id,
   user,
@@ -51,7 +51,6 @@ const Postcard: React.FC<PostcardProps> = ({
   comments,
   tags,
   isTrending,
-  // onRemove,
   images = [],
   avatar,
   date_updated,
@@ -193,71 +192,114 @@ const Postcard: React.FC<PostcardProps> = ({
     const diffInSeconds = Math.floor(diffInMs / 1000);
 
     const minutes = Math.floor(diffInSeconds / 60);
-    if (minutes < 1) return `${diffInSeconds} seconds ago`;
+    if (minutes < 1) return `${diffInSeconds} giây trước`;
     const hours = Math.floor(minutes / 60);
-    if (hours < 1) return `${minutes} minutes ago`;
+    if (hours < 1) return `${minutes} phút trước`;
     const days = Math.floor(hours / 24);
-    if (days < 1) return `${hours} hours ago`;
+    if (days < 1) return `${hours} giờ trước`;
     const weeks = Math.floor(days / 7);
-    if (weeks < 1) return `${days} days ago`;
+    if (weeks < 1) return `${days} ngày trước`;
     const months = Math.floor(days / 30);
-    if (months < 1) return `${weeks} weeks ago`;
+    if (months < 1) return `${weeks} tuần trước`;
     const years = Math.floor(months / 12);
-    if (years < 1) return `${months} months ago`;
-    return `${years} years ago`;
+    if (years < 1) return `${months} tháng trước`;
+    return `${years} năm trước`;
   };
 
   return (
-    <PostCardContainer>
-      <Header>
-        <ProfilePic style={avatar ? { backgroundImage: `url(${avatar})`, backgroundSize: 'cover' } : {}} />
-        <UserInfo>
-          <Name onClick={handleUserNavigation}>{user}</Name>
-          {date_updated && <Timestamp>{formatRelativeTime(date_updated)}</Timestamp>}
-        </UserInfo>
-        <DotsContainer>
-          <DotsButton onClick={togglePopup}>⋮</DotsButton>
+    <Card
+      className="w-full max-w-3xl mx-auto mb-4 shadow-lg"
+      bodyStyle={{ padding: '16px' }}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <Avatar
+            src={avatar}
+            size={40}
+            className="mr-3"
+            style={{ backgroundColor: avatar ? 'transparent' : '#ccc' }}
+          />
+          <div>
+            <Text
+              strong
+              className="cursor-pointer hover:underline"
+              onClick={handleUserNavigation}
+            >
+              {user}
+            </Text>
+            {date_updated && (
+              <Text type="secondary" className="block text-xs">
+                {formatRelativeTime(date_updated)}
+              </Text>
+            )}
+          </div>
+        </div>
+        <div className="relative">
+          <Button
+            type="text"
+            icon={<span className="text-xl">⋮</span>}
+            onClick={togglePopup}
+          />
           {popupVisible && (
-            <div ref={popupRef}>
+            <div ref={popupRef} className="absolute right-0 z-10">
               <ReportPopup type="Post" user_id={user_id} post_id={post_id} />
             </div>
           )}
-        </DotsContainer>
-      </Header>
-      <Title onClick={handlePostNavigation}>{title}</Title>
-      <Caption onClick={handlePostNavigation}>{caption}</Caption>
-      <PostTags>
-        {tags ? tags.map((tag, index) => (
-          <TagPost key={index} tag={tag} />
-        )) : null}
-        {isTrending && (
-          <div style={{ color: 'orange', display: 'flex', alignItems: 'center' }}>
-            <img src={Trending} alt="Trending" style={{ marginRight: '0.5rem' }} />
-            Trending
-          </div>
-        )}
-      </PostTags>
+        </div>
+      </div>
 
-      {imageCount > 0 && <ImageCount>{imageCount} image{imageCount > 1 ? 's' : ''}</ImageCount>}
+      <Title
+        level={4}
+        className="mb-2 cursor-pointer hover:underline"
+        onClick={handlePostNavigation}
+      >
+        {title}
+      </Title>
+      <Text className="mb-4 cursor-pointer" onClick={handlePostNavigation}>
+        {caption}
+      </Text>
+
+      <div className="flex flex-wrap gap-2 mb-4">
+        {tags &&
+          tags.map((tag, index) => (
+            <TagPost key={index} tag={tag} />
+          ))}
+        {isTrending && (
+          <Tag color="orange" className="flex items-center">
+            <img src={Trending} alt="Trending" className="w-4 h-4 mr-1" />
+            Trending
+          </Tag>
+        )}
+      </div>
+
+      {imageCount > 0 && (
+        <Text type="secondary" className="mb-2 block">
+          {imageCount} hình ảnh
+        </Text>
+      )}
 
       {safeImages.length > 0 && (
         safeImages.length > 1 ? (
-          <SwiperContainer>
+          <div className="mb-4">
             <Swiper
               modules={[Navigation, Pagination]}
               spaceBetween={10}
               slidesPerView={1}
               navigation
               pagination={{ clickable: true }}
+              className="rounded-lg"
             >
               {safeImages.map((image, index) => (
-                <SwiperSlide key={index}>
+                <SwiperSlide key={index} className="flex justify-center items-center">
                   {imageErrors[index] ? (
-                    <PlaceholderImage>Image failed to load</PlaceholderImage>
+                    <div className="w-full h-64 bg-gray-100 flex justify-center items-center text-gray-500 rounded-lg">
+                      Hình ảnh không tải được
+                    </div>
                   ) : (
                     <img
                       src={image}
-                      alt={`Post image ${index + 1}`}
+                      alt={`Hình ảnh bài viết ${index + 1}`}
+                      className="w-full h-auto max-h-96 object-cover rounded-lg cursor-pointer"
                       onClick={handlePostNavigation}
                       onError={handleImageError(index)}
                       loading="lazy"
@@ -266,14 +308,17 @@ const Postcard: React.FC<PostcardProps> = ({
                 </SwiperSlide>
               ))}
             </Swiper>
-          </SwiperContainer>
+          </div>
         ) : (
           imageErrors[0] ? (
-            <PlaceholderImage>Image failed to load</PlaceholderImage>
+            <div className="w-full h-64 bg-gray-100 flex justify-center items-center text-gray-500 rounded-lg mb-4">
+              Hình ảnh không tải được
+            </div>
           ) : (
-            <SingleImage
+            <img
               src={safeImages[0]}
-              alt="Post image"
+              alt="Hình ảnh bài viết"
+              className="w-full h-auto max-h-96 object-cover rounded-lg mb-4 cursor-pointer"
               onClick={handlePostNavigation}
               onError={handleImageError(0)}
               loading="lazy"
@@ -282,173 +327,32 @@ const Postcard: React.FC<PostcardProps> = ({
         )
       )}
 
-      <Interactions>
-        <Button onClick={handleLike}>
-          <img src={liked ? likeFilled : like} alt="Like" />
+      <Divider />
+      <div className="flex gap-4">
+        <Button
+          type="text"
+          onClick={handleLike}
+          icon={<img src={liked ? likeFilled : like} alt="Like" className="w-5 h-5" />}
+        >
           {currentLikes}
         </Button>
-        <Button onClick={handleDislike}>
-          <img src={disliked ? dislikeFilled : dislike} alt="Dislike" />
+        <Button
+          type="text"
+          onClick={handleDislike}
+          icon={<img src={disliked ? dislikeFilled : dislike} alt="Dislike" className="w-5 h-5" />}
+        >
           {currentDislikes}
         </Button>
-        <Button onClick={handlePostNavigation}>
-          <img src={comment} alt="Comment" />
+        <Button
+          type="text"
+          onClick={handlePostNavigation}
+          icon={<img src={comment} alt="Comment" className="w-5 h-5" />}
+        >
           {comments}
         </Button>
-      </Interactions>
-    </PostCardContainer>
+      </div>
+    </Card>
   );
 };
-
-const PostCardContainer = styled.div`
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  padding: 1rem;
-  margin-bottom: 1rem;
-  width: 60vw; /* Cập nhật width thành 60vw */
-  max-width: 50rem; /* Cập nhật max-width thành 50rem */
-`;
-
-const Header = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.5rem;
-`;
-
-const ProfilePic = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #ccc;
-  margin-right: 0.5rem;
-`;
-
-const UserInfo = styled.div`
-  flex-grow: 1;
-`;
-
-const Name = styled.div`
-  font-weight: bold;
-  cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const Timestamp = styled.div`
-  font-size: 0.8rem;
-  color: #666;
-`;
-
-const DotsContainer = styled.div`
-  position: relative;
-`;
-
-const DotsButton = styled.button`
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #333;
-`;
-
-const Title = styled.h2`
-  font-size: 1.2rem;
-  margin: 0.5rem 0;
-  cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const Caption = styled.p`
-  font-size: 1rem;
-  color: #333;
-  margin: 0.5rem 0;
-  cursor: pointer;
-`;
-
-const PostTags = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 0.5rem 0;
-`;
-
-const ImageCount = styled.div`
-  font-size: 0.9rem;
-  color: #666;
-  margin: 0.5rem 0;
-`;
-
-const SwiperContainer = styled.div`
-  width: 100%;
-  margin: 0.5rem 0;
-
-  .swiper-slide {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  img {
-    width: 100%;
-    height: auto;
-    max-height: 400px;
-    object-fit: cover;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-`;
-
-const SingleImage = styled.img`
-  width: 100%;
-  height: auto;
-  max-height: 400px;
-  object-fit: cover;
-  border-radius: 5px;
-  margin: 0.5rem 0;
-  cursor: pointer;
-`;
-
-const PlaceholderImage = styled.div`
-  width: 100%;
-  height: 200px;
-  background-color: #f0f0f0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #666;
-  border-radius: 5px;
-  margin: 0.5rem 0;
-`;
-
-const Interactions = styled.div`
-  display: flex;
-  gap: 1rem;
-  margin-top: 0.5rem;
-`;
-
-const Button = styled.button`
-  background: none;
-  border: none;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  cursor: pointer;
-  color: #333;
-
-  img {
-    width: 20px;
-    height: 20px;
-  }
-
-  &:hover {
-    color: #007bff;
-  }
-`;
 
 export default Postcard;

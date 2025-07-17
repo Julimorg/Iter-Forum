@@ -1,117 +1,59 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useLocation, Outlet } from 'react-router-dom';
 import Post_Card from '../../components/Post_Card/postcard';
 import RecentPost from '../../components/Recent_Post_Card/recent_post_card';
-import authorizedAxiosInstance from '../../services/Auth';
-import { API_BE } from '../../config/configApi';
 import Header from './Header';
 import Sidebar from './Sidebar';
-
-
-interface Post {
-  user_id: string;
-  user_name: string;
-  ava_img_path: string | null;
-  post_id: string;
-  post_title: string;
-  post_content: string;
-  img_url: string[];
-  date_updated: string;
-  upvote: number;
-  downvote: number;
-  comments_num: number;
-  tags: string[];
-}
-
-interface RecentPost {
-  user_id: string;
-  user_name: string;
-  ava_img_path: string | null;
-  post_id: string;
-  post_title: string;
-  post_content: string;
-  img_url?: string[];
-  date_updated: string;
-  comments_num: number;
-}
-
-interface PostsResponse {
-  data: {
-    recommend_posts: Post[];
-    recent_posts: Post[];
-  };
-}
+import { useGetRecentPosts, useGetRecommendPosts } from './Hooks/useGetHome';
+import { Skeleton } from 'antd';
 
 function PostDisplayComponent() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [recentPosts, setRecentPosts] = useState<Post[]>([]);
   const [showRecentPosts, setShowRecentPosts] = useState<boolean>(true);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const accessToken = localStorage.getItem("accessToken");
-
-
-  useEffect(() => {
-    const fetchHomePosts = async () => {
-      if (!accessToken) {
-        setError("Please login to view posts");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const response = await authorizedAxiosInstance.get<PostsResponse>(
-          `${API_BE}/api/v1/recommend/home`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        console.log("Fetched home posts:", response.data);
-        const { recommend_posts, recent_posts } = response.data.data;
-        setPosts(recommend_posts || []);
-        setRecentPosts(recent_posts || []);
-        setError(null);
-      } catch (error: any) {
-        console.error("Error fetching home posts:", error);
-        if (error.response?.status === 401) {
-          setError("Unauthorized. Please login again.");
-        } else {
-          setError("Failed to load posts. Please try again.");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchHomePosts();
-  }, [accessToken]);
+  const { data, isLoading, error } = useGetRecommendPosts();
+  const { data: recentData, isLoading: isLoadingRecent, error: recentError } = useGetRecentPosts();
+  console.log(data);
 
   const removePost = (postId: string) => {
-    setPosts((prevPosts) => prevPosts.filter((post) => post.post_id !== postId));
-    setRecentPosts((prevRecent) => prevRecent.filter((post) => post.post_id !== postId));
+    // Nếu cần xóa bài post khỏi UI mà không refetch API, bạn có thể sử dụng cache của react-query
+    // Tuy nhiên, vì bạn muốn bỏ state, giải pháp tốt hơn là refetch hoặc xử lý phía server
+    console.log(`Remove post with ID: ${postId}`);
+    // Nếu cần, bạn có thể gọi API để xóa bài post và refetch dữ liệu
   };
 
   const clearRecentPosts = () => {
     setShowRecentPosts(false);
   };
 
-  if (loading) {
-    return <div className="text-center text-gray-600 text-lg">Loading posts...</div>;
+  if (isLoading || isLoadingRecent) {
+    return (
+      <>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(1)].map((_, index) => (
+            <Skeleton key={index} active avatar paragraph={{ rows: 5 }} />
+          ))}
+        </div>
+      </>
+    );
   }
 
-  if (error) {
-    return <div className="text-center text-red-500 text-lg">{error}</div>;
+  if (error || recentError) {
+    return <div className="text-center text-red-500 text-lg">Lỗi: {(error as Error).message}</div>;
   }
+
+  const recommendPosts = data?.data.recommend_posts || [];
+  const recentPosts = recentData?.data.recent_posts || [];
 
   return (
     <div className="flex gap-8 w-full max-w-[65rem] mx-auto">
       <div className="flex-1 p-5 overflow-hidden">
-        {posts.length > 0 ? (
-          posts.map((post) => (
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(1)].map((_, index) => (
+            <Skeleton key={index} active avatar paragraph={{ rows: 5 }} />
+          ))}
+        </div> */}
+
+        {recommendPosts.length > 0 ? (
+          recommendPosts.map((post) => (
             <Post_Card
               key={post.post_id}
               post_id={post.post_id}
@@ -131,18 +73,18 @@ function PostDisplayComponent() {
             />
           ))
         ) : (
-          <p className="text-gray-600 text-center">No recommended posts available.</p>
+          <p className="text-gray-600 text-center">Không có bài viết gợi ý nào.</p>
         )}
       </div>
       {showRecentPosts && (
         <div className="fixed right-8 top-[12.5%] w-80 bg-gray-100 rounded-lg p-5 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-200 scrollbar-thumb-rounded-full">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-gray-800">Recent Post</h2>
+            <h2 className="text-lg font-bold text-gray-800">Bài viết gần đây</h2>
             <button
               className="text-blue-600 underline bg-transparent rounded px-3 py-1.5 text-sm hover:bg-gray-200 transition-colors duration-200"
               onClick={clearRecentPosts}
             >
-              Clear
+              Xóa
             </button>
           </div>
           <div className="flex flex-col gap-4 min-h-[50vh]">
@@ -165,7 +107,7 @@ function PostDisplayComponent() {
                 />
               ))
             ) : (
-              <p className="text-gray-600 text-center">No recent posts available.</p>
+              <p className="text-gray-600 text-center">Không có bài viết gần đây.</p>
             )}
           </div>
         </div>
@@ -187,13 +129,7 @@ const Home = () => {
         <div className="sticky top-16 w-56 bg-gray-100 h-[calc(100vh-4rem)] mt-[10rem]">
           <Sidebar />
         </div>
-        <div className="flex-1">
-          {isHomePage ? (
-            <PostDisplayComponent />
-          ) : (
-            <Outlet />
-          )}
-        </div>
+        <div className="flex-1">{isHomePage ? <PostDisplayComponent /> : <Outlet />}</div>
       </div>
     </>
   );

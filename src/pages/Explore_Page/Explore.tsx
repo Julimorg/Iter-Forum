@@ -7,7 +7,6 @@ const { Title, Text } = Typography;
 const Explore = () => {
   const { data, isLoading: isFetching } = useGetSubscribedTags();
 
-  // Chuyển đổi dữ liệu từ hook thành groupedTags
   const groupedTags = useMemo(() => {
     return (
       data?.data?.reduce(
