@@ -15,7 +15,7 @@ import { Skeleton } from 'antd';
 //TODO: Tìm cách xử lý socket khi vào Home
         //* --> Bắt socket trực tiếp ở Home
         //* --> Bắt socket như đã làm ở PostCard và tìm cách tối ưu 
-//TODO Tìm cách RemovePost UI/UX thông qua Cache của ReactQuery
+//TODO: Tìm cách RemovePost UI/UX thông qua Cache của ReactQuery
 
 
 

@@ -10,7 +10,7 @@ import { BellOutlined } from '@ant-design/icons';
 const { Text, Paragraph } = Typography;
 
 
-//TODO Cần tối ưu việc fetch với Lazy Loading 
+//TODO: Cần tối ưu việc fetch với Lazy Loading 
 
 const NotificationItem = memo(
   ({ notification }: { notification: NotificationData }) => {
