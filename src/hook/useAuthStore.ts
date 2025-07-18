@@ -10,9 +10,12 @@ export const useAuthStore = create<AuthState>()(
         (set) => ({
             access_token: null,
             refresh_token: null,
-            setTokens: (access_token, refresh_token) =>
-                set({access_token, refresh_token}),
-            clearTokens: () => set({access_token: null, refresh_token: null})
+            ava_img: null,
+            user_id: null,
+            user_name: null,
+            setTokens: (access_token, refresh_token, ava_img, user_id, user_name) =>
+                set({access_token, refresh_token, ava_img, user_id, user_name}),
+            clearTokens: () => set({access_token: null, refresh_token: null, ava_img: null, user_id: null, user_name: null})
         }),
         {
             name: "iterForum-storage",

@@ -73,7 +73,13 @@ axiosClient.interceptors.response.use(
               const { access_token } = res.data;
               // console.log('Refresh token thành công, access_token mới:', access_token);
 
-              useAuthStore.getState().setTokens(access_token, refreshToken);
+              useAuthStore.getState().setTokens(
+                access_token,
+                refreshToken,
+                useAuthStore.getState().ava_img,
+                useAuthStore.getState().user_id,
+                useAuthStore.getState().user_name
+              );
               axiosClient.defaults.headers.Authorization = `Bearer ${access_token}`;
               return access_token;
             })

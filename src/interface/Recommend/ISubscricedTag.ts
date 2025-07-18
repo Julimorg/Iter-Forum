@@ -12,7 +12,5 @@ export type NotificationData = {
 
 export type SubscribedTagResponse = {
     subscribed_tags: SubscribedTag[] | null;
-    username?: string;
-    ava_img_path?: string | null;
     notifications?: NotificationData[] | null;
 };

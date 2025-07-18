@@ -208,7 +208,7 @@ const Postcard: React.FC<PostcardProps> = ({
 
   return (
     <Card
-      className="w-full max-w-3xl mx-auto mb-4 shadow-lg"
+      className="w-full max-w-6xl mx-auto mb-5 shadow-lg"
       bodyStyle={{ padding: '16px' }}
     >
       <div className="flex items-center justify-between mb-4">
