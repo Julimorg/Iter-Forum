@@ -36,7 +36,7 @@ const StyleWrapper = styled.div`
   border: 2px solid #f0f0f0;
   // border: none;
   background-color: #fff;
-  width: 7.8rem;
+  width: 10rem;
   height: 3rem;
   border-radius: 1rem;
   cursor: pointer;

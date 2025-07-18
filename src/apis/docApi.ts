@@ -7,7 +7,10 @@ import { IResponse } from '../interface/IAPIResponse';
 import { ExploreTagsResponse } from '../interface/Recommend/IExploreTags';
 import { IGetHome } from '../interface/Recommend/IGetHome';
 import { SubscribedTagResponse } from '../interface/Recommend/ISubscricedTag';
+import { IGetMyPost } from '../interface/Users/IGetMyPosts';
+import { IGetProfile } from '../interface/Users/IGetProfile';
 import axiosClient from './axiosClient';
+
 
 export const docApi = {
   Login: async (body: LoginRequest): Promise<LoginRespsone> => {
@@ -75,6 +78,18 @@ export const docApi = {
 
   GetHome: async(): Promise<IResponse<IGetHome>> => {
     const url = '/recommend/home';
+    const res = await axiosClient.get(url);
+    return res.data;
+  },
+
+  GetMyProfile: async(): Promise<IResponse<IGetProfile>> => {
+    const url = '/users/profile';
+    const res = await axiosClient.get(url);
+    return res.data;
+  },
+  
+  GetMyPost: async(user_id?: string): Promise<IResponse<IGetMyPost[]>> => {
+    const url = `posts/user_posts/${user_id}`;
     const res = await axiosClient.get(url);
     return res.data;
   }

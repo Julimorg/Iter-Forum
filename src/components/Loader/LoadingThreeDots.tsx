@@ -15,7 +15,7 @@ const LoadingThreeDots = () => {
 
 const StyledWrapper = styled.div`
   .three-body {
-   --uib-size: 35px;
+   --uib-size: 50px;
    --uib-speed: 0.8s;
    --uib-color: #5D3FD3;
    position: relative;
@@ -28,7 +28,7 @@ const StyledWrapper = styled.div`
   .three-body__dot {
    position: absolute;
    height: 100%;
-   width: 30%;
+   width: 35%;
   }
 
   .three-body__dot:after {

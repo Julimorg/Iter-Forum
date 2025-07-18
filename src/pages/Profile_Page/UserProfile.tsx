@@ -1,495 +1,100 @@
-import React, { useEffect, useRef, useState } from "react";
-import styles from "./userProfile.module.css";
-import ButtonIconLeft from "../../components/ButtonIconLeft/ButtonIconLeft";
-import { FaUserPen, FaXmark } from "react-icons/fa6";
-import IconButton from "../../components/RoundButtonIcon/RoundButtonIcon";
-import Post_Card from "../../components/Post_Card/postcard";
-import ButtonTextComponent from "../../components/ButtonTextOnly/ButtonText";
-import authorizedAxiosInstance from "../../services/Auth";
-import { API_BE } from "../../config/configApi";
-import axios from "axios";
-
-const fakeAvatar: string =
-  "https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e303b9f80d10d582.jpg";
-
-interface UserDetail {
-  user_id: string;
-  user_name: string;
-  email: string;
-  ava_img_path: string | null;
-  age: string | null;
-  phone_num: string | null;
-}
-
-interface ProfileResponse {
-  data: UserDetail;
-}
-
-interface PostItem {
-  user_id: string;
-  user_name: string;
-  ava_img_path: string | null;
-  post_id: string;
-  post_content: string;
-  img_url: string[];
-  upvote: number;
-  downvote: number;
-  comments_num: number;
-  post_title: string;
-  tags: string[];
-  date_updated: string; // Đã thêm date_updated
-}
-
-interface PostsResponse {
-  data: PostItem[];
-}
-
-interface UserProfile {
-  user_name?: string;
-  email?: string;
-  ava_img_path?: string | null;
-  phone_num?: string;
-  age?: number;
-}
+import { useState } from 'react';
+import ButtonIconLeft from '../../components/ButtonIconLeft/ButtonIconLeft';
+import { FaUserPen } from 'react-icons/fa6';
+import { useGetProfile } from './Hooks/useGetProfile';
+import DisplayPostComponent from './Components/DisplayPostComponent';
+import { fakeAvatar } from '../../utils/utils';
+import LoadingThreeDots from '../../components/Loader/LoadingThreeDots';
 
 const UserProfile = () => {
   const [profileEditModel, setProfileEditModel] = useState(false);
-  // const [error, setError] = useState("");
-  const [fetchUser, setFetchUser] = useState<UserDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [posts, setPosts] = useState<PostItem[]>([]);
+  const { data, isLoading, error, isFetching } = useGetProfile();
 
-  //* ===================== FUNCTION HANDLE API ===================== **//
-
-  //? Fetch API Users
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const accessToken = localStorage.getItem("accessToken");
-
-        if (!accessToken) {
-          // setError("Vui lòng đăng nhập để xem thông tin profile");
-          return;
-        }
-        const res = await authorizedAxiosInstance.get<ProfileResponse>(
-          `${API_BE}/api/v1/users/profile`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        console.log("Users API Response:", res.data);
-
-        if (res.data && res.data.data) {
-          setFetchUser(res.data.data); // Gán phần data bên trong
-        } else {
-          console.error("Dữ liệu API không đúng định dạng", res.data);
-          setFetchUser(null);
-          // setError("Dữ liệu trả về không hợp lệ");
-        }
-      } catch (error: any) {
-        console.error("Lỗi khi fetch API Users:", error);
-        if (error.response?.status === 404) {
-          // setError("Không tìm thấy thông tin profile.");
-        } else {
-          // setError(
-          //   error.response?.data?.message ||
-          //   "Không thể tải thông tin người dùng"
-          // );
-        }
-        setFetchUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
-  //? Fetch Posts
-  useEffect(() => {
-    const fetchPosts = async () => {
-      if (!fetchUser?.user_id) return; // Chỉ chạy khi fetchUser có giá trị
-      try {
-        setLoading(true);
-        const accessToken = localStorage.getItem('accessToken');
-
-        if (!accessToken) {
-          // setError('Vui lòng đăng nhập để xem danh sách bài post');
-          return;
-        }
-
-        const userId = fetchUser.user_id;
-
-        const res = await axios.get<PostsResponse>(
-          `${API_BE}/api/v1/posts/user_posts/${userId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        console.log('Posts API Response:', res.data);
-
-        if (res.data.data) {
-          setPosts(res.data.data);
-        } else {
-          console.error('Dữ liệu API không đúng định dạng', res.data);
-          setPosts([]);
-          // setError('Dữ liệu trả về không hợp lệ');
-        }
-      } catch (error: any) {
-        console.error('Lỗi khi fetch API Posts:', error);
-        if (error.response?.status === 404) {
-          // setError('Không tìm thấy bài post nào.');
-        } else {
-          // setError(
-          //   error.response?.data?.message || 'Không thể tải danh sách bài post'
-          // );
-        }
-        setPosts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, [fetchUser]);
-
-  //? Handle Open User Profile Edit Modal
-  function UserProfileEditForm({
-    isOpen,
-    onClose,
-    setFetchUser,
-  }: {
-    isOpen: boolean;
-    onClose: () => void;
-    setFetchUser: React.Dispatch<React.SetStateAction<UserDetail | null>>;
-  }) {
-    const [error, setError] = useState<string | null>(null);
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const userNameRef = useRef<HTMLInputElement>(null);
-    const userEmailRef = useRef<HTMLInputElement>(null);
-    const userPhoneRef = useRef<HTMLInputElement>(null);
-    const userAgeRef = useRef<HTMLInputElement>(null);
-    const accessToken = localStorage.getItem("accessToken");
-
-    // Fetch dữ liệu khi form mở
-    useEffect(() => {
-      const fetchProfile = async () => {
-        if (!isOpen || !accessToken) return;
-
-        try {
-          const response = await authorizedAxiosInstance.get<ProfileResponse>(
-            `${API_BE}/api/v1/users/profile`,
-            { headers: { Authorization: `Bearer ${accessToken}` } }
-          );
-          const userData = response.data.data;
-          console.log('Fetched user data:', userData);
-
-          // Chỉ set giá trị ban đầu khi form mở, không ghi đè liên tục
-          if (userNameRef.current && !userNameRef.current.value) userNameRef.current.value = userData.user_name || '';
-          if (userEmailRef.current && !userEmailRef.current.value) userEmailRef.current.value = userData.email || '';
-          if (userPhoneRef.current && !userPhoneRef.current.value) userPhoneRef.current.value = userData.phone_num || '';
-          if (userAgeRef.current && !userAgeRef.current.value) userAgeRef.current.value = userData.age || '';
-          if (userData.ava_img_path) setSelectedImage(userData.ava_img_path);
-        } catch (error) {
-          console.error('Fetch failed:', error);
-          setError('Failed to load profile');
-        }
-      };
-
-      fetchProfile();
-    }, [isOpen, accessToken]);
-
-    //? Update profile
-    useEffect(() => {
-      const updateProfile = async () => {
-        if (!isSubmitting || !accessToken) return;
-
-        try {
-          const userName = userNameRef.current?.value || '';
-          const email = userEmailRef.current?.value || '';
-          const phoneNum = userPhoneRef.current?.value || '';
-          const age = userAgeRef.current?.value ? parseInt(userAgeRef.current.value) : undefined;
-
-          // Validation
-          if (userName && userName.length > 20) {
-            setError('User name limit 20 chars');
-            return;
-          }
-          if (email && !/^\S+@\S+\.\S+$/.test(email)) {
-            setError('Email is invalid');
-            return;
-          }
-          if (phoneNum && !/^\d{10}$/.test(phoneNum)) {
-            setError('Phone is invalid');
-            return;
-          }
-          if (age && (age < 13 || age > 100)) {
-            setError('Age limit from 13 to 100');
-            return;
-          }
-
-          // Lấy dữ liệu hiện tại để so sánh và gửi toàn bộ profile
-          const response = await authorizedAxiosInstance.get<ProfileResponse>(
-            `${API_BE}/api/v1/users/profile`,
-            { headers: { Authorization: `Bearer ${accessToken}` } }
-          );
-          const userData = response.data.data;
-
-          const profileData: UserProfile = {
-            user_name: userName || userData.user_name || '',
-            email: email || userData.email || '',
-            ava_img_path: selectedImage !== null ? selectedImage : userData.ava_img_path,
-            phone_num: phoneNum || userData.phone_num || '',
-            age: age !== undefined ? age : (userData.age ? parseInt(userData.age) : undefined),
-          };
-
-          console.log('Sending PUT request with data:', profileData);
-
-          const updateResponse = await authorizedAxiosInstance.put(
-            `${API_BE}/api/v1/users/profile/${userData.user_id}`,
-            profileData,
-            { headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' } }
-          );
-
-          console.log('Profile updated successfully:', updateResponse.data);
-          alert('Profile updated successfully!');
-          setError(null);
-          setFetchUser(updateResponse.data.data);
-          onClose();
-        } catch (error) {
-          console.error('Request failed:', error);
-          if (axios.isAxiosError(error)) {
-            setError(error.response?.data?.message || 'Failed to process request');
-            console.log('Error response:', error.response);
-          } else {
-            setError('An unexpected error occurred');
-          }
-        } finally {
-          setIsSubmitting(false);
-        }
-      };
-
-      updateProfile();
-    }, [isSubmitting, accessToken, onClose, setFetchUser]);
-
-    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file) {
-        const imageUrl = URL.createObjectURL(file);
-        setSelectedImage(imageUrl);
-      }
-    };
-
-    const eventClickOpenFile = () => {
-      document.getElementById("avatarUpload")?.click();
-    };
-
-    const handleRemoveImage = () => {
-      setSelectedImage(null);
-    };
-
-    const handleSubmit = () => {
-      if (!accessToken) {
-        setError('Please login first');
-        return;
-      }
-      setIsSubmitting(true);
-    };
-
-    if (!isOpen) return null;
-
+  if (error || !data || !data.data) {
     return (
-      <div className={`${styles.editModel} ${isOpen ? styles.show : styles.hide}`}>
-        {error && <div className={styles.errorMessage}>{error}</div>}
-        <div className={styles.editFormHeader}>
-          <h2>Edit Profile</h2>
-          <IconButton Icon={FaXmark} size={20} color="#333" onClick={onClose} />
-        </div>
-        <div className={styles.editFormBody}>
-          <div className={styles.fillTextForm}>
-            <div className={styles.editUserName}>
-              {error?.includes('User name') ? (
-                <p className={styles.errorText}>User name limit 20 chars</p>
-              ) : (
-                <p>Your User Name</p>
-              )}
-              <input ref={userNameRef} className={styles.userNameInput} type="text" placeholder="Your user name..." />
-            </div>
-            <div className={styles.editUserEmail}>
-              {error?.includes('Email') ? (
-                <p className={styles.errorText}>Email is invalid</p>
-              ) : (
-                <p>Your Email</p>
-              )}
-              <input ref={userEmailRef} className={styles.userEmailInput} type="email" placeholder="Your email..." />
-            </div>
-            <div className={styles.editUserPhone}>
-              {error?.includes('Phone') ? (
-                <p className={styles.errorText}>Phone is invalid</p>
-              ) : (
-                <p>Your Phone</p>
-              )}
-              <input ref={userPhoneRef} className={styles.userPhoneInput} type="text" placeholder="Your phone number..." />
-            </div>
-            <div className={styles.editUserAge}>
-              {error?.includes('Age') ? (
-                <p className={styles.errorText}>Age limit from 13 to 100</p>
-              ) : (
-                <p>Your Age</p>
-              )}
-              <input ref={userAgeRef} className={styles.userAgeInput} type="number" placeholder="Your Age..." />
-            </div>
-          </div>
-          <div className={styles.editAvartar}>
-            <div className={styles.userEditAvatar}>
-              <div className={styles.userImageInput}>
-                <img src={selectedImage || fakeAvatar} alt="Avatar" />
-              </div>
-            </div>
-            <div className={styles.inputImgAvatarBtn}>
-              <input type="file" accept="image/*" style={{ display: "none" }} id="avatarUpload" onChange={handleImageChange} />
-              <ButtonTextComponent
-                $backgroundColor="rgb(200, 200, 200)"
-                $hoverBackgroundColor="C5F6FF"
-                $hoverColor="#333"
-                title="Input image"
-                onClick={eventClickOpenFile}
-              />
-              {selectedImage && (
-                <ButtonTextComponent
-                  $backgroundColor="rgb(200, 200, 200)"
-                  $hoverBackgroundColor="C5F6FF"
-                  $hoverColor="#333"
-                  title="Remove image"
-                  onClick={handleRemoveImage}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-        <div className={styles.confirmBtn}>
-          <ButtonTextComponent
-            $backgroundColor="rgb(200, 200, 200)"
-            $hoverBackgroundColor="C5F6FF"
-            $hoverColor="#333"
-            title="Confirm new information"
-            $width="15em"
-            onClick={handleSubmit}
-          />
-        </div>
-      </div>
+      <p className="text-center text-red-500 py-10 text-lg">
+        {/* {error ? `Lỗi: ${error.message}` : 'Không tìm thấy thông tin người dùng'} */}
+      </p>
     );
   }
 
-  const DisplayPostComponent: React.FC<{
-    posts: PostItem[];
-    setPosts: React.Dispatch<React.SetStateAction<PostItem[]>>;
-  }> = ({ posts, setPosts }) => {
-    const removePost = (id: string) => {
-      setPosts((prevPosts) => prevPosts.filter((post) => post.post_id !== id));
-    };
+  const profileData = data.data;
+  const fullname = profileData.first_name + ' ' + profileData.last_name;
+  const doubleNull = null + ' ' + null;
 
-    return (
-      <>
-        <div className={styles.postContainer}>
-          {posts.length > 0 ? (
-            posts.map((post) => (
-              <Post_Card
-                key={post.post_id}
-                post_id={post.post_id}
-                user={post.user_name}
-                user_id={post.user_id}
-                title={post.post_title}
-                caption={post.post_content}
-                likes={post.upvote}
-                dislikes={post.downvote}
-                comments={post.comments_num}
-                tags={post.tags}
-                images={post.img_url}
-                avatar={post.ava_img_path}
-                onRemove={() => removePost(post.post_id)}
-                isTrending={false}
-                date_updated={post.date_updated} // Truyền date_updated
-              />
-            ))
-          ) : null}
-        </div>
-      </>
-    );
-  };
-
-  //** Main View */
-  if (loading) {
-    return <p>Loading...</p>;
-  }
-  if (!fetchUser) {
-    return <p>Không tìm thấy thông tin người dùng</p>;
-  }
   return (
     <>
-      <div className={styles.profileContainer}>
-        <div className={styles.userProfileBody}>
-          {/* Header Profile */}
-          <div className="userProfileContact">
-            {/* User Basic info */}
-            <div className={styles.userProfileInformation}>
-              <div className={styles.userProfileImage}>
-                <img
-                  src={fetchUser?.ava_img_path || fakeAvatar}
-                  alt={fetchUser?.user_name || "unknown"}
+      {isLoading || isFetching ? (
+        <div className="flex items-center justify-center h-[30rem] ">
+          <LoadingThreeDots />
+        </div>
+      ) : (
+        <div className="container mx-auto px-4 py-8 max-w-10xl">
+          <div className="bg-white rounded-lg shadow-sm mb-8">
+            {/* Cover Photo Placeholder */}
+            <div className="h-56 bg-gray-200 rounded-t-lg relative">
+              <img
+                src={profileData.avag_img_path || fakeAvatar}
+                alt={profileData.user_name || 'unknown'}
+                className="w-40 h-40 rounded-full object-cover border-4 border-white absolute -bottom-20 left-8 shadow-md"
+              />
+            </div>
+            <div className="pt-24 pb-8 px-8">
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <div className="flex">
+                    <h1 className="text-3xl font-bold text-gray-800">
+                      {fullname != doubleNull ? fullname : profileData.user_name}
+                    </h1>
+                    <p className="ml-4 text-3xl text-gray-800">
+                      ( {profileData.user_name || 'Chưa có tên'} )
+                    </p>
+                  </div>
+
+                  <p className="text-green-600 text-base mt-2">Trạng thái: Hoạt động</p>
+                </div>
+                <ButtonIconLeft
+                  Icon={FaUserPen}
+                  size={18}
+                  color="#1e40af"
+                  title="Chỉnh sửa hồ sơ"
+                  onclick={() => setProfileEditModel(true)}
                 />
               </div>
-              <div className={styles.userProfileName}>
-                <h1>{fetchUser?.user_name || "Chưa có tên"}</h1>
-                <p>Status: Active</p>
-              </div>
-              <div className={styles.userProfileBio}>
-                <div className={styles.userBasicInfo}>
-                  <h1>My information</h1>
-                  <p>Email: {fetchUser?.email || "N/A"}</p>
-                  <p>Phone: {fetchUser?.phone_num || "N/A"}</p>
-                  <p>Age: {fetchUser?.age || "N/A"}</p>
-                </div>
-                {/* Ovelay khi modal hiện lên */}
-                {profileEditModel && (
-                  <div
-                    className={styles.overlay}
-                    onClick={() => setProfileEditModel(false)}
-                  ></div>
-                )}
-                <div className="editUserProfile">
-                  <ButtonIconLeft
-                    Icon={FaUserPen}
-                    size={20}
-                    color="#333"
-                    title="Edit Profile"
-                    onclick={() => setProfileEditModel(true)}
-                  />
-                  <UserProfileEditForm
-                    isOpen={profileEditModel}
-                    onClose={() => setProfileEditModel(false)}
-                    setFetchUser={setFetchUser}
-                  />
+              <div className="mt-8 border-t border-gray-200 pt-6">
+                <h2 className="text-xl font-semibold text-gray-700 mb-4">Thông tin cá nhân</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-gray-600 text-base">
+                  <p>
+                    <span className="font-medium">Email:</span> {profileData.email || 'N/A'}
+                  </p>
+                  <p>
+                    <span className="font-medium">Số điện thoại:</span>{' '}
+                    {profileData.phone_num || 'N/A'}
+                  </p>
+                  <p>
+                    <span className="font-medium">Tuổi:</span> {profileData.age || 'N/A'}
+                  </p>
                 </div>
               </div>
             </div>
+            {profileEditModel && (
+              <div
+                className="fixed inset-0 bg-black bg-opacity-50 z-40"
+                onClick={() => setProfileEditModel(false)}
+              ></div>
+            )}
+            {/* <UserProfileEditForm
+          isOpen={profileEditModel}
+          onClose={() => setProfileEditModel(false)}
+          setFetchUser={data}
+        /> */}
           </div>
-          <span />
-          {/* User Profile Post, ... etc */}
-          <div className="userProfileContent">
-            <DisplayPostComponent posts={posts} setPosts={setPosts} />
+          <div className="border-t border-gray-200 pt-8">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">Bài viết của tôi</h2>
+            <DisplayPostComponent />
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 };
