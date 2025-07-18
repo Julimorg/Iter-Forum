@@ -55,8 +55,8 @@ function PostDisplayComponent() {
   const recentPosts = data?.data.recent_posts || [];
 
   return (
-    <div className="flex gap-8 w-full max-w-[65rem] mx-auto">
-      <div className="flex-1 p-5 overflow-hidden">
+    <div className="flex gap-3 w-full  mx-auto">
+      <div className="flex-0.5 p-5 overflow-hidden">
         {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(1)].map((_, index) => (
             <Skeleton key={index} active avatar paragraph={{ rows: 5 }} />

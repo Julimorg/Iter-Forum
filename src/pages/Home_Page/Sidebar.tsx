@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Menu, Button, Spin, Typography, Empty } from 'antd';
 import {
   HomeOutlined,
@@ -14,42 +14,15 @@ import {
   LoadingOutlined,
 } from '@ant-design/icons';
 import { useGetSubscribedTags } from './Hooks/useGetTag';
-import { useAuthStore } from '../../hook/useAuthStore';
-import { useLogOut } from '../../hook/useLogOut';
-import { toast } from 'react-toastify';
-import { AxiosError } from 'axios';
+
 
 interface SidebarProps {
   onSignOutClick?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = () => {
-  const navigate = useNavigate();
   const [showAllTags, setShowAllTags] = useState<boolean>(false);
-
   const { data, isLoading, error } = useGetSubscribedTags();
-  const refresh_token = useAuthStore.getState().refresh_token;
-
-  const { mutate, isPending } = useLogOut({
-    onSuccess: () => {
-      toast.success("LogOut successfully");
-      useAuthStore.getState().clearTokens();
-    },
-    onError: (err: AxiosError<{ message?: string }>) => {
-      const errorMessage = err.response?.data?.message || 'Đã có lỗi xảy ra khi đăng ký!';
-      toast.error(`${errorMessage}`);
-      // console.log(err);
-    },
-  });
-  // Debug data
-  // console.log('Subscribed Tags:', data);
-
-  const handleLogOut = async () => {
-    mutate({ refresh_token });
-    // console.log(refresh_token);
-    navigate('/login');
-  };
-
 
   const scrollToTop = useCallback(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -167,16 +140,6 @@ const Sidebar: React.FC<SidebarProps> = () => {
             },
           ]}
         />
-      </div>
-
-      <div className="px-4 py-4">
-        <Button
-          type="text"
-          onClick={handleLogOut}
-          className="w-full text-left text-gray-800 hover:text-blue-500"
-        >
-         {isPending ? "Đang xử lý..." : " Đăng xuất "}
-        </Button>
       </div>
     </aside>
   );

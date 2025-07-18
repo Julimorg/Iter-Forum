@@ -8,6 +8,8 @@ import ButtonIconLeft from '../../components/ButtonIconLeft/ButtonIconLeft';
 import IconButton from '../../components/RoundButtonIcon/RoundButtonIcon';
 import UserProfileButton from '../../components/UserProfileButton/UserProfileButton';
 import NotiModel from './Components/Notification_Modal';
+import UserModel from './Components/User_Modal';
+import { fakeAvatar } from '../../utils/utils';
 
 interface SearchedUser {
   user_id: string;
@@ -21,28 +23,6 @@ interface SearchResponse {
 }
 
 
-
-const fakeAvatar = "https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e303b9f80d10d582.jpg";
-
-
-function UserModel({ isOpen }: { isOpen: boolean }) {
-  return (
-    <div
-      className={`absolute top-14 right-0 z-50 w-48 bg-white rounded-2xl shadow-xl transition-all duration-300 ease-in-out ${
-        isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
-      }`}
-    >
-      <div className="p-2">
-        <Link
-          to="profile"
-          className="block px-4 py-2 text-gray-800 hover:bg-gray-100 rounded-lg text-sm font-medium"
-        >
-          Hồ sơ của tôi
-        </Link>
-      </div>
-    </div>
-  );
-}
 
 function SearchModal({ isOpen, users, onClose }: { isOpen: boolean; users: SearchedUser[]; onClose: () => void }) {
   return (
