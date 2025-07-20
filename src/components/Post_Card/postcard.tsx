@@ -24,7 +24,7 @@ interface PostcardProps {
   likes: number;
   dislikes: number;
   comments: number;
-  tags: string[];
+  tags?: string[];
   isTrending?: boolean;
   onRemove?: () => void;
   images?: string[] | null;

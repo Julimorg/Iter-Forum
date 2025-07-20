@@ -6,7 +6,7 @@ import { docApi } from "../../../apis/docApi";
 
 
 
-type UserGetUserProfilePostOptions = Omit<UseQueryOptions<IResponse<IGetUserDetailPosts>>, 'queryKey' | 'queryFn'>;
+type UserGetUserProfilePostOptions = Omit<UseQueryOptions<IResponse<IGetUserDetailPosts[]>>, 'queryKey' | 'queryFn'>;
 
 export const userGetUserProfilePost = (user_id: string, options?:UserGetUserProfilePostOptions) => {
     return useQuery({

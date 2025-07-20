@@ -189,7 +189,7 @@ const ViewUserProfile = () => {
                     likes={post.upvote}
                     dislikes={post.downvote}
                     comments={post.comments_num}
-                    tags={post.tags || []}
+                    // tags={post.tags || []}
                     images={post.img_url}
                     avatar={post.ava_img_path}
                     // onRemove={() => handleRemovePost(post.post_id)} // Comment vì không sử dụng
