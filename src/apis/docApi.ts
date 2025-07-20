@@ -6,6 +6,8 @@ import { LoginRequest, LoginRespsone } from '../interface/Auth/Login';
 import { IResponse } from '../interface/IAPIResponse';
 import { ExploreTagsResponse } from '../interface/Recommend/IExploreTags';
 import { IGetHome } from '../interface/Recommend/IGetHome';
+import { IGetPopular } from '../interface/Recommend/IGetPopular';
+import { IGetTagDetail } from '../interface/Recommend/IGetTagDetail';
 import { SubscribedTagResponse } from '../interface/Recommend/ISubscricedTag';
 import { IGetMyPost } from '../interface/Users/IGetMyPosts';
 import { IGetProfile } from '../interface/Users/IGetProfile';
@@ -90,6 +92,18 @@ export const docApi = {
   
   GetMyPost: async(user_id?: string): Promise<IResponse<IGetMyPost[]>> => {
     const url = `posts/user_posts/${user_id}`;
+    const res = await axiosClient.get(url);
+    return res.data;
+  },
+
+  GetPopular: async(): Promise<IResponse<IGetPopular>> => {
+    const url = 'recommend/popular';
+    const res = await axiosClient.get(url);
+    return res.data;
+  },
+  
+  GetTagDetails: async(tag_id: string): Promise<IResponse<IGetTagDetail>> => {
+    const url = `recommend/tags/${tag_id}`;
     const res = await axiosClient.get(url);
     return res.data;
   }

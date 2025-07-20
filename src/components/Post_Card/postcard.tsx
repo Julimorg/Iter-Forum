@@ -26,7 +26,7 @@ interface PostcardProps {
   comments: number;
   tags: string[];
   isTrending?: boolean;
-  onRemove: () => void;
+  onRemove?: () => void;
   images?: string[] | null;
   avatar?: string | null;
   date_updated?: string;

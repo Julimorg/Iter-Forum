@@ -1,24 +1,13 @@
-import React, { CSSProperties } from 'react';
+import React from 'react';
+import { Tag } from 'antd';
 
 const TagPost: React.FC<{ tag: string }> = ({ tag }) => {
-  // CSS styles defined as objects
-  const styles: { [key: string]: CSSProperties } = {
-    tagPost: {
-      backgroundColor: 'rgb(255, 255, 255)',
-      color: '#000000',
-      fontSize: '0.85rem',
-      padding: '5px 10px',
-      borderRadius: '12px',
-      border: '1px solid #000000',
-      display: 'inline-block',
-      whiteSpace: 'nowrap', // Prevent tags from breaking into multiple lines
-    },
-  };
-
   return (
-    <span style={styles.tagPost}>
-      #{tag}
-    </span>
+    <Tag
+      className="bg-white text-gray-800 text-sm font-medium border border-gray-300 rounded-full px-3 py-1 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-400 transition-all duration-200 whitespace-nowrap"
+    >
+      # {tag}
+    </Tag>
   );
 };
 

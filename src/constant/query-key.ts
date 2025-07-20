@@ -5,4 +5,6 @@ export const QueryKeys = {
   NOTIFICATIONS: 'notifications',
   GET_PROFILE: 'get_profile',
   GET_MY_POSTS: 'get_my_posts',
+  GET_TRENDING_TAGS: 'get_trending_tags',
+  TAG_DETAIL: 'tag_detail'
 };
