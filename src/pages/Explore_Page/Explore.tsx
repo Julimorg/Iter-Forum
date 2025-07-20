@@ -1,16 +1,26 @@
 import { Card, Skeleton, Typography } from 'antd';
 import { useGetSubscribedTags } from './Hooks/useGetExploreTags';
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
+//TODO: Bên BE hiện tại chưa config việc fetch dữ liệu cho những tags chưa có bài post nào
+//TODO: nên là việc cần làm 1: Config bên Fe / 2: Config bên BE
+
 const Explore = () => {
   const { data, isLoading: isFetching } = useGetSubscribedTags();
+  const navigate = useNavigate();
 
   const groupedTags = useMemo(() => {
     return (
       data?.data?.reduce(
-        (acc: { [key: string]: { tag_id: string; title: string; posts: number; isTrending: boolean }[] }, tag) => {
+        (
+          acc: {
+            [key: string]: { tag_id: string; title: string; posts: number; isTrending: boolean }[];
+          },
+          tag
+        ) => {
           const category = tag.tag_category;
           if (!acc[category]) {
             acc[category] = [];
@@ -27,6 +37,10 @@ const Explore = () => {
       ) || {}
     );
   }, [data]);
+
+  const handleTagClick = (tag_id: string) => {
+    navigate(`/home/tag/${tag_id}`);
+  };
   return (
     <div className="container  px-4 py-8  min-h-screen">
       <Title level={2} className="mb-8 text-gray-800 text-start">
@@ -52,6 +66,7 @@ const Explore = () => {
                     key={tag.tag_id}
                     hoverable
                     className="shadow-md transition-all duration-300 hover:shadow-lg"
+                    onClick={() => handleTagClick(tag.tag_id)}
                     cover={
                       tag.isTrending && (
                         <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
@@ -67,9 +82,7 @@ const Explore = () => {
                         </Text>
                       }
                       description={
-                        <Text type="secondary">
-                          {tag.posts.toLocaleString()} bài viết
-                        </Text>
+                        <Text type="secondary">{tag.posts.toLocaleString()} bài viết</Text>
                       }
                     />
                   </Card>

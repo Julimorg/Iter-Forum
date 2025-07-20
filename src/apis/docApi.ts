@@ -11,6 +11,7 @@ import { IGetTagDetail } from '../interface/Recommend/IGetTagDetail';
 import { SubscribedTagResponse } from '../interface/Recommend/ISubscricedTag';
 import { IGetMyPost } from '../interface/Users/IGetMyPosts';
 import { IGetProfile } from '../interface/Users/IGetProfile';
+import { IGetUserDetail, IGetUserDetailPosts } from '../interface/Users/IGetUserDetail';
 import axiosClient from './axiosClient';
 
 
@@ -104,6 +105,18 @@ export const docApi = {
   
   GetTagDetails: async(tag_id: string): Promise<IResponse<IGetTagDetail>> => {
     const url = `recommend/tags/${tag_id}`;
+    const res = await axiosClient.get(url);
+    return res.data;
+  },
+
+  GetUserDetail: async(user_id: string): Promise<IResponse<IGetUserDetail>> => {
+    const url = `users/user-detail/${user_id}`;
+    const res = await axiosClient.get(url);
+    return res.data;
+  },
+
+  GetUserDetailPosts: async(user_id: string): Promise<IResponse<IGetUserDetailPosts[]>> => {
+    const url = `posts/user_posts/${user_id}`;
     const res = await axiosClient.get(url);
     return res.data;
   }

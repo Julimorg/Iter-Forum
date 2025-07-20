@@ -1,205 +1,209 @@
-import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
-import styles from "./viewuserprofile.module.css";
-import authorizedAxiosInstance from "../../services/Auth";
-import { API_BE } from "../../config/configApi";
-import Post_Card from "../../components/Post_Card/postcard";
-import ReportPopup from "../../components/Report_Popup/Report_popup";
+import { useParams } from 'react-router-dom';
+import { Avatar, Card, Alert, Typography, Space, Divider, Button, Skeleton } from 'antd';
+import { MoreOutlined, UserOutlined } from '@ant-design/icons';
+import Post_Card from '../../components/Post_Card/postcard';
+import { motion } from 'framer-motion';
+import 'antd/dist/reset.css';
+import { useGetUserProfile } from './Hooks/useGetUserProfile';
+import { userGetUserProfilePost } from './Hooks/useGetUserProfilePosts';
+import { useState } from 'react';
+import ReportPopup from '../../components/Report_Popup/Report_popup';
+import LoadingThreeDots from '../../components/Loader/LoadingThreeDots';
 
-interface UserProfile {
-  user_id: string;
-  user_name: string;
-  age: number;
-  ava_img_path: string | null;
-  phone_num: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  status: string;
-}
+const { Title, Text } = Typography;
 
-interface PostItem {
-  user_id: string;
-  user_name: string;
-  ava_img_path: string | null;
-  post_id: string;
-  post_title: string;
-  post_content: string;
-  img_url: string[];
-  upvote: number;
-  downvote: number;
-  comments_num: number;
-}
+//TODO: Config lại Loading cho phần User và Phần Posts
+//TODO: Optimize lại fetching Posts --> useMemo, LazyLoading, InfiniteScroll
+//TODO: ListView và GridView cho posts
+//TODO: Thêm color cho "status"
 
-interface ApiResponse {
-  is_success: boolean;
-  status_code: number;
-  message: string;
-  data: UserProfile;
-  timestamp: number;
-}
+const defaultAvatar: string =
+  'https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e303b9f80d10d582.jpg';
+const defaultCover: string =
+  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80';
 
-interface PostsResponse {
-  is_success: boolean;
-  status_code: number;
-  message: string;
-  data: PostItem[];
-  timestamp: number;
-}
-
-const fakeAvatar: string = "https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e303b9f80d10d582.jpg";
 
 const ViewUserProfile = () => {
   const { userId } = useParams<{ userId: string }>();
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [posts, setPosts] = useState<PostItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [popupVisible, setPopupVisible] = useState<boolean>(false);
+  const [popupVisible, setPopupVisible] = useState(false);
 
-  const popupRef = useRef<HTMLDivElement | null>(null);
+  const {
+    data: user,
+    isLoading: isUserLoading,
+    isFetching: isUserFetching,
+    error: userError,
+  } = useGetUserProfile(userId ?? '');
+  const {
+    data: posts,
+    isLoading: isPostsLoading,
+    error: postsError,
+  } = userGetUserProfilePost(userId ?? '');
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!userId) {
-        setError("User ID not provided");
-        setLoading(false);
-        return;
-      }
+  const userProfile = user?.data;
+  const userPosts = posts?.data;
 
-      try {
-        console.log("Fetching user profile for userId:", userId);
-        const response = await authorizedAxiosInstance.get<ApiResponse>(
-          `${API_BE}/api/v1/users/user-detail/${userId}`
-        );
-        console.log("User Profile API response:", response.data);
+  const fullname = userProfile
+    ? (userProfile.first_name || '') + ' ' + (userProfile.last_name || '')
+    : '';
+  const displayName = fullname.trim() !== '' ? fullname : userProfile?.user_name || 'Chưa có tên';
 
-        if (response.data.is_success) {
-          setUserProfile(response.data.data);
-          setError(null);
-        } else {
-          setError(response.data.message || "Failed to fetch user profile");
-        }
-      } catch (err: any) {
-        console.error("Error fetching user profile:", err);
-        const errorMessage =
-          err.response?.data?.message || "User not found or server error";
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const fetchUserPosts = async () => {
-      if (!userId) return;
-
-      try {
-        console.log("Fetching posts for userId:", userId);
-        const response = await authorizedAxiosInstance.get<PostsResponse>(
-          `${API_BE}/api/v1/posts/user_posts/${userId}`
-        );
-        console.log("Posts API response:", response.data);
-
-        if (response.data.is_success) {
-          setPosts(response.data.data);
-        } else {
-          console.error("Failed to fetch user posts:", response.data.message);
-          setPosts([]);
-        }
-      } catch (err: any) {
-        console.error("Error fetching user posts:", err);
-        setPosts([]);
-      }
-    };
-
-    fetchUserProfile();
-    fetchUserPosts();
-  }, [userId]);
-
-  const handleRemovePost = (postId: string) => {
-    setPosts((prevPosts) => prevPosts.filter((post) => post.post_id !== postId));
-  };
-  
   const togglePopup = () => setPopupVisible(!popupVisible);
 
-
-  if (loading) {
-    return <div className={styles.profileContainer}>Loading...</div>;
+  if (isUserLoading || isUserFetching || isPostsLoading) {
+    return (
+      <div className="flex justify-center items-center h-[30rem]">
+        <LoadingThreeDots />
+      </div>
+    );
   }
 
-  if (error || !userProfile) {
+
+  if (userError || postsError) {
     return (
-      <div className={styles.profileContainer}>{error || "User not found"}</div>
+      <Alert
+        message="Lỗi"
+        description={userError?.message || postsError?.message || 'Không tìm thấy người dùng'}
+        type="error"
+        showIcon
+        className="max-w-lg mx-auto my-10 rounded-lg shadow-md"
+      />
+    );
+  }
+
+
+  if (!userProfile) {
+    return (
+      <Alert
+        message="Lỗi"
+        description="Không tìm thấy thông tin người dùng"
+        type="error"
+        showIcon
+        className="max-w-lg mx-auto my-10 rounded-lg shadow-md"
+      />
     );
   }
 
   return (
-    <div className={styles.profileContainer}>
-      <div className="userProfileBody">
-        <div className="userProfileContact">
-          <div className={styles.userProfileInformation}>
-            <div className={styles.userProfileImage}>
-              <img
-                src={userProfile.ava_img_path || fakeAvatar}
-                alt={userProfile.user_name}
-              />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="container mx-auto px-4 py-8 max-w-7xl"
+    >
+      <Card className="mb-8 bg-white rounded-lg shadow-sm" bodyStyle={{ padding: 0 }}>
+        {/* Cover Photo */}
+        <div className="h-56 bg-gray-200 rounded-t-lg relative">
+          <img src={defaultCover} alt="Cover" className="w-full h-full object-cover rounded-t-lg" />
+          <Avatar
+            src={userProfile.ava_img_path || defaultAvatar}
+            icon={!userProfile.ava_img_path && !defaultAvatar ? <UserOutlined /> : undefined}
+            size={120}
+            className="border-4 border-white absolute -bottom-16 left-8 shadow-md rounded-full"
+          />
+        </div>
+        <div className="pt-20 pb-8 px-8">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <Space>
+                <Title level={3} className="text-gray-800 font-bold">
+                  {displayName}
+                </Title>
+                <Text className="text-gray-600 text-lg">
+                  ({userProfile.user_name || 'Chưa có tên'})
+                </Text>
+              </Space>
+              <Text type="secondary" className="text-base text-green-600 mt-2 block">
+                Trạng thái: {userProfile.status || 'Hoạt động'}
+              </Text>
             </div>
-            <div className={styles.userProfileName}>
-              <h1>{userProfile.user_name}</h1>
-              <p>Status: {userProfile.status}</p>
-            </div>
-            <div className={styles.userProfileBio}>
-              <div className={styles.userBasicInfo}>
-                <h1>My Information</h1>
-                <p>Email: {userProfile.email}</p>
-                {userProfile.phone_num && <p>Phone: {userProfile.phone_num}</p>}
-                {userProfile.age && <p>Age: {userProfile.age}</p>}
-              </div>
-              <div className={styles.dotsContainer}>
-                <div className={styles.dotsButton} onClick={togglePopup}>
-                  ⋮
+            <div className="relative">
+              <Button
+                type="primary"
+                icon={<MoreOutlined />}
+                onClick={togglePopup}
+                className="bg-blue-500 hover:bg-blue-600 text-white rounded-md"
+              >
+                Báo cáo
+              </Button>
+              {popupVisible && (
+                <div className="absolute right-0 z-10 mt-2">
+                  <ReportPopup type="User" user_id={userProfile.user_id} />
                 </div>
-                {popupVisible && (
-                  <div className={styles.popup} ref={popupRef}>
-                    <ReportPopup
-                      type="User"
-                      user_id={userProfile.user_id}
-                      // post_id={userProfile.post_id}
-                    />
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           </div>
+          <Divider className="my-6 border-gray-200" />
+          <Space direction="vertical" size="small">
+            <Title level={5} className="text-gray-800 font-semibold">
+              Thông tin cá nhân
+            </Title>
+            <Text className="text-gray-700 text-base">Email: {userProfile.email || 'N/A'}</Text>
+            {userProfile.phone_num && (
+              <Text className="text-gray-700 text-base">Điện thoại: {userProfile.phone_num}</Text>
+            )}
+            {userProfile.age && (
+              <Text className="text-gray-700 text-base">Tuổi: {userProfile.age}</Text>
+            )}
+            {(userProfile.first_name || userProfile.last_name) && (
+              <Text className="text-gray-700 text-base">
+                Tên: {userProfile.first_name || ''} {userProfile.last_name || ''}
+              </Text>
+            )}
+          </Space>
         </div>
-        <span />
-        <div className="userProfileContent">
-          {posts.length > 0 ? (
-            posts.map((post) => (
-              <Post_Card
-                key={post.post_id}
-                post_id={post.post_id}
-                user={post.user_name}
-                user_id={post.user_id}
-                title={post.post_title}
-                caption={post.post_content}
-                likes={post.upvote}
-                dislikes={post.downvote}
-                comments={post.comments_num}
-                tags={[]} // API không trả về tags, truyền mảng rỗng
-                images={post.img_url}
-                avatar={post.ava_img_path}
-                onRemove={() => handleRemovePost(post.post_id)}
-                isTrending={false}
-                // Không truyền date_updated vì API không trả về
-              />
-            ))
-          ) : (
-            <p>No posts available.</p>
-          )}
-        </div>
-      </div>
-    </div>
+      </Card>
+
+      <Divider className="my-8 border-gray-200" />
+
+      <section>
+        <Title level={3} className="text-gray-800 font-semibold mb-6">
+          Bài viết của {displayName}
+        </Title>
+        {isPostsLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, index) => (
+              <Skeleton key={index} active avatar paragraph={{ rows: 2 }} />
+            ))}
+          </div>
+        ) : (
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ staggerChildren: 0.1 }}
+          >
+            {Array.isArray(userPosts) && userPosts.length > 0 ? (
+              userPosts.map((post) => (
+                <motion.div
+                  key={post.post_id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <Post_Card
+                    post_id={post.post_id}
+                    user={post.user_name}
+                    user_id={post.user_id}
+                    title={post.post_title}
+                    caption={post.post_content}
+                    likes={post.upvote}
+                    dislikes={post.downvote}
+                    comments={post.comments_num}
+                    tags={post.tags || []}
+                    images={post.img_url}
+                    avatar={post.ava_img_path}
+                    // onRemove={() => handleRemovePost(post.post_id)} // Comment vì không sử dụng
+                    isTrending={false}
+                  />
+                </motion.div>
+              ))
+            ) : (
+              <Text className="text-gray-500 text-center text-base">Không có bài viết nào.</Text>
+            )}
+          </motion.div>
+        )}
+      </section>
+    </motion.div>
   );
 };
 

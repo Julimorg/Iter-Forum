@@ -6,7 +6,7 @@ import ReportPanel from '../Report_Panel/Report_panel';
 
 interface ReportPopupProps {
   type: string; // "User", "Comment", "Post"
-  user_id: string;
+  user_id?: string;
   post_id?: string | null;
   comment_id?: string; // Thêm comment_id để hỗ trợ report comment
 }
@@ -47,7 +47,7 @@ const ReportPopup: React.FC<ReportPopupProps> = ({ type, user_id, post_id, comme
         <ReportPanel
           onClose={handleCloseReportPanel}
           type={type}
-          user_id={user_id}
+          user_id={user_id ?? ''}
           post_id={type !== 'User' ? post_id : undefined}
           comment_id={type === 'Comment' ? comment_id : undefined}
         />

@@ -29,7 +29,7 @@ interface PostcardProps {
   onRemove?: () => void;
   images?: string[] | null;
   avatar?: string | null;
-  date_updated?: string;
+  date_updated?: string | null; 
 }
 
 interface InteractData {
@@ -143,10 +143,17 @@ const Postcard: React.FC<PostcardProps> = ({
       user_post_id: userId,
       is_upvote: true,
       upvote: newLiked ? currentLikes + 1 : currentLikes - 1,
-      downvote: newDisliked ? currentDislikes + 1 : (disliked ? currentDislikes - 1 : currentDislikes),
+      downvote: newDisliked
+        ? currentDislikes + 1
+        : disliked
+        ? currentDislikes - 1
+        : currentDislikes,
     });
 
-    localStorage.setItem(`post_${post_id}_interaction`, JSON.stringify({ liked: newLiked, disliked: newDisliked }));
+    localStorage.setItem(
+      `post_${post_id}_interaction`,
+      JSON.stringify({ liked: newLiked, disliked: newDisliked })
+    );
   };
 
   const handleDislike = () => {
@@ -159,11 +166,14 @@ const Postcard: React.FC<PostcardProps> = ({
       post_id,
       user_post_id: userId,
       is_upvote: false,
-      upvote: newLiked ? currentLikes + 1 : (liked ? currentLikes - 1 : currentLikes),
+      upvote: newLiked ? currentLikes + 1 : liked ? currentLikes - 1 : currentLikes,
       downvote: newDisliked ? currentDislikes + 1 : currentDislikes - 1,
     });
 
-    localStorage.setItem(`post_${post_id}_interaction`, JSON.stringify({ liked: newLiked, disliked: newDisliked }));
+    localStorage.setItem(
+      `post_${post_id}_interaction`,
+      JSON.stringify({ liked: newLiked, disliked: newDisliked })
+    );
   };
 
   const handlePostNavigation = () => {
@@ -176,14 +186,15 @@ const Postcard: React.FC<PostcardProps> = ({
 
   const safeImages = Array.isArray(images) ? images : [];
 
-  const handleImageError = (index: number) => (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    console.error('Error loading image:', e.currentTarget.src);
-    setImageErrors((prev) => {
-      const newErrors = [...prev];
-      newErrors[index] = true;
-      return newErrors;
-    });
-  };
+  const handleImageError =
+    (index: number) => (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+      console.error('Error loading image:', e.currentTarget.src);
+      setImageErrors((prev) => {
+        const newErrors = [...prev];
+        newErrors[index] = true;
+        return newErrors;
+      });
+    };
 
   const formatRelativeTime = (date: string): string => {
     const now = new Date();
@@ -207,10 +218,7 @@ const Postcard: React.FC<PostcardProps> = ({
   };
 
   return (
-    <Card
-      className="w-full max-w-6xl mx-auto mb-5 shadow-lg"
-      bodyStyle={{ padding: '16px' }}
-    >
+    <Card className="w-full max-w-6xl mx-auto mb-5 shadow-lg" bodyStyle={{ padding: '16px' }}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           <Avatar
@@ -220,26 +228,17 @@ const Postcard: React.FC<PostcardProps> = ({
             style={{ backgroundColor: avatar ? 'transparent' : '#ccc' }}
           />
           <div>
-            <Text
-              strong
-              className="cursor-pointer hover:underline"
-              onClick={handleUserNavigation}
-            >
+            <Text strong className="cursor-pointer hover:underline" onClick={handleUserNavigation}>
               {user}
             </Text>
-            {date_updated && (
-              <Text type="secondary" className="block text-xs">
-                {formatRelativeTime(date_updated)}
-              </Text>
-            )}
+
+            <Text type="secondary" className="block text-xs">
+              Time: {formatRelativeTime(date_updated ?? '')}
+            </Text>
           </div>
         </div>
         <div className="relative">
-          <Button
-            type="text"
-            icon={<span className="text-xl">⋮</span>}
-            onClick={togglePopup}
-          />
+          <Button type="text" icon={<span className="text-xl">⋮</span>} onClick={togglePopup} />
           {popupVisible && (
             <div ref={popupRef} className="absolute right-0 z-10">
               <ReportPopup type="Post" user_id={user_id} post_id={post_id} />
@@ -260,10 +259,7 @@ const Postcard: React.FC<PostcardProps> = ({
       </Text>
 
       <div className="flex flex-wrap gap-2 mb-4">
-        {tags &&
-          tags.map((tag, index) => (
-            <TagPost key={index} tag={tag} />
-          ))}
+        {tags && tags.map((tag, index) => <TagPost key={index} tag={tag} />)}
         {isTrending && (
           <Tag color="orange" className="flex items-center">
             <img src={Trending} alt="Trending" className="w-4 h-4 mr-1" />
@@ -278,8 +274,8 @@ const Postcard: React.FC<PostcardProps> = ({
         </Text>
       )}
 
-      {safeImages.length > 0 && (
-        safeImages.length > 1 ? (
+      {safeImages.length > 0 &&
+        (safeImages.length > 1 ? (
           <div className="mb-4">
             <Swiper
               modules={[Navigation, Pagination]}
@@ -309,23 +305,20 @@ const Postcard: React.FC<PostcardProps> = ({
               ))}
             </Swiper>
           </div>
+        ) : imageErrors[0] ? (
+          <div className="w-full h-64 bg-gray-100 flex justify-center items-center text-gray-500 rounded-lg mb-4">
+            Hình ảnh không tải được
+          </div>
         ) : (
-          imageErrors[0] ? (
-            <div className="w-full h-64 bg-gray-100 flex justify-center items-center text-gray-500 rounded-lg mb-4">
-              Hình ảnh không tải được
-            </div>
-          ) : (
-            <img
-              src={safeImages[0]}
-              alt="Hình ảnh bài viết"
-              className="w-full h-auto max-h-96 object-cover rounded-lg mb-4 cursor-pointer"
-              onClick={handlePostNavigation}
-              onError={handleImageError(0)}
-              loading="lazy"
-            />
-          )
-        )
-      )}
+          <img
+            src={safeImages[0]}
+            alt="Hình ảnh bài viết"
+            className="w-full h-auto max-h-96 object-cover rounded-lg mb-4 cursor-pointer"
+            onClick={handlePostNavigation}
+            onError={handleImageError(0)}
+            loading="lazy"
+          />
+        ))}
 
       <Divider />
       <div className="flex gap-4">
