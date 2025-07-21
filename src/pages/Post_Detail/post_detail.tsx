@@ -19,6 +19,8 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination } from 'swiper/modules';
 import authorizedAxiosInstance from '../../services/Auth';
 import { API_BE } from '../../config/configApi';
+import axiosClient from '../../apis/axiosClient';
+import axios from 'axios';
 
 interface PostData {
   user_id: string;
@@ -235,13 +237,13 @@ const PostDetail: React.FC = () => {
   useEffect(() => {
     const initializeSocket = async () => {
       try {
-        const profileResponse = await authorizedAxiosInstance.get<{ data: UserProfile }>(
-          'http://localhost:3000/api/v1/users/profile'
+        const profileResponse = await axiosClient.get<{ data: UserProfile }>(
+          'https://it-er-forum.onrender.com/api/v1/users/profile'
         );
         const fetchedUserId = profileResponse.data.data.user_id;
         setUserId(fetchedUserId);
 
-        socketRef.current = io('http://localhost:3000', { transports: ['websocket'] });
+        socketRef.current = io('https://it-er-forum.onrender.com', { transports: ['websocket'] });
 
         if (fetchedUserId && postId) {
           socketRef.current.emit('joinRoom', fetchedUserId);
@@ -293,7 +295,7 @@ const PostDetail: React.FC = () => {
       }
 
       try {
-        const response = await authorizedAxiosInstance.get<ApiResponse>(
+        const response = await axiosClient.get<ApiResponse>(
           `${API_BE}/api/v1/posts/${postId}`
         );
 

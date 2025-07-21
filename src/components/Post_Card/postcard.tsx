@@ -14,6 +14,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination } from 'swiper/modules';
 import authorizedAxiosInstance from '../../services/Auth';
 import 'antd/dist/reset.css';
+import axiosClient from '../../apis/axiosClient';
 
 interface PostcardProps {
   post_id: string;
@@ -71,13 +72,13 @@ const Postcard: React.FC<PostcardProps> = ({
   useEffect(() => {
     const initializeSocket = async () => {
       try {
-        const profileResponse = await authorizedAxiosInstance.get<{ data: { user_id: string } }>(
-          'http://localhost:3000/api/v1/users/profile'
+        const profileResponse = await axiosClient.get<{ data: { user_id: string } }>(
+          'https://it-er-forum.onrender.com/api/v1/users/profile'
         );
         const fetchedUserId = profileResponse.data.data.user_id;
         setUserId(fetchedUserId);
 
-        socketRef.current = io('http://localhost:3000', { transports: ['websocket'] });
+        socketRef.current = io('https://it-er-forum.onrender.com', { transports: ['websocket'] });
 
         if (fetchedUserId && post_id) {
           socketRef.current.emit('joinRoom', fetchedUserId);
