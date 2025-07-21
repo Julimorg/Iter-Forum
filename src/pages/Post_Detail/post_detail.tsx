@@ -13,14 +13,13 @@ import backIcon from '../../assets/back_arrow.png';
 import sendIcon from '../../assets/send.png';
 import ReportPopup from '../../components/Report_Popup/Report_popup';
 import { Swiper, SwiperSlide } from 'swiper/react';
-// import 'swiper/css';
-// import 'swiper/css/navigation';
-// import 'swiper/css/pagination';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 import { Navigation, Pagination } from 'swiper/modules';
-import authorizedAxiosInstance from '../../services/Auth';
 import { API_BE } from '../../config/configApi';
 import axiosClient from '../../apis/axiosClient';
-import axios from 'axios';
+
 
 interface PostData {
   user_id: string;

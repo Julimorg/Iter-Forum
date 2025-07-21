@@ -4,6 +4,7 @@ import { RefreshTokenResponse } from '../interface/Auth/IRefreshToken';
 import { SignUpRequest } from '../interface/Auth/ISignUp';
 import { LoginRequest, LoginRespsone } from '../interface/Auth/Login';
 import { IResponse } from '../interface/IAPIResponse';
+import { ICreatePostRequest, ICreatePostResposne } from '../interface/Posts/ICreatePost';
 import { ExploreTagsResponse } from '../interface/Recommend/IExploreTags';
 import { IGetHome } from '../interface/Recommend/IGetHome';
 import { IGetPopular } from '../interface/Recommend/IGetPopular';
@@ -119,5 +120,23 @@ export const docApi = {
     const url = `posts/user_posts/${user_id}`;
     const res = await axiosClient.get(url);
     return res.data;
+  },
+  CreatePost: async(body: ICreatePostRequest): Promise<IResponse<ICreatePostResposne>> => {
+    const url = `posts/`;
+    const formData = new FormData();
+    formData.append("post_title", body.post_title);
+    formData.append("post_content", body.post_content);
+    body.img_file.forEach((file) => {
+      formData.append(`img_file`, file);
+    });
+    body.tags.forEach((tag) => {
+    formData.append(`tags`, tag);
+  });
+  const res = await axiosClient.post(url, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    }
+  });
+  return res.data;
   }
 };

@@ -12,8 +12,6 @@ import Trending from '../../assets/trending.png';
 import ReportPopup from '../Report_Popup/Report_popup';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination } from 'swiper/modules';
-import authorizedAxiosInstance from '../../services/Auth';
-import 'antd/dist/reset.css';
 import axiosClient from '../../apis/axiosClient';
 
 interface PostcardProps {

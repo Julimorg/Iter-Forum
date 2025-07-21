@@ -1,63 +1,79 @@
-import React, { useEffect, useState } from "react";
-import { FaPlus, FaTimes } from "react-icons/fa";
-import { Button, Input, Checkbox, Tag, Upload, message, Modal } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination } from "swiper/modules";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
-import DOMPurify from "dompurify";
-import axios from "axios";
-import { API_BE } from "../../config/configApi";
-import axiosClient from "../../apis/axiosClient";
-import { useAuthStore } from "../../hook/useAuthStore";
+import React, { useState } from 'react';
+import { FaPlus, FaTimes } from 'react-icons/fa';
+import { Button, Input, Checkbox, Tag, Upload, message, Modal } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination } from 'swiper/modules';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import DOMPurify from 'dompurify';
+import { ICreatePostRequest } from '../../interface/Posts/ICreatePost';
+import { useCreatePost } from './Hooks/useCreatePost';
 
 const predefinedTags = [
-  "Student",
-  "Intern",
-  "Web developer",
-  "Game developer",
-  "Mobile developer",
-  "Sharing",
-  "I have a problem",
-  "Problem solving",
-  "Ask me anything",
-  "Recruitment",
-  "News",
-  "Programming language",
-  "Framework",
-  "Technology",
-  "Game",
-  "What if?",
-  "Quiz",
+  'Student',
+  'Intern',
+  'Web developer',
+  'Game developer',
+  'Mobile developer',
+  'Sharing',
+  'I have a problem',
+  'Problem solving',
+  'Ask me anything',
+  'Recruitment',
+  'News',
+  'Programming language',
+  'Framework',
+  'Technology',
+  'Game',
+  'What if?',
+  'Quiz',
 ];
 
 const CreatePost: React.FC = () => {
   const DESCRIP_MAX_LENGTH = 500;
   const TAG_MAX_LENGTH = 50;
-  const [title, setTitle] = useState("");
   const [isChecked, setIsChecked] = useState(false);
-  const [img_file, setImages] = useState<string[]>([]);
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [title, setTitle] = useState('');
+  const [img_files, setImages] = useState<string[]>([]);
+  // const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [tags, setTags] = useState<string[]>([]);
-  const [textDescripLimit, setTextDescripLimit] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [textDescripLimit, setTextDescripLimit] = useState('');
   const [isTagModalVisible, setIsTagModalVisible] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Cấu hình toolbar cho React Quill
+  const { mutate, isPending, isError, error } = useCreatePost({
+    onSuccess: () => {
+      message.success('Tạo bài viết thành công!');
+      setTitle('');
+      setTextDescripLimit('');
+      setImages([]);
+      // setImageFiles([]);
+      setTags([]);
+      setIsChecked(false);
+      setIsExpanded(false);
+    },
+    onError: (err) => {
+      message.error(err.response?.data?.message || 'Đăng bài thất bại. Vui lòng thử lại.');
+    },
+  });
+
+  //? config toolbar cho React Quill
   const quillModules = {
     toolbar: [
-      ["bold", "italic", "underline"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["link"],
-      ["code-block"],
+      ['bold', 'italic', 'underline'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['link'],
+      ['code-block'],
     ],
   };
 
   const handleTextLimit = (value: string) => {
-    const plainText = value.replace(/<[^>]+>/g, "").replace(/ /g, " ");
+    const plainText = value.replace(/<[^>]+>/g, '').replace(/ /g, ' ');
     if (plainText.length <= DESCRIP_MAX_LENGTH) {
       setTextDescripLimit(value);
     }
@@ -65,14 +81,18 @@ const CreatePost: React.FC = () => {
 
   const handleAddImage = (file: File) => {
     const newImageUrl = URL.createObjectURL(file);
+    // if (img_files.length >= 5) {
+    //   message.error('Chỉ được upload tối đa 5 ảnh!');
+    //   return false;
+    // }
     setImages((prevImages) => [...prevImages, newImageUrl]);
-    setImageFiles((prevFiles) => [...prevFiles, file]);
+    // setImageFiles((prevFiles) => [...prevFiles, file]);
     return false;
   };
 
   const handleRemoveImage = (index: number) => {
     setImages((prevImages) => prevImages.filter((_, i) => i !== index));
-    setImageFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+    // setImageFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
   };
 
   const showTagModal = () => {
@@ -85,7 +105,7 @@ const CreatePost: React.FC = () => {
       setTags(selectedTags);
       setIsTagModalVisible(false);
     } else {
-      message.error("Bạn chỉ có thể chọn tối đa 50 thẻ!");
+      message.error('Bạn chỉ có thể chọn tối đa 50 thẻ!');
     }
   };
 
@@ -98,95 +118,49 @@ const CreatePost: React.FC = () => {
   };
 
   const handleRemoveTag = (index: number) => {
-    setTags(tags.filter((_, i) => i !== index));
+    setTags((prevTags) => prevTags.filter((_, i) => i !== index));
   };
-
-//   const accessToken = localStorage.getItem("accessToken");
-  const accessToken = useAuthStore.getState().access_token
-  useEffect(() => {
-    const submitPost = async () => {
-      if (!isSubmitting || !accessToken) return;
-
-      if (!title || !textDescripLimit) {
-        message.error("Tiêu đề và nội dung là bắt buộc!");
-        setIsSubmitting(false);
-        return;
-      }
-
-      try {
-        const formData = new FormData();
-        formData.append("post_title", title);
-        const plainText = textDescripLimit.replace(/<[^>]+>/g, "").replace(/ /g, " ");
-        formData.append("post_content", plainText);
-        imageFiles.forEach((file) => {
-          formData.append("img_file", file);
-        });
-        tags.forEach((tag, index) => {
-          formData.append(`tags[${index}]`, tag);
-        });
-
-        const response = await axiosClient.post(
-          `${API_BE}/api/v1/posts/`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-        console.log(response);
-        message.success("Đăng bài thành công!");
-        setTitle("");
-        setTextDescripLimit("");
-        setImages([]);
-        setImageFiles([]);
-        setTags([]);
-        setIsChecked(false);
-        setIsExpanded(false);
-      } catch (error) {
-        console.error("Lỗi khi đăng bài:", error);
-        if (axios.isAxiosError(error)) {
-          const errorData = error.response?.data;
-          message.error(errorData?.message || "Đăng bài thất bại. Vui lòng thử lại.");
-        } else {
-          message.error("Đã xảy ra lỗi không mong muốn.");
-        }
-      } finally {
-        setIsSubmitting(false);
-      }
-    };
-
-    submitPost();
-  }, [isSubmitting, title, textDescripLimit, imageFiles, tags, accessToken]);
 
   const handleSubmit = () => {
     if (!title.trim()) {
-      message.error("Tiêu đề là bắt buộc!");
+      message.error('Tiêu đề là bắt buộc!');
+      return;
+    }
+    if (!textDescripLimit.trim()) {
+      message.error('Nội dung là bắt buộc!');
       return;
     }
     if (!isChecked) {
-      message.error("Bạn phải chấp nhận Điều khoản Dịch vụ!");
+      message.error('Bạn phải chấp nhận Điều khoản Dịch vụ!');
       return;
     }
-    setIsSubmitting(true);
+
+    //? Tạo FormData theo interface ICreatePostRequest
+    const formData: ICreatePostRequest = {
+      post_title: title,
+      post_content: DOMPurify.sanitize(textDescripLimit)
+        .replace(/<[^>]+>/g, '')
+        .replace(/ /g, ' '),
+      img_file: img_files,
+      tags,
+    };
+
+    mutate(formData);
   };
 
-  const plainTextLength = textDescripLimit.replace(/<[^>]+>/g, "").replace(/ /g, " ").length;
+  //? config plain text
+  const plainTextLength = textDescripLimit.replace(/<[^>]+>/g, '').replace(/ /g, ' ').length;
 
-  const toggleExpand = () => {
-    setIsExpanded(!isExpanded);
-  };
-
-  // Làm sạch HTML và xử lý nội dung hiển thị
+  // ? Làm sạch HTML và xử lý nội dung hiển thị
   const sanitizedContent = DOMPurify.sanitize(textDescripLimit);
-  const displayContent = plainTextLength > 0
-    ? isExpanded
-      ? sanitizedContent
-      : plainTextLength < 300
+  const displayContent =
+    plainTextLength > 0
+      ? isExpanded
+        ? sanitizedContent
+        : plainTextLength < 300
         ? sanitizedContent
         : `${sanitizedContent.slice(0, 300)}...`
-    : "Hãy viết nội dung bài viết của bạn...";
+      : 'Hãy viết nội dung bài viết của bạn...';
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex justify-center py-16 px-6">
@@ -246,9 +220,9 @@ const CreatePost: React.FC = () => {
                 Tải lên
               </Button>
             </Upload.Dragger>
-            {img_file.length > 0 && (
+            {img_files.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-4 animate-fadeIn">
-                {img_file.map((image, index) => (
+                {img_files.map((image, index) => (
                   <div key={index} className="relative group">
                     <img
                       src={image}
@@ -320,8 +294,14 @@ const CreatePost: React.FC = () => {
               onChange={(e) => setIsChecked(e.target.checked)}
               className="text-[#65676B] font-['Inter',Roboto,sans-serif]"
             >
-              Tôi đã đọc <a href="#" className="text-[#0078D4] hover:underline">Quy tắc Cộng đồng</a> và chấp nhận{" "}
-              <a href="#" className="text-[#0078D4] hover:underline">Điều khoản Dịch vụ</a>
+              Tôi đã đọc{' '}
+              <a href="#" className="text-[#0078D4] hover:underline">
+                Quy tắc Cộng đồng
+              </a>{' '}
+              và chấp nhận{' '}
+              <a href="#" className="text-[#0078D4] hover:underline">
+                Điều khoản Dịch vụ
+              </a>
             </Checkbox>
           </div>
 
@@ -330,21 +310,26 @@ const CreatePost: React.FC = () => {
             type="primary"
             size="large"
             onClick={handleSubmit}
-            loading={isSubmitting}
+            loading={isPending}
             className="w-full bg-[#0078D4] hover:bg-[#005BB5] border-none rounded-lg text-lg font-semibold font-['Inter',Roboto,sans-serif] py-6 transition-all duration-200 hover:scale-105"
           >
             Đăng bài
           </Button>
+          {isError && (
+            <p className="text-red-500 mt-4">
+              Lỗi: {error.response?.data?.message || error.message}
+            </p>
+          )}
         </div>
 
-        {/* Xem trước bài viết */}
+        {/* VIEW POST */}
         <div className="w-1/2 bg-white rounded-2xl shadow-md p-10 transition-all duration-300 hover:shadow-lg">
           <h2 className="text-3xl font-semibold text-[#1A1F36] mb-8 font-['Inter',Roboto,sans-serif]">
-            Xem trước bài viết
+            View your post
           </h2>
-          <div className="border border-[#D8DDE6] rounded-xl p-6 bg-white">
+          <div className="border border-[#D8DDE6] rounded-xl p-6 bg-white h-[50rem]">
             <h3 className="text-2xl font-semibold text-[#1A1F36] mb-4 font-['Inter',Roboto,sans-serif]">
-              {title || "Bạn đang nghĩ gì?"}
+              {title || 'Bạn đang nghĩ gì?'}
             </h3>
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-4">
@@ -365,17 +350,17 @@ const CreatePost: React.FC = () => {
             {plainTextLength > 300 && (
               <Button
                 type="link"
-                onClick={toggleExpand}
+                onClick={() => setIsExpanded(!isExpanded)}
                 className="text-[#0078D4] hover:text-[#005BB5] font-['Inter',Roboto,sans-serif] mt-2 p-0"
               >
-                {isExpanded ? "Thu gọn" : "Xem thêm"}
+                {isExpanded ? 'Thu gọn' : 'Xem thêm'}
               </Button>
             )}
-            {img_file.length > 0 && (
-              <div className="mt-6">
-                {img_file.length === 1 ? (
+            {img_files.length > 0 && (
+              <div className="mt-20">
+                {img_files.length === 1 ? (
                   <img
-                    src={img_file[0]}
+                    src={img_files[0]}
                     alt="uploaded image"
                     className="w-full h-96 object-cover rounded-xl transition-transform duration-200 hover:scale-105"
                   />
@@ -385,13 +370,13 @@ const CreatePost: React.FC = () => {
                     spaceBetween={10}
                     slidesPerView={1}
                     navigation={{
-                      nextEl: ".swiper-button-next",
-                      prevEl: ".swiper-button-prev",
+                      nextEl: '.swiper-button-next',
+                      prevEl: '.swiper-button-prev',
                     }}
                     pagination={{ clickable: true }}
                     className="w-full"
                   >
-                    {img_file.map((img, index) => (
+                    {img_files.map((img, index) => (
                       <SwiperSlide key={index}>
                         <img
                           src={img}
