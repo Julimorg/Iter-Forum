@@ -13,6 +13,9 @@ import ReportPopup from '../Report_Popup/Report_popup';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination } from 'swiper/modules';
 import axiosClient from '../../apis/axiosClient';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 interface PostcardProps {
   post_id: string;
@@ -28,7 +31,7 @@ interface PostcardProps {
   onRemove?: () => void;
   images?: string[] | null;
   avatar?: string | null;
-  date_updated?: string | null; 
+  date_updated?: string | null;
 }
 
 interface InteractData {
@@ -217,27 +220,32 @@ const Postcard: React.FC<PostcardProps> = ({
   };
 
   return (
-    <Card className="w-full max-w-6xl mx-auto mb-5 shadow-lg" bodyStyle={{ padding: '16px' }}>
-      <div className="flex items-center justify-between mb-4">
+    <Card
+      className="w-full max-w-[100vw] sm:max-w-[80vw] md:max-w-[60vw] lg:max-w-[60vw] xl:max-w-[60vw] mb-2 sm:mb-3 md:mb-4 xl:mb-5"
+      bodyStyle={{ padding: '0.75rem sm:1rem md:1.25rem xl:1.5rem' }}
+    >
+      <div className="flex items-center justify-between mb-1.5 sm:mb-2 md:mb-3">
         <div className="flex items-center">
           <Avatar
             src={avatar}
-            size={40}
-            className="mr-3"
+            className="mr-1 sm:mr-1.5 md:mr-2"
             style={{ backgroundColor: avatar ? 'transparent' : '#ccc' }}
           />
           <div>
-            <Text strong className="cursor-pointer hover:underline" onClick={handleUserNavigation}>
+            <Text
+              strong
+              className="cursor-pointer hover:underline text-xs sm:text-sm md:text-base xl:text-lg"
+              onClick={handleUserNavigation}
+            >
               {user}
             </Text>
-
-            <Text type="secondary" className="block text-xs">
+            <Text type="secondary" className="block text-[0.625rem] sm:text-xs md:text-sm">
               Time: {formatRelativeTime(date_updated ?? '')}
             </Text>
           </div>
         </div>
         <div className="relative">
-          <Button type="text" icon={<span className="text-xl">⋮</span>} onClick={togglePopup} />
+          <Button type="text" icon={<span className="text-base sm:text-lg md:text-xl">⋮</span>} onClick={togglePopup} />
           {popupVisible && (
             <div ref={popupRef} className="absolute right-0 z-10">
               <ReportPopup type="Post" user_id={user_id} post_id={post_id} />
@@ -248,37 +256,37 @@ const Postcard: React.FC<PostcardProps> = ({
 
       <Title
         level={4}
-        className="mb-2 cursor-pointer hover:underline"
+        className="mb-1 cursor-pointer hover:underline text-sm sm:text-base md:text-lg xl:text-xl"
         onClick={handlePostNavigation}
       >
         {title}
       </Title>
-      <Text className="mb-4 cursor-pointer" onClick={handlePostNavigation}>
+      <Text className="mb-1.5 cursor-pointer text-xs sm:text-sm md:text-base xl:text-lg" onClick={handlePostNavigation}>
         {caption}
       </Text>
 
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-1 mb-1.5 sm:gap-1.5 sm:mb-2 md:gap-2 md:mb-3">
         {tags && tags.map((tag, index) => <TagPost key={index} tag={tag} />)}
         {isTrending && (
-          <Tag color="orange" className="flex items-center">
-            <img src={Trending} alt="Trending" className="w-4 h-4 mr-1" />
+          <Tag color="orange" className="flex items-center text-[0.625rem] sm:text-xs md:text-sm">
+            <img src={Trending} alt="Trending" className="w-2 h-2 mr-0.5 sm:w-3 sm:h-3 md:w-4 md:h-4" />
             Trending
           </Tag>
         )}
       </div>
 
       {imageCount > 0 && (
-        <Text type="secondary" className="mb-2 block">
+        <Text type="secondary" className="mb-1 block text-[0.625rem] sm:text-xs md:text-sm">
           {imageCount} hình ảnh
         </Text>
       )}
 
       {safeImages.length > 0 &&
         (safeImages.length > 1 ? (
-          <div className="mb-4">
+          <div className="mb-1.5 sm:mb-2 md:mb-3">
             <Swiper
               modules={[Navigation, Pagination]}
-              spaceBetween={10}
+              spaceBetween={4}
               slidesPerView={1}
               navigation
               pagination={{ clickable: true }}
@@ -287,14 +295,14 @@ const Postcard: React.FC<PostcardProps> = ({
               {safeImages.map((image, index) => (
                 <SwiperSlide key={index} className="flex justify-center items-center">
                   {imageErrors[index] ? (
-                    <div className="w-full h-64 bg-gray-100 flex justify-center items-center text-gray-500 rounded-lg">
+                    <div className="w-full h-24 sm:h-32 md:h-40 xl:h-48 bg-gray-100 flex justify-center items-center text-gray-500 rounded-lg text-[0.625rem] sm:text-xs md:text-sm">
                       Hình ảnh không tải được
                     </div>
                   ) : (
                     <img
                       src={image}
                       alt={`Hình ảnh bài viết ${index + 1}`}
-                      className="w-full h-auto max-h-96 object-cover rounded-lg cursor-pointer"
+                      className="w-full h-auto max-h-24 sm:max-h-32 md:max-h-40 xl:max-h-48 object-cover rounded-lg cursor-pointer"
                       onClick={handlePostNavigation}
                       onError={handleImageError(index)}
                       loading="lazy"
@@ -305,40 +313,43 @@ const Postcard: React.FC<PostcardProps> = ({
             </Swiper>
           </div>
         ) : imageErrors[0] ? (
-          <div className="w-full h-64 bg-gray-100 flex justify-center items-center text-gray-500 rounded-lg mb-4">
+          <div className="w-full h-24 sm:h-32 md:h-40 xl:h-48 bg-gray-100 flex justify-center items-center text-gray-500 rounded-lg mb-1.5 sm:mb-2 md:mb-3 text-[0.625rem] sm:text-xs md:text-sm">
             Hình ảnh không tải được
           </div>
         ) : (
           <img
             src={safeImages[0]}
             alt="Hình ảnh bài viết"
-            className="w-full h-auto max-h-96 object-cover rounded-lg mb-4 cursor-pointer"
+            className="w-full h-auto max-h-24 sm:max-h-32 md:max-h-40 xl:max-h-48 object-cover rounded-lg mb-1.5 sm:mb-2 md:mb-3 cursor-pointer"
             onClick={handlePostNavigation}
             onError={handleImageError(0)}
             loading="lazy"
           />
         ))}
 
-      <Divider />
-      <div className="flex gap-4">
+      <Divider className="my-1 sm:my-1.5 md:my-2" />
+      <div className="flex gap-1 sm:gap-1.5 md:gap-2 xl:gap-3">
         <Button
           type="text"
           onClick={handleLike}
-          icon={<img src={liked ? likeFilled : like} alt="Like" className="w-5 h-5" />}
+          icon={<img src={liked ? likeFilled : like} alt="Like" className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" />}
+          className="text-[0.625rem] sm:text-xs md:text-sm"
         >
           {currentLikes}
         </Button>
         <Button
           type="text"
           onClick={handleDislike}
-          icon={<img src={disliked ? dislikeFilled : dislike} alt="Dislike" className="w-5 h-5" />}
+          icon={<img src={disliked ? dislikeFilled : dislike} alt="Dislike" className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" />}
+          className="text-[0.625rem] sm:text-xs md:text-sm"
         >
           {currentDislikes}
         </Button>
         <Button
           type="text"
           onClick={handlePostNavigation}
-          icon={<img src={comment} alt="Comment" className="w-5 h-5" />}
+          icon={<img src={comment} alt="Comment" className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" />}
+          className="text-[0.625rem] sm:text-xs md:text-sm"
         >
           {comments}
         </Button>

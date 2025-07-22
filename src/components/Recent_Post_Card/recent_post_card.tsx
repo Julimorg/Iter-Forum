@@ -1,105 +1,8 @@
 import React from 'react';
-import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { Avatar, Divider, Typography } from 'antd';
 
-const RecentPostContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  gap: 20px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-
-  &:hover {
-    background-color: #f5f5f5;
-  }
-`;
-
-const PostContent = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const UserInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-`;
-
-const ProfilePic = styled.div`
-  width: 40px;
-  height: 40px;
-  background-color: #ccc;
-  border-radius: 50%;
-`;
-
-const UserName = styled.div`
-  font-weight: bold;
-  font-size: 16px;
-  color: #333;
-  cursor: pointer;
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const Timestamp = styled.div`
-  font-size: 12px;
-  color: #666;
-  margin-top: 2px;
-`;
-
-const Title = styled.div`
-  font-size: 14px;
-  color: #666;
-`;
-
-const CommentCount = styled.div`
-  font-size: 12px;
-  color: #666;
-`;
-
-const ThumbnailContainer = styled.div`
-  position: relative;
-  width: 100px;
-  height: 80px;
-`;
-
-const Thumbnail = styled.div<{ image?: string }>`
-  width: 100%;
-  height: 100%;
-  background-color: ${(props) => (props.image ? 'transparent' : '#ddd')};
-  background-image: ${(props) => (props.image ? `url(${props.image})` : 'none')};
-  background-size: cover;
-  background-position: center;
-  border-radius: 8px;
-`;
-
-const ImageCount = styled.div`
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  background-color: rgba(255, 255, 255, 0.9);
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 2px 6px;
-  font-size: 12px;
-  font-weight: bold;
-  color: #333;
-`;
-
-const Divider = styled.hr`
-  width: 100%;
-  height: 1px;
-  background-color: #ddd;
-  margin-top: 12px;
-`;
+const { Text } = Typography;
 
 interface RecentPostProps {
   user: string;
@@ -113,7 +16,7 @@ interface RecentPostProps {
   tags: string[];
   images?: string[] | null;
   isTrending?: boolean;
-  date_updated: string; // Thêm date_updated
+  date_updated: string;
 }
 
 const RecentPost: React.FC<RecentPostProps> = ({
@@ -123,11 +26,7 @@ const RecentPost: React.FC<RecentPostProps> = ({
   title,
   comments,
   image,
-  // likes,
-  // dislikes,
-  // tags,
   images = [],
-  // isTrending,
   date_updated,
 }) => {
   const navigate = useNavigate();
@@ -147,24 +46,18 @@ const RecentPost: React.FC<RecentPostProps> = ({
     const diffInSeconds = Math.floor(diffInMs / 1000);
 
     const minutes = Math.floor(diffInSeconds / 60);
-    if (minutes < 1) return `${diffInSeconds} seconds ago`;
-
+    if (minutes < 1) return `${diffInSeconds} giây trước`;
     const hours = Math.floor(minutes / 60);
-    if (hours < 1) return `${minutes} minutes ago`;
-
+    if (hours < 1) return `${minutes} phút trước`;
     const days = Math.floor(hours / 24);
-    if (days < 1) return `${hours} hours ago`;
-
+    if (days < 1) return `${hours} giờ trước`;
     const weeks = Math.floor(days / 7);
-    if (weeks < 1) return `${days} days ago`;
-
+    if (weeks < 1) return `${days} ngày trước`;
     const months = Math.floor(days / 30);
-    if (months < 1) return `${weeks} weeks ago`;
-
+    if (months < 1) return `${weeks} tuần trước`;
     const years = Math.floor(months / 12);
-    if (years < 1) return `${months} months ago`;
-
-    return `${years} years ago`;
+    if (years < 1) return `${months} tháng trước`;
+    return `${years} năm trước`;
   };
 
   const safeImages = Array.isArray(images) ? images : [];
@@ -172,35 +65,50 @@ const RecentPost: React.FC<RecentPostProps> = ({
 
   return (
     <>
-      <RecentPostContainer onClick={handlePostNavigation}>
-        <PostContent>
-          <UserInfo>
-            <ProfilePic />
-            <div>
-              <UserName
+      <div
+        className="flex flex-row justify-between items-center p-2 bg-white rounded-lg gap-2 cursor-pointer hover:bg-gray-100 transition-colors duration-300 md:p-3 md:gap-3 xl:p-4 xl:gap-4 "
+        onClick={handlePostNavigation}
+      >
+        <div className="flex-1 flex flex-col gap-1 md:gap-1.5 xl:gap-2 min-w-0">
+          <div className="flex items-center gap-2 md:gap-3">
+            <Avatar
+              size={{ xs: 28, md: 32, xl: 36 }}
+              style={{ backgroundColor: '#ccc', flexShrink: 0 }}
+            />
+            <div className="min-w-0">
+              <Text
+                strong
+                className="text-xs truncate hover:underline md:text-sm xl:text-base"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleUserNavigation();
                 }}
               >
                 {user}
-              </UserName>
-              <Timestamp>{formatRelativeTime(date_updated)}</Timestamp>
+              </Text>
+              <Text type="secondary" className="block text-[0.65rem] md:text-xs xl:text-sm">
+                {formatRelativeTime(date_updated)}
+              </Text>
             </div>
-          </UserInfo>
-          <Title>{title}</Title>
-          <CommentCount>{comments} comments</CommentCount>
-        </PostContent>
+          </div>
+          <Text className="text-xs text-gray-600 truncate md:text-sm xl:text-base">{title}</Text>
+          <Text className="text-[0.65rem] text-gray-600 md:text-xs xl:text-sm">{comments} bình luận</Text>
+        </div>
         {image && (
-          <ThumbnailContainer>
-            <Thumbnail image={image} />
+          <div className="relative w-16 h-14 flex-shrink-0 md:w-20 md:h-16 xl:w-24 xl:h-20">
+            <div
+              className="w-full h-full bg-cover bg-center rounded-lg"
+              style={{ backgroundImage: image ? `url(${image})` : 'none', backgroundColor: !image ? '#ddd' : 'transparent' }}
+            />
             {additionalImages > 0 && (
-              <ImageCount>+{additionalImages}</ImageCount>
+              <div className="absolute bottom-0.5 right-0.5 bg-white/90 border border-gray-300 rounded px-1 py-0.5 text-[0.65rem] font-bold text-gray-800 md:text-xs xl:text-sm">
+                +{additionalImages}
+              </div>
             )}
-          </ThumbnailContainer>
+          </div>
         )}
-      </RecentPostContainer>
-      <Divider />
+      </div>
+      <Divider className="my-1.5 md:my-2 xl:my-3" />
     </>
   );
 };

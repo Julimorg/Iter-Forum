@@ -132,25 +132,25 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="flex items-center justify-between px-4 py-3 bg-white shadow-md">
+    <header className="flex items-center justify-between px-3 py-2 bg-white shadow-md xl:px-4 xl:py-3">
       <BlurText text="Iter-Forum" />
-      <div className="flex-1 max-w-xl mx-4">
+      <div className="flex-1 max-w-md mx-2 xl:max-w-xl xl:mx-4">
         <input
           type="text"
           autoComplete="off"
-          className="w-full px-4 py-2 bg-gray-100 rounded-full focus:bg-white focus:ring-2 focus:ring-blue-300 focus:outline-none transition-all duration-300 ease-in-out"
+          className="w-full px-3 py-1.5 bg-gray-100 rounded-full focus:bg-white focus:ring-2 focus:ring-blue-300 focus:outline-none transition-all duration-300 ease-in-out text-sm xl:text-base xl:px-4 xl:py-2"
           placeholder="Tìm kiếm..."
           value={searchQuery}
           onChange={handleSearchChange}
           onKeyDown={handleSearchSubmit}
         />
       </div>
-      <div className="flex items-center gap-3">
-        <ButtonIconLeft Icon={FaPlus} size={20} color="#333" title={<Link to="create-post">Tạo bài viết</Link>} />
+      <div className="flex items-center gap-2 xl:gap-3">
+        <ButtonIconLeft Icon={FaPlus} size={18} color="#333" title={<Link to="create-post">Tạo bài viết</Link>} />
         <div ref={notiRef} className="relative">
           <IconButton
             Icon={FaBell}
-            size={20}
+            size={18}
             color="#333"
             onClick={() => setIsNotiOpen(!isNotiModelOpen)}
           />
@@ -166,7 +166,7 @@ const Header: React.FC = () => {
         </div>
       </div>
       {isLoading ? (
-        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-lg shadow-xl p-6 w-80">
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-lg shadow-xl p-4 w-72 md:w-80">
           Đang tải...
         </div>
       ) : error ? (
@@ -181,5 +181,4 @@ const Header: React.FC = () => {
     </header>
   );
 };
-
 export default Header;
