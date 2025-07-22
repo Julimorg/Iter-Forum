@@ -20,7 +20,5 @@ jobs:
 
       - name: Docker Build with ENV
         run: |
-          echo "API_URL=${{ secrets.API_URL }}" > .env
-          echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
-
+          echo "API_URL=${{ secrets.VITE_API_URL }}" > .env
           docker compose up -d --build --force-recreate

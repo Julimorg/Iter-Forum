@@ -7,10 +7,6 @@ interface SearchedUser {
   status: string;
 }
 
-interface SearchResponse {
-  data: SearchedUser[];
-}
-
 
 function SearchModal({ isOpen, users, onClose }: { isOpen: boolean; users: SearchedUser[]; onClose: () => void }) {
   return (
