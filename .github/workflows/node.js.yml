@@ -14,10 +14,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
-       - name: Docker Build with ENV
-         run: |
+
+      - name: Docker Build with ENV
+        run: |
           echo "API_URL=${{ secrets.API_URL }}" > .env
           echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
 
