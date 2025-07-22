@@ -1,25 +1,18 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import io, { Socket } from 'socket.io-client';
-import styles from './post_detail.module.css';
-import like from '../../assets/like.png';
-import dislike from '../../assets/dislike.png';
-import commentIcon from '../../assets/comment.png';
-import likeFilled from '../../assets/like_filled.png';
-import dislikeFilled from '../../assets/dislike_filled.png';
-import replyIcon from '../../assets/comment.png';
-import replyFilled from '../../assets/comment.png';
-import backIcon from '../../assets/back_arrow.png';
-import sendIcon from '../../assets/send.png';
-import ReportPopup from '../../components/Report_Popup/Report_popup';
+import { Avatar, Button, Input, Popover } from 'antd';
+import { LikeOutlined, DislikeOutlined, CommentOutlined, SendOutlined, ArrowLeftOutlined, SmileOutlined } from '@ant-design/icons';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import { Navigation, Pagination } from 'swiper/modules';
+import ReportPopup from '../../components/Report_Popup/Report_popup';
 import { API_BE } from '../../config/configApi';
 import axiosClient from '../../apis/axiosClient';
-
+import EmojiPicker from 'emoji-picker-react';
+import { fakeAvatar } from '../../utils/utils';
 
 interface PostData {
   user_id: string;
@@ -155,11 +148,6 @@ const buildCommentTree = (comments: CommentApiItem[]): CommentItem[] => {
 const cacheComments = (postId: string, comments: CommentItem[]) => {
   localStorage.setItem(`comments_${postId}`, JSON.stringify(comments));
 };
-
-// const getCachedComments = (postId: string): CommentItem[] => {
-//   const cached = localStorage.getItem(`comments_${postId}`);
-//   return cached ? JSON.parse(cached) : [];
-// };
 
 const PostDetail: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
@@ -484,55 +472,90 @@ const PostDetail: React.FC = () => {
     return `${years} năm trước`;
   };
 
+  const handleEmojiClick = (_emojiData: any) => {
+    setNewComment((prev) => prev + _emojiData.emoji);
+  };
+
+  const handleReplyEmojiClick = (index: number, _emojiData: any,) => {
+    setComments((prev) =>
+      prev.map((comment, i) =>
+        i === index ? { ...comment, replyText: (comment.replyText || '') + _emojiData.emoji } : comment
+      )
+    );
+  };
+
   if (loading) {
-    return <div className={styles.wrapper}>Đang tải...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600"></div>
+          <p className="mt-4 text-lg text-gray-600">Đang tải...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error || !post) {
-    return <div className={styles.wrapper}>{error || "Không tìm thấy bài viết"}</div>;
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <p className="text-xl text-red-500">{error || "Không tìm thấy bài viết"}</p>
+      </div>
+    );
   }
 
   return (
-    <div className={styles.wrapper}>
-      <button className={styles.backButton} onClick={handleBack}>
-        <img src={backIcon} alt="Quay lại" />
-        Quay lại
-      </button>
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <button
+          onClick={handleBack}
+          className="flex items-center text-blue-600 hover:text-blue-800 font-medium mb-6 transition-colors duration-200"
+        >
+          <ArrowLeftOutlined className="mr-2" />
+          Quay lại
+        </button>
 
-      <div className={styles.container}>
-        <div className={styles.postContent}>
-          <div className={styles.header}>
-            <div className={styles.userInfo}>
-              <div className={styles.profilePic}></div>
-              <div>
-                <div
-                  className={styles.name}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleUserNavigation();
-                  }}
-                >
-                  {post.user_name}
-                </div>
-                <div className={styles.timestamp}>{formatRelativeTime(post.date_updated)}</div>
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="flex items-start space-x-4 mb-6">
+            <Avatar size={48} src={post.ava_img_path} className="border-2 border-gray-200">
+              {post.user_name[0]}
+            </Avatar>
+            <div className="flex-1">
+              <div
+                className="text-lg font-semibold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleUserNavigation();
+                }}
+              >
+                {post.user_name}
               </div>
+              <div className="text-sm text-gray-500">{formatRelativeTime(post.date_updated)}</div>
             </div>
-            <div className={styles.dotsContainer}>
-              <button className={styles.dotsButton} onClick={() => setShowPopup(!showPopup)}>⋮</button>
+            <div className="relative">
+              <button
+                onClick={() => setShowPopup(!showPopup)}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ⋮
+              </button>
               {showPopup && (
-                <div ref={popupRefs.current[0] = popupRefs.current[0] || React.createRef()}>
+                <div ref={popupRefs.current[0] = popupRefs.current[0] || React.createRef()} className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                   <ReportPopup type="Post" user_id={post.user_id} post_id={post.post_id} />
                 </div>
               )}
             </div>
           </div>
 
-          <div className={styles.title}>{post.post_title}</div>
-          <div className={styles.content}>{post.post_content}</div>
+          <div className="text-2xl font-bold text-gray-900 mb-4">{post.post_title}</div>
+          <div className="text-gray-700 mb-6 leading-relaxed">{post.post_content}</div>
 
-          <div className={styles.postTags}>
+          <div className="flex flex-wrap gap-2 mb-6">
             {post.tags && post.tags.length > 0 && post.tags.map((tag, index) => (
-              <button key={index} className={styles.tagButton} onClick={() => handleTagClick()}>
+              <button
+                key={index}
+                className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full hover:bg-blue-200 transition-colors"
+                onClick={handleTagClick}
+              >
                 #{tag}
               </button>
             ))}
@@ -540,82 +563,121 @@ const PostDetail: React.FC = () => {
 
           {post.img_url && post.img_url.length > 0 && (
             post.img_url.length > 1 ? (
-              <div className={styles.swiperContainer}>
+              <div className="swiper-container mb-6 rounded-lg overflow-hidden">
                 <Swiper
                   modules={[Navigation, Pagination]}
-                  spaceBetween={0}
+                  spaceBetween={10}
                   slidesPerView={1}
                   navigation
                   pagination={{ clickable: true }}
-                  style={{ width: '100%', height: 'auto' }}
                 >
                   {post.img_url.map((image, index) => (
-                    <SwiperSlide key={index} style={{ width: '100%' }}>
+                    <SwiperSlide key={index}>
                       <img
                         src={image}
                         alt={`Hình ảnh bài viết ${index + 1}`}
-                        className={styles.swiperImage}
-                        style={{ width: '100%', height: 'auto' }}
+                        className="w-full h-auto object-cover rounded-lg"
                       />
                     </SwiperSlide>
                   ))}
                 </Swiper>
               </div>
             ) : (
-              <img src={post.img_url[0]} alt="Hình ảnh bài viết" className={styles.singleImage} />
+              <img
+                src={post.img_url[0]}
+                alt="Hình ảnh bài viết"
+                className="w-full h-auto rounded-lg mb-6"
+              />
             )
           )}
 
-          <div className={styles.interactions}>
-            <button className={styles.button} onClick={handleLike}>
-              <img src={liked ? likeFilled : like} alt="Thích" />
-              {currentLikes}
+          <div className="flex items-center space-x-6 border-t border-b border-gray-200 py-4 mb-6">
+            <button
+              onClick={handleLike}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${liked ? 'text-blue-600 bg-blue-100' : 'text-gray-600 hover:bg-gray-100'} transition-all duration-200`}
+            >
+              <LikeOutlined />
+              <span className="font-medium">Thích ({currentLikes})</span>
             </button>
-            <button className={styles.button} onClick={handleDislike}>
-              <img src={disliked ? dislikeFilled : dislike} alt="Không thích" />
-              {currentDislikes}
+            <button
+              onClick={handleDislike}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${disliked ? 'text-red-600 bg-red-100' : 'text-gray-600 hover:bg-gray-100'} transition-all duration-200`}
+            >
+              <DislikeOutlined />
+              <span className="font-medium">Không thích ({currentDislikes})</span>
             </button>
-            <button className={styles.button}>
-              <img src={commentIcon} alt="Bình luận" />
-              {commentsList.length}
+            <button
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all duration-200"
+            >
+              <CommentOutlined />
+              <span className="font-medium">Bình luận ({commentsList.length})</span>
             </button>
           </div>
 
-          <div className={styles.commentSection}>
-            <div className={styles.commentBox}>
-              <textarea
-                className={styles.commentInput}
-                placeholder="Viết bình luận..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-              />
-              <button className={styles.circularButton} onClick={handleAddComment}>
-                <img src={sendIcon} alt="Gửi" />
-              </button>
+          <div className="mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="relative flex-1">
+                <Input.TextArea
+                  rows={3}
+                  placeholder="Viết bình luận..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-blue-500 p-3 pr-12"
+                />
+                <Popover
+                  content={<EmojiPicker onEmojiClick={handleEmojiClick} />}
+                  trigger="click"
+                  placement="topRight"
+                  overlayClassName="z-50"
+                >
+                  <Button
+                    icon={<SmileOutlined />}
+                    className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                  />
+                </Popover>
+              </div>
+              <Button
+                type="primary"
+                icon={<SendOutlined />}
+                onClick={handleAddComment}
+                disabled={!newComment.trim()}
+                className="h-12 rounded-lg"
+              >
+                Gửi
+              </Button>
             </div>
+          </div>
 
-            <div className={styles.commentList}>
-              {commentsList.map((item, index) => {
-                if (!popupRefs.current[index]) {
-                  // popupRefs.current[index] = React.createRef<HTMLDivElement>();
-                }
-                return (
-                  <div key={item.comment_id} className={styles.commentItem}>
-                    <div className={styles.commentHeader}>
-                      <div className={styles.userInfo}>
-                        <div className={styles.commentAvatar}></div>
-                        <span className={styles.commentUsername}>{item.userName}</span>
-                        <span className={styles.timestamp}>{formatRelativeTime(item.timestamp)}</span>
+          <div className="space-y-6">
+            {commentsList.map((item, index) => {
+              if (!popupRefs.current[index]) {
+                // popupRefs.current[index] = React.createRef<HTMLDivElement>();
+              }
+              return (
+                <div key={item.comment_id} className="flex">
+                  <div className="w-12 flex-shrink-0">
+                    <Avatar size={40} src={fakeAvatar} className="border-2 border-gray-200">
+                      {item.userName[0]}
+                    </Avatar>
+                    {commentsList.length > 1 && index < commentsList.length - 1 && (
+                      <div className="w-px h-full bg-gray-300 absolute left-6 top-12"></div>
+                    )}
+                  </div>
+                  <div className="flex-1 ml-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <span className="text-lg font-semibold text-gray-800">{item.userName}</span>
+                        <span className="text-sm text-gray-500 ml-2">{formatRelativeTime(item.timestamp)}</span>
                       </div>
-                      <div className={styles.dotsContainer}>
+                      <div className="relative">
                         <button
-                          className={styles.dotsButton}
+                          className="text-gray-500 hover:text-gray-700 text-xl"
                           onClick={() => setActiveCommentIndex(index)}
                         >
                           ⋮
                         </button>
                         {activeCommentIndex === index && (
-                          <div ref={popupRefs.current[index]}>
+                          <div ref={popupRefs.current[index]} className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                             <ReportPopup
                               type="Comment"
                               user_id={post.user_id}
@@ -626,55 +688,89 @@ const PostDetail: React.FC = () => {
                         )}
                       </div>
                     </div>
-
-                    <div className={styles.commentText}>{item.text}</div>
-                    <div className={styles.commentActions}>
+                    <div className="text-gray-700 mb-2 break-words w-[50rem]">{item.text}</div>
+                    <div className="flex items-center space-x-6 text-sm text-gray-600">
                       <button
-                        className={styles.commentActionButton}
+                        className="flex items-center space-x-1 hover:text-blue-600"
+                        onClick={() => {}}
+                      >
+                        <LikeOutlined /> <span>Thích ({item.likeCount})</span>
+                      </button>
+                      <button
+                        className="flex items-center space-x-1 hover:text-red-600"
+                        onClick={() => {}}
+                      >
+                        <DislikeOutlined /> <span>Không thích ({item.dislikeCount})</span>
+                      </button>
+                      <button
+                        className="flex items-center space-x-1 hover:text-blue-600"
                         onClick={() => handleCommentReply(index)}
                       >
-                        <img src={item.replied ? replyFilled : replyIcon} alt="Trả lời" />
-                        {item.replyCount}
+                        Trả lời ({item.replyCount})
                       </button>
                     </div>
 
                     {item.replied && (
-                      <div className={styles.commentBox}>
-                        <textarea
-                          className={styles.replyInput}
-                          placeholder="Viết trả lời..."
-                          value={item.replyText || ''}
-                          onChange={(e) => handleReplyInputChange(index, e.target.value)}
-                        />
-                        <button
-                          className={styles.circularButton}
-                          onClick={(e) => handlePostReply(index, e)}
+                      <div className="mt-4 flex items-center space-x-4">
+                        <div className="relative flex-1">
+                          <Input.TextArea
+                            rows={2}
+                            placeholder="Viết trả lời..."
+                            value={item.replyText || ''}
+                            onChange={(e) => handleReplyInputChange(index, e.target.value)}
+                            className="w-full rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-blue-500 p-3 pr-12"
+                          />
+                          <Popover
+                            content={<EmojiPicker onEmojiClick={(emojiData) => handleReplyEmojiClick(index, emojiData)} />}
+                            trigger="click"
+                            placement="topRight"
+                            overlayClassName="z-50"
+                          >
+                            <Button
+                              icon={<SmileOutlined />}
+                              className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                            />
+                          </Popover>
+                        </div>
+                        <Button
+                          type="primary"
+                          icon={<SendOutlined />}
+                          onClick={(e: React.MouseEvent<HTMLButtonElement>) => handlePostReply(index, e)}
                           disabled={isSendingReply}
+                          className="h-10 rounded-lg"
                         >
-                          <img src={sendIcon} alt="Gửi trả lời" />
-                        </button>
+                          Gửi
+                        </Button>
                       </div>
                     )}
 
                     {item.replies.length > 0 && (
-                      <div className={styles.replyList}>
-                       {/* replyIndex */}
-                        {item.replies.map((reply, ) => (
-                          <div key={reply.comment_id} className={styles.replyItem}>
-                            <div className={styles.replyHeader}>
-                              <div className={styles.replyAvatar}></div>
-                              <span className={styles.replyUserName}>{reply.userName}</span>
-                              <span className={styles.timestamp}>{formatRelativeTime(reply.timestamp)}</span>
+                      <div className="mt-4 space-y-4 ml-12 relative">
+                        <div className="absolute w-px h-full bg-gray-300 left-[-12px] top-0"></div>
+                        {item.replies.map((reply) => (
+                          <div key={reply.comment_id} className="flex items-start">
+                            <div className="w-8 flex-shrink-0">
+                              <Avatar size={32} src={fakeAvatar} className="border-2 border-gray-200">
+                                {reply.userName[0]}
+                              </Avatar>
                             </div>
-                            <div className={styles.replyText}>{reply.text}</div>
+                            <div className="flex-1 ml-2">
+                              <div className="flex items-start justify-between mb-1">
+                                <div>
+                                  <span className="text-sm font-medium text-gray-800">{reply.userName}</span>
+                                  <span className="text-xs text-gray-500 ml-1">{formatRelativeTime(reply.timestamp)}</span>
+                                </div>
+                              </div>
+                              <div className="text-gray-700 w-[44rem] break-words">{reply.text}</div>
+                            </div>
                           </div>
                         ))}
                       </div>
                     )}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
