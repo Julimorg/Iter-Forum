@@ -16,7 +16,7 @@ const Home = () => {
         <div className="sticky top-12 w-[13vw] min-w-[9rem] bg-gray-100 h-[calc(100vh-3rem)] sm:w-[12vw] sm:min-w-[10rem] md:w-[11vw] md:min-w-[11rem] xl:w-[10vw] xl:min-w-[12rem]">
           <Sidebar />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 ">
           {isHomePage ? <PostDisplayComponent /> : <Outlet />}
         </div>
       </div>

@@ -41,35 +41,36 @@ const Explore = () => {
   const handleTagClick = (tag_id: string) => {
     navigate(`/home/tag/${tag_id}`);
   };
+
   return (
-    <div className="container  px-4 py-8  min-h-screen">
-      <Title level={2} className="mb-8 text-gray-800 text-start">
-        Explore Tags
+    <div className="container mx-auto px-4 sm:px-6  lg:px-8  py-8 min-h-screen max-w-7xl">
+      <Title level={2} className="mb-8 text-gray-800 text-start text-2xl sm:text-3xl lg:text-4xl font-bold">
+        Explore tags
       </Title>
 
       {isFetching ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {[...Array(6)].map((_, index) => (
-            <Skeleton key={index} active avatar paragraph={{ rows: 2 }} />
+            <Skeleton key={index} active avatar paragraph={{ rows: 2 }} className="w-full" />
           ))}
         </div>
       ) : (
         <>
           {Object.entries(groupedTags).map(([category, tags]) => (
-            <section key={category} className="mb-12">
-              <Title level={4} className="mb-4 text-gray-700">
+            <section key={category} className="mb-8 sm:mb-12">
+              <Title level={4} className="mb-4 text-gray-700 text-lg sm:text-xl lg:text-2xl font-semibold">
                 {category}
               </Title>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {tags.map((tag) => (
                   <Card
                     key={tag.tag_id}
                     hoverable
-                    className="shadow-md transition-all duration-300 hover:shadow-lg"
+                    className="shadow-md transition-all duration-300 hover:shadow-lg w-full rounded-lg overflow-hidden"
                     onClick={() => handleTagClick(tag.tag_id)}
                     cover={
                       tag.isTrending && (
-                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-full">
                           Đang thịnh hành
                         </div>
                       )
@@ -77,12 +78,14 @@ const Explore = () => {
                   >
                     <Card.Meta
                       title={
-                        <Text strong className="text-gray-800">
+                        <Text strong className="text-gray-800 text-base sm:text-lg">
                           {tag.title}
                         </Text>
                       }
                       description={
-                        <Text type="secondary">{tag.posts.toLocaleString()} bài viết</Text>
+                        <Text type="secondary" className="text-sm sm:text-base">
+                          {tag.posts.toLocaleString()} bài viết
+                        </Text>
                       }
                     />
                   </Card>
@@ -92,7 +95,9 @@ const Explore = () => {
           ))}
           {Object.keys(groupedTags).length === 0 && (
             <div className="text-center py-8">
-              <Text type="secondary">Không tìm thấy thẻ nào.</Text>
+              <Text type="secondary" className="text-base sm:text-lg">
+                Không tìm thấy thẻ nào.
+              </Text>
             </div>
           )}
         </>

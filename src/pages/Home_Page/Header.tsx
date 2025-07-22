@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
 import { FaBell, FaPlus } from 'react-icons/fa';
 import { API_BE } from '../../config/configApi';
 import BlurText from '../../components/BlurText/BlurText';
@@ -10,7 +9,9 @@ import UserProfileButton from '../../components/UserProfileButton/UserProfileBut
 import NotiModel from './Components/Notification_Modal';
 import UserModel from './Components/User_Modal';
 import { fakeAvatar } from '../../utils/utils';
-
+import SearchModal from './Components/Search_Modal';
+import axiosClient from '../../apis/axiosClient';
+import { useAuthStore } from '../../hook/useAuthStore';
 interface SearchedUser {
   user_id: string;
   user_name: string;
@@ -23,41 +24,6 @@ interface SearchResponse {
 }
 
 
-
-function SearchModal({ isOpen, users, onClose }: { isOpen: boolean; users: SearchedUser[]; onClose: () => void }) {
-  return (
-    <div
-      className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-lg shadow-xl p-6 w-80 max-h-96 overflow-y-auto transition-all duration-300 ${
-        isOpen ? 'block' : 'hidden'
-      }`}
-    >
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Kết quả tìm kiếm</h3>
-      {users.length > 0 ? (
-        <ul className="space-y-2">
-          {users.map((user) => (
-            <li key={user.user_id}>
-              <Link
-                to={`/home/user-detail/${user.user_id}`}
-                onClick={onClose}
-                className="block px-3 py-2 text-gray-800 hover:bg-gray-100 rounded-md"
-              >
-                {user.user_name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-gray-600">Không tìm thấy người dùng</p>
-      )}
-      <button
-        onClick={onClose}
-        className="mt-4 w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
-      >
-        Đóng
-      </button>
-    </div>
-  );
-}
 
 const Header: React.FC = () => {
   const [isNotiModelOpen, setIsNotiOpen] = useState(false);
@@ -86,7 +52,7 @@ const Header: React.FC = () => {
   }, []);
 
   const fetchSearchResults = async (query: string) => {
-    const accessToken = localStorage.getItem('accessToken');
+    const accessToken = useAuthStore.getState().access_token;
     if (!accessToken) {
       setError('Vui lòng đăng nhập để tìm kiếm');
       setIsSearchModalOpen(true);
@@ -96,7 +62,7 @@ const Header: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await axios.get<SearchResponse>(
+      const response = await axiosClient.get<SearchResponse>(
         `${API_BE}/api/v1/users/${encodeURIComponent(query)}`,
         {
           headers: {

@@ -61,8 +61,8 @@ const Sidebar: React.FC<SidebarProps> = () => {
   }, [data, showAllTags]);
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-48 bg-white shadow-md overflow-y-auto font-lexend mt-16 xl:w-64 lg:w-56 md:w-48">
-      <div className="h-16" />
+    <aside className="fixed left-0 top-0 h-full w-10 bg-white shadow-md overflow-y-auto font-lexend mt-16 xl:w-58  lg:w-56 md:w-48">
+      <div className="h-16 " />
       <Menu
         mode="vertical"
         defaultSelectedKeys={['home']}

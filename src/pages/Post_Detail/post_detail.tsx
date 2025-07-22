@@ -659,9 +659,9 @@ const PostDetail: React.FC = () => {
                     <Avatar size={40} src={fakeAvatar} className="border-2 border-gray-200">
                       {item.userName[0]}
                     </Avatar>
-                    {commentsList.length > 1 && index < commentsList.length - 1 && (
+                    {/* {commentsList.length > 1 && index < commentsList.length - 1 && (
                       <div className="w-px h-full bg-gray-300 absolute left-6 top-12"></div>
-                    )}
+                    )} */}
                   </div>
                   <div className="flex-1 ml-4">
                     <div className="flex items-start justify-between mb-2">
