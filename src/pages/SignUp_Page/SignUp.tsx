@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import TextField from '../../components/TextField_LoginSignUp/Textfield';
-import PasswordField from '../../components/Password_TextField/PasswordField';
-import InputNum from '../../components/TextFieldOnlyNumber/TextField-NumberOnly';
+import { Input, Button, Modal } from 'antd';
+import { LockOutlined, UserOutlined, MailOutlined } from '@ant-design/icons';
+import { motion } from 'framer-motion';
 import { useSignUp } from './Hook/useSignUp';
 import { toast } from 'react-toastify';
 import { AxiosError } from 'axios';
@@ -27,43 +27,43 @@ const SignUp: React.FC = () => {
 
   const { mutate, isPending } = useSignUp({
     onSuccess: () => {
-      toast.success('Bạn đã đăng ký thành công!');
-      //   setIsVerify(true);
+      toast.success('You have registered successfully!');
       navigate('/login');
+      // setIsVerify(true);
     },
     onError: (err: AxiosError<{ message?: string }>) => {
-      // const errorMessage = err.response?.data?.message || 'Đã có lỗi xảy ra khi đăng ký!';
-      toast.error(`Lỗi đăng ký`);
+      toast.error('Registration failed');
       console.log(err);
     },
   });
+
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     let isValid = true;
 
     if (isNaN(age) || age < 13 || age > 101) {
-      setAgeError('Tuổi phải từ 13 đến 101.');
+      setAgeError('Age must be between 13 and 101.');
       isValid = false;
     } else {
       setAgeError('');
     }
 
     if (!email) {
-      setEmailError('Email không được để trống.');
+      setEmailError('Email cannot be empty.');
       isValid = false;
     } else if (!emailPattern.test(email)) {
-      setEmailError('Vui lòng nhập địa chỉ email hợp lệ.');
+      setEmailError('Please enter a valid email address.');
       isValid = false;
     } else {
       setEmailError('');
     }
 
     if (!password) {
-      setPasswordError('Mật khẩu không được để trống.');
+      setPasswordError('Password cannot be empty.');
       isValid = false;
     } else if (!passwordPattern.test(password)) {
       setPasswordError(
-        'Mật khẩu phải có ít nhất 6 ký tự và bao gồm chữ hoa, số và ký tự đặc biệt.'
+        'Password must be at least 6 characters long and include an uppercase letter, a number, and a special character.'
       );
       isValid = false;
     } else {
@@ -71,14 +71,13 @@ const SignUp: React.FC = () => {
     }
 
     if (confirmPassword !== password) {
-      setConfirmPasswordError('Mật khẩu không khớp.');
+      setConfirmPasswordError('Passwords do not match.');
       isValid = false;
     } else {
       setConfirmPasswordError('');
     }
 
     if (isValid) {
-      console.log(setIsVerify);
       mutate({ user_name, email, age, password });
     }
   };
@@ -86,163 +85,224 @@ const SignUp: React.FC = () => {
   const handleVerify = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (!verificationCode) {
-      alert('Vui lòng nhập mã xác minh.');
+      toast.error('Please enter the verification code.');
       return;
     }
-    alert('Xác minh email thành công!');
+    toast.success('Email verified successfully!');
+    navigate('/login');
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8  w-[35rem]">
-        <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
-          <div
-            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-            style={{ width: isVerify ? '100%' : '50%' }}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-200 p-4">
+      <motion.div
+        className="bg-white p-8 rounded-2xl shadow-2xl w-[35rem] flex flex-col items-center"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="w-full h-1 bg-gray-200 rounded-sm mb-8 overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-blue-500 to-blue-700 transition-all duration-300"
+            initial={{ width: '50%' }}
+            animate={{ width: isVerify ? '100%' : '50%' }}
+            transition={{ duration: 0.5 }}
           />
         </div>
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">
-            {isVerify ? 'Xác minh email' : 'Tạo tài khoản'}
-          </h2>
-        </div>
+        <h2 className="text-3xl font-bold text-gray-800 mb-6 font-sans">Create Account</h2>
         <form
           id="registrationForm"
           aria-labelledby="form-title"
           aria-describedby="form-description"
-          className="space-y-4 animate-fade-in"
+          className="w-full grid gap-6 h-[30rem] transition-all duration-300"
           onSubmit={isVerify ? handleVerify : handleSignUp}
         >
           {isVerify ? (
-            <>
-              <p className="text-gray-600 text-center">
-                Chúng tôi đã gửi mã xác minh đến <strong>{email}</strong>
-              </p>
-              <TextField
-                label="Mã xác minh"
-                type="text"
-                id="verification-code"
-                required={true}
-                value={verificationCode}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setVerificationCode(e.target.value)
-                }
-              />
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            <Modal
+              open={isVerify}
+              onCancel={() => setIsVerify(false)}
+              footer={null}
+              centered
+              className="max-w-md mx-4 sm:mx-auto rounded-2xl shadow-2xl"
+              styles={{
+                content: { background: 'linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%)' },
+                header: { borderBottom: '1px solid #e5e7eb' },
+              }}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
               >
-                Xác minh Email
-              </button>
-            </>
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-bold text-gray-800 font-sans">Verify Your Email</h3>
+                  <p className="text-gray-600 mt-2">
+                    We have sent a verification code to <strong>{email}</strong>
+                  </p>
+                </div>
+                <Input
+                  prefix={<MailOutlined className="text-gray-400" />}
+                  placeholder="Verification Code"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 text-base"
+                  size="large"
+                />
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  className="w-full mt-6 h-[3rem] bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-400 hover:text-gray-800 transition-all duration-300"
+                  size="large"
+                  onClick={() => handleVerify}
+                >
+                  Verify Email
+                </Button>
+              </motion.div>
+            </Modal>
           ) : (
             <>
               {isPending ? (
-                <div className="flex items-center justify-center h-[15rem]">
+                <div className="flex flex-col items-center justify-center h-[15rem]">
                   <LoadingBus />
+                  <h1 className="text-2xl font-bold text-gray-800 mt-6">Please wait...</h1>
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <TextField
-                      label="Tên của bạn"
-                      type="name"
-                      id="name"
-                      required={true}
-                      autoComplete="name"
-                      value={user_name}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-                    />
-                    <InputNum
-                      label="Tuổi của bạn"
-                      id="age"
-                      required
-                      value={age}
-                      autoComplete="off"
-                      onChange={(num: number) => setAge(num)}
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <motion.div
+                      animate={ageError ? { x: [-5, 5, -5, 5, 0] } : {}}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Input
+                        prefix={<UserOutlined className="text-gray-400" />}
+                        placeholder="Your Name"
+                        value={user_name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 text-base"
+                        size="large"
+                      />
+                    </motion.div>
+                    <motion.div
+                      animate={ageError ? { x: [-5, 5, -5, 5, 0] } : {}}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Input
+                        prefix={<UserOutlined className="text-gray-400" />}
+                        placeholder="Your Age"
+                        type="number"
+                        value={age || ''}
+                        onChange={(e) => setAge(Number(e.target.value))}
+                        className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 text-base"
+                        size="large"
+                      />
+                      {/* {ageError && <span className="text-red-500 text-xs mt-1">{ageError}</span>} */}
+                    </motion.div>
                   </div>
-                  <TextField
-                    label="Email"
-                    type="email"
-                    id="email"
-                    required={true}
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                  />
-                  <PasswordField
-                    id="password"
-                    label="Mật khẩu"
-                    value={password}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setPassword(e.target.value)
-                    }
-                  />
-                  <PasswordField
-                    id="confirm-password"
-                    label="Xác nhận mật khẩu"
-                    value={confirmPassword}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setConfirmPassword(e.target.value)
-                    }
-                  />
+                  <motion.div
+                    animate={emailError ? { x: [-5, 5, -5, 5, 0] } : {}}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Input
+                      prefix={<MailOutlined className="text-gray-400" />}
+                      placeholder="Email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 text-base"
+                      size="large"
+                    />
+                    {/* {emailError && <span className="text-red-500 text-xs mt-1">{emailError}</span>} */}
+                  </motion.div>
+                  <motion.div
+                    animate={passwordError ? { x: [-5, 5, -5, 5, 0] } : {}}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Input.Password
+                      prefix={<LockOutlined className="text-gray-400" />}
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 text-base"
+                      size="large"
+                    />
+                    {/* {passwordError && (
+                      <span className="text-red-500 text-xs mt-1">{passwordError}</span>
+                    )} */}
+                  </motion.div>
+                  <motion.div
+                    animate={confirmPasswordError ? { x: [-5, 5, -5, 5, 0] } : {}}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Input.Password
+                      prefix={<LockOutlined className="text-gray-400" />}
+                      placeholder="Confirm Password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 text-base"
+                      size="large"
+                    />
+                    {/* {confirmPasswordError && (
+                      <span className="text-red-500 text-xs mt-1">{confirmPasswordError}</span>
+                    )} */}
+                  </motion.div>
+                  <div className="space-y-2" aria-live="polite">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <span className="text-green-500">✓</span>
+                      {ageError ? (
+                        <span className="text-red-500 text-sm">{ageError}</span>
+                      ) : (
+                        <span>Age: 13 or older</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <span className="text-green-500">✓</span>
+                      {emailError ? (
+                        <span className="text-red-500 text-sm">{emailError}</span>
+                      ) : (
+                        <span>Valid email format</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <span className="text-green-500">✓</span>
+                      {passwordError ? (
+                        <span className="text-red-500 text-sm">{passwordError}</span>
+                      ) : (
+                        <span>
+                          Password: At least 6 characters, 1 uppercase letter, 1 special character
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <span className="text-green-500">✓</span>
+                      {confirmPasswordError ? (
+                        <span className="text-red-500 text-sm">{confirmPasswordError}</span>
+                      ) : (
+                        <span>Passwords match</span>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    className="w-[30rem] h-[3rem] bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-400 hover:text-gray-800 transition-all duration-300 text-lg"
+                    size="large"
+                    loading={isPending}
+                  >
+                    {isPending ? 'Processing...' : 'Sign Up'}
+                  </Button>
+                  <div className="flex justify-between items-center mt-4">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <p>Already have an account?</p>
+                      <Link to="/login" className="text-indigo-500 hover:text-indigo-700">
+                        Log In
+                      </Link>
+                    </div>
+                  </div>
                 </>
               )}
-
-              <div className="space-y-2" aria-live="polite">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="text-green-500">✓</span>
-                  {ageError ? (
-                    <span className="text-red-500 text-sm">{ageError}</span>
-                  ) : (
-                    <span> Độ tuổi: 13 trở lên</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="text-green-500">✓</span>
-                  {emailError ? (
-                    <span className="text-red-500 text-sm">{emailError}</span>
-                  ) : (
-                    <span>Đúng định dạng email</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="text-green-500">✓</span>
-                  {passwordError ? (
-                    <span className="text-red-500 text-sm">{passwordError}</span>
-                  ) : (
-                    <span>
-                      Mật Khẩu: có độ dài từ 6 ký tự trở lên, 1 chữ cái in hoa, 1 ký tự đặc biệt
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="text-green-500">✓</span>
-                  {confirmPasswordError ? (
-                    <span className="text-red-500 text-sm">{confirmPasswordError}</span>
-                  ) : (
-                    <span>Xác nhận mật khẩu trùng nhau</span>
-                  )}
-                </div>
-              </div>
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                {isPending ? 'Đang Xử lý ...' : 'Đăng ký'}
-              </button>
-
-              <div className="text-center text-sm text-gray-600 flex w-[15em] justify-around">
-                <p>Đã có tài khoản?</p>
-                <Link to="/login" className="text-blue-600 hover:underline">
-                  Đăng Nhập
-                </Link>
-              </div>
             </>
           )}
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 };

@@ -84,7 +84,7 @@ const Explore = () => {
                       }
                       description={
                         <Text type="secondary" className="text-sm sm:text-base">
-                          {tag.posts.toLocaleString()} bài viết
+                          {tag.posts.toLocaleString()} {tag.posts > 1 ? 'posts' : 'post' }
                         </Text>
                       }
                     />

@@ -44,7 +44,7 @@ const NotificationItem = memo(
             title={
               <div className="flex justify-between items-center">
                 <Text strong style={{ fontSize: 14, color: '#1f1f1f' }}>
-                  Thông báo
+                  Notification
                 </Text>
                 <Text type="secondary" style={{ fontSize: 12 }}>
                   {timeAgo}
@@ -93,7 +93,7 @@ function NotiModel({ isOpen }: { isOpen: boolean }) {
               <div className="flex items-center gap-2">
                 <BellOutlined style={{ fontSize: 18, color: '#1677ff' }} />
                 <Text strong style={{ fontSize: 16, color: '#1f1f1f' }}>
-                  Thông báo
+                  Notifications
                 </Text>
               </div>
             }
@@ -123,7 +123,7 @@ function NotiModel({ isOpen }: { isOpen: boolean }) {
                 </div>
               ) : error ? (
                 <div style={{ padding: 16, textAlign: 'center', color: '#ff4d4f' }}>
-                  Không thể tải thông báo
+                  Can't load notification
                 </div>
               ) : notifications.length > 0 ? (
                 <List
@@ -135,7 +135,7 @@ function NotiModel({ isOpen }: { isOpen: boolean }) {
                 />
               ) : (
                 <div style={{ padding: 16, textAlign: 'center', color: '#8c8c8c' }}>
-                  Không có thông báo
+                  Empty Notification
                 </div>
               )}
             </div>

@@ -119,9 +119,9 @@ const Login: React.FC = () => {
                 Sign-Up
               </Link>
             </div>
-            <Link to="/send-email" className="text-indigo-500 hover:text-indigo-700">
+            {/* <Link to="/send-email" className="text-indigo-500 hover:text-indigo-700">
               Forgot Password?
-            </Link>
+            </Link> */}
           </div>
         </form>
       </div>

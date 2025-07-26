@@ -112,7 +112,7 @@ const Header: React.FC = () => {
         />
       </div>
       <div className="flex items-center gap-2 xl:gap-3">
-        <ButtonIconLeft Icon={FaPlus} size={18} color="#333" title={<Link to="create-post">Tạo bài viết</Link>} />
+        <ButtonIconLeft Icon={FaPlus} size={18} color="#333" title={<Link to="create-post">Create Post</Link>} />
         <div ref={notiRef} className="relative">
           <IconButton
             Icon={FaBell}

@@ -36,7 +36,7 @@ const Tag_Card: React.FC<TagCardProps> = ({ tag_id, title, posts }) => {
             #{title}
           </h3>
           <p className="text-sm text-gray-600">
-            {posts} {posts === 1 ? 'bài viết' : 'bài viết'}
+            {posts} {posts === 1 ? 'post' : 'posts'}
           </p>
         </div>
       </div>

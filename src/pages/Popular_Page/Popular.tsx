@@ -9,7 +9,7 @@ import { useGetPopular } from './Hooks/useGetPopular';
 
 const Popular = () => {
   const { data, isLoading, error } = useGetPopular();
-
+  console.log(data);
   const trendingTags = data?.data.trending_tags || [];
   const trendingPosts = data?.data.trending_posts || [];
 
@@ -60,7 +60,7 @@ const Popular = () => {
           {/* Trending Posts Section */}
           <section>
             <div className="flex items-center gap-3 mb-4 sm:mb-6">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Bài viết thịnh hành</h2>
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Trending posts</h2>
               <span className="text-blue-500 text-lg sm:text-xl animate-pulse">📈</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">

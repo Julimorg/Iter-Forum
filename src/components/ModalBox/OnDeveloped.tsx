@@ -24,7 +24,7 @@ const DevModal: React.FC<DevModalProps> = ({ visible, onClose }) => {
       footer={null}
       centered
       width="100%"
-      className="max-w-md mx-4 sm:mx-auto rounded-lg"
+      className="max-w-md mx-4 sm:mx-auto rounded-l  g"
     >
       <div className="flex flex-col items-center gap-4 py-6">
         <div className="text-center">

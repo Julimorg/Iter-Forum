@@ -35,7 +35,7 @@ const predefinedTags = [
 
 const CreatePost: React.FC = () => {
   const DESCRIP_MAX_LENGTH = 500;
-  const TAG_MAX_LENGTH = 50;
+  const TAG_MAX_LENGTH = 5;
   const [isChecked, setIsChecked] = useState(false);
   const [title, setTitle] = useState('');
   const [img_files, setImages] = useState<string[]>([]);
@@ -48,7 +48,7 @@ const CreatePost: React.FC = () => {
 
   const { mutate, isPending, isError, error } = useCreatePost({
     onSuccess: () => {
-      message.success('Tạo bài viết thành công!');
+      message.success('Post created successfully!');
       setTitle('');
       setTextDescripLimit('');
       setImages([]);
@@ -58,7 +58,7 @@ const CreatePost: React.FC = () => {
       setIsExpanded(false);
     },
     onError: (err) => {
-      message.error(err.response?.data?.message || 'Đăng bài thất bại. Vui lòng thử lại.');
+      message.error(err.response?.data?.message || 'Failed to post. Please try again.');
     },
   });
 
@@ -82,7 +82,7 @@ const CreatePost: React.FC = () => {
   const handleAddImage = (file: File) => {
     const newImageUrl = URL.createObjectURL(file);
     // if (img_files.length >= 5) {
-    //   message.error('Chỉ được upload tối đa 5 ảnh!');
+    //   message.error('Only up to 5 images can be uploaded!');
     //   return false;
     // }
     setImages((prevImages) => [...prevImages, newImageUrl]);
@@ -105,7 +105,7 @@ const CreatePost: React.FC = () => {
       setTags(selectedTags);
       setIsTagModalVisible(false);
     } else {
-      message.error('Bạn chỉ có thể chọn tối đa 50 thẻ!');
+      message.error('You can only select up to 5 tags!');
     }
   };
 
@@ -123,15 +123,15 @@ const CreatePost: React.FC = () => {
 
   const handleSubmit = () => {
     if (!title.trim()) {
-      message.error('Tiêu đề là bắt buộc!');
+      message.error('Title is required!');
       return;
     }
     if (!textDescripLimit.trim()) {
-      message.error('Nội dung là bắt buộc!');
+      message.error('Content is required!');
       return;
     }
     if (!isChecked) {
-      message.error('Bạn phải chấp nhận Điều khoản Dịch vụ!');
+      message.error('You must accept the Terms of Service!');
       return;
     }
 
@@ -168,13 +168,13 @@ const CreatePost: React.FC = () => {
         {/* Form Nhập liệu */}
         <div className="w-1/2 bg-white rounded-2xl shadow-md p-10 transition-all duration-300 hover:shadow-lg">
           <h1 className="text-4xl font-semibold text-[#1A1F36] mb-10 font-['Inter',Roboto,sans-serif]">
-            Tạo Bài Viết
+            Create Post
           </h1>
 
           {/* Tiêu đề */}
           <div className="mb-8">
             <Input
-              placeholder="Bạn đang nghĩ gì?"
+              placeholder="What's on your mind?"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               size="large"
@@ -190,7 +190,7 @@ const CreatePost: React.FC = () => {
               value={textDescripLimit}
               onChange={handleTextLimit}
               modules={quillModules}
-              placeholder="Hãy viết nội dung bài viết của bạn..."
+              placeholder="Write your post content..."
               className="border border-[#D8DDE6] rounded-xl hover:border-[#0078D4] focus-within:border-[#0078D4] transition-all duration-200 font-['Inter',Roboto,sans-serif] text-base [&_.ql-editor]:min-h-[150px] [&_.ql-editor_p]:mb-2 [&_.ql-editor_ul]:mb-2 [&_.ql-editor_ol]:mb-2 [&_.ql-editor_pre]:bg-[#F0F2F5] [&_.ql-editor_pre]:p-2 [&_.ql-editor_pre]:rounded [&_.ql-editor_pre]:font-mono [&_.ql-editor_pre]:text-sm [&_.ql-toolbar]:rounded-t-xl [&_.ql-toolbar]:border-b-0 [&_.ql-toolbar]:border-[#D8DDE6] [&_.ql-container]:border-[#D8DDE6]"
             />
             <p className="text-sm text-[#65676B] mt-3 font-['Inter',Roboto,sans-serif]">
@@ -201,7 +201,7 @@ const CreatePost: React.FC = () => {
           {/* Thêm hình ảnh */}
           <div className="mb-8">
             <label className="block text-[#1A1F36] font-medium mb-3 font-['Inter',Roboto,sans-serif]">
-              Hình ảnh
+              Images
             </label>
             <Upload.Dragger
               beforeUpload={handleAddImage}
@@ -211,13 +211,13 @@ const CreatePost: React.FC = () => {
               className="rounded-xl bg-[#F5F7FA] border-[#D8DDE6] hover:border-[#0078D4] transition-all duration-200"
             >
               <p className="text-[#65676B] text-base font-['Inter',Roboto,sans-serif]">
-                Kéo thả hoặc nhấn để tải lên hình ảnh
+                Drag and drop or click to upload images
               </p>
               <Button
                 icon={<UploadOutlined />}
                 className="mt-3 bg-[#F0F2F5] text-[#1A1F36] hover:bg-[#E4E6EB] border-none rounded-lg font-['Inter',Roboto,sans-serif]"
               >
-                Tải lên
+                Upload
               </Button>
             </Upload.Dragger>
             {img_files.length > 0 && (
@@ -245,7 +245,7 @@ const CreatePost: React.FC = () => {
           {/* Thêm thẻ */}
           <div className="mb-8">
             <label className="block text-[#1A1F36] font-medium mb-3 font-['Inter',Roboto,sans-serif]">
-              Thẻ
+              Tags
             </label>
             <Button
               type="primary"
@@ -253,15 +253,15 @@ const CreatePost: React.FC = () => {
               onClick={showTagModal}
               className="bg-[#0078D4] hover:bg-[#005BB5] border-none rounded-lg font-['Inter',Roboto,sans-serif]"
             >
-              Thêm thẻ
+              Add Tags
             </Button>
             <Modal
-              title="Chọn thẻ"
+              title="Select Tags"
               open={isTagModalVisible}
               onOk={handleTagModalOk}
               onCancel={handleTagModalCancel}
-              okText="Xác nhận"
-              cancelText="Hủy"
+              okText="Confirm"
+              cancelText="Cancle"
               className="font-['Inter',Roboto,sans-serif]"
             >
               <Checkbox.Group
@@ -294,13 +294,13 @@ const CreatePost: React.FC = () => {
               onChange={(e) => setIsChecked(e.target.checked)}
               className="text-[#65676B] font-['Inter',Roboto,sans-serif]"
             >
-              Tôi đã đọc{' '}
+              I have read{' '}
               <a href="#" className="text-[#0078D4] hover:underline">
-                Quy tắc Cộng đồng
+                Community Rules
               </a>{' '}
-              và chấp nhận{' '}
+              and accept{' '}
               <a href="#" className="text-[#0078D4] hover:underline">
-                Điều khoản Dịch vụ
+                Terms of Service
               </a>
             </Checkbox>
           </div>
@@ -313,11 +313,11 @@ const CreatePost: React.FC = () => {
             loading={isPending}
             className="w-full bg-[#0078D4] hover:bg-[#005BB5] border-none rounded-lg text-lg font-semibold font-['Inter',Roboto,sans-serif] py-6 transition-all duration-200 hover:scale-105"
           >
-            Đăng bài
+            Post
           </Button>
           {isError && (
             <p className="text-red-500 mt-4">
-              Lỗi: {error.response?.data?.message || error.message}
+              Error: {error.response?.data?.message || error.message}
             </p>
           )}
         </div>
@@ -353,7 +353,7 @@ const CreatePost: React.FC = () => {
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="text-[#0078D4] hover:text-[#005BB5] font-['Inter',Roboto,sans-serif] mt-2 p-0"
               >
-                {isExpanded ? 'Thu gọn' : 'Xem thêm'}
+                {isExpanded ? 'Collapse' : 'Read more'}
               </Button>
             )}
             {img_files.length > 0 && (
