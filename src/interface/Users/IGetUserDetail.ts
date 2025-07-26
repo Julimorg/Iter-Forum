@@ -22,4 +22,5 @@ export type IGetUserDetailPosts = {
     img_url: string[],
     comments_num: number
     downvote: number,
+    date_updated: string;
 }

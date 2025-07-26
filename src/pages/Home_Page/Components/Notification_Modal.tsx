@@ -4,7 +4,7 @@ import { useGetNotification } from '../Hooks/useGetNotification';
 import { List, Typography, Card, Skeleton, Badge } from 'antd';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NotificationData } from '../../../interface/Recommend/ISubscricedTag';
-import { formatTimeAgo } from '../../../utils/utils';
+import { formatRelativeTime, formatTimeAgo } from '../../../utils/utils';
 import { BellOutlined } from '@ant-design/icons';
 
 const { Text, Paragraph } = Typography;
@@ -24,8 +24,7 @@ const NotificationItem = memo(
     }, [notification.notification_content]);
 
     const timeAgo = useMemo(() => {
-      const date = new Date(notification.date_sent);
-      return formatTimeAgo(date);
+      return formatRelativeTime(notification.date_sent);
     }, [notification.date_sent]);
 
     return (

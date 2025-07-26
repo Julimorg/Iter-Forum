@@ -192,6 +192,7 @@ const ViewUserProfile = () => {
                     // tags={post.tags || []}
                     images={post.img_url}
                     avatar={post.ava_img_path}
+                    date_updated={post.date_updated}
                     // onRemove={() => handleRemovePost(post.post_id)} // Comment vì không sử dụng
                     isTrending={false}
                   />

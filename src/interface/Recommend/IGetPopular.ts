@@ -19,7 +19,7 @@ export type IGetTrendingPosts = {
     post_title:string;
     post_content: string;
     img_url: string[];
-    data_updated: string;
+    date_updated: string;
     upvote: number;
     downvote: number;
     comments_num: number;

@@ -10,10 +10,10 @@ import { useGetPopular } from './Hooks/useGetPopular';
 const Popular = () => {
   const { data, isLoading, error } = useGetPopular();
   console.log(data);
+  
   const trendingTags = data?.data.trending_tags || [];
   const trendingPosts = data?.data.trending_posts || [];
 
-  console.log("trending tags: ", data);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12  min-h-screen max-w-7xl">
@@ -77,6 +77,7 @@ const Popular = () => {
                   tags={post.tags}
                   comments={post.comments_num}
                   images={post.img_url}
+                  date_updated={post.date_updated}
                   onRemove={() => console.log(`Post ${post.post_id} removed.`)}
                   isTrending={true}
                 />

@@ -16,6 +16,7 @@ import axiosClient from '../../apis/axiosClient';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import { formatRelativeTime } from '../../utils/utils';
 
 interface PostcardProps {
   post_id: string;
@@ -198,27 +199,6 @@ const Postcard: React.FC<PostcardProps> = ({
       });
     };
 
-  const formatRelativeTime = (date: string): string => {
-    const now = new Date();
-    const updatedDate = new Date(date);
-    const diffInMs = now.getTime() - updatedDate.getTime();
-    const diffInSeconds = Math.floor(diffInMs / 1000);
-
-    const minutes = Math.floor(diffInSeconds / 60);
-    if (minutes < 1) return `${diffInSeconds} giây trước`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 1) return `${minutes} phút trước`;
-    const days = Math.floor(hours / 24);
-    if (days < 1) return `${hours} giờ trước`;
-    const weeks = Math.floor(days / 7);
-    if (weeks < 1) return `${days} ngày trước`;
-    const months = Math.floor(days / 30);
-    if (months < 1) return `${weeks} tuần trước`;
-    const years = Math.floor(months / 12);
-    if (years < 1) return `${months} tháng trước`;
-    return `${years} năm trước`;
-  };
-
   return (
     <Card
       className="w-full max-w-[100vw] sm:max-w-[80vw] md:max-w-[60vw] lg:max-w-[60vw] xl:max-w-[60vw] mb-2 sm:mb-3 md:mb-4 xl:mb-5"
@@ -240,7 +220,7 @@ const Postcard: React.FC<PostcardProps> = ({
               {user}
             </Text>
             <Text type="secondary" className="block text-[0.625rem] sm:text-xs md:text-sm">
-              Time: {formatRelativeTime(date_updated ?? '')}
+              {formatRelativeTime(date_updated ?? '')}
             </Text>
           </div>
         </div>
