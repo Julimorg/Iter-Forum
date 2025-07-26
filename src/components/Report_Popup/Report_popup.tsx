@@ -1,19 +1,28 @@
+
 import React, { useState } from 'react';
-import styled from 'styled-components';
 import blockUserIcon from '../../assets/block.png';
 import reportIcon from '../../assets/report.png';
-import ReportPanel from '../Report_Panel/Report_panel';
+import ReportPanel from '../ModalBox/ReportModal';
+import DevModal from '../ModalBox/OnDeveloped';
 
 interface ReportPopupProps {
-  type: string; // "User", "Comment", "Post"
+  type: string;
   user_id?: string;
   post_id?: string | null;
-  comment_id?: string; // Thêm comment_id để hỗ trợ report comment
+  comment_id?: string;
 }
 
 const ReportPopup: React.FC<ReportPopupProps> = ({ type, user_id, post_id, comment_id }) => {
   const [showReportPanel, setShowReportPanel] = useState<boolean>(false);
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
+  const showModal = (): void => {
+    setIsModalVisible(true);
+  };
+
+  const handleClose = (): void => {
+    setIsModalVisible(false);
+  };
   const handleOpenReportPanel = () => {
     setShowReportPanel(true);
   };
@@ -32,16 +41,21 @@ const ReportPopup: React.FC<ReportPopupProps> = ({ type, user_id, post_id, comme
 
   return (
     <>
-      <Popup>
-        <PopupButton>
-          <img src={blockUserIcon} alt="Block This User" />
+      <div className="absolute top-full right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 flex flex-col p-2 min-w-[180px]">
+        <button className="flex items-center justify-start px-3 py-2 text-gray-700 text-sm font-medium hover:bg-gray-100 rounded-md transition-colors border-b border-gray-200 last:border-b-0"
+          onClick={showModal}
+        >
+          <img src={blockUserIcon} alt="Block This User" className="w-5 h-5 mr-2" />
           Block this user
-        </PopupButton>
-        <PopupButton style={{ color: 'red' }} onClick={handleOpenReportPanel}>
-          <img src={reportIcon} alt="Report" />
+        </button>
+        <button
+          className="flex items-center justify-start px-3 py-2 text-red-500 text-sm font-medium hover:bg-gray-100 rounded-md transition-colors border-b border-gray-200 last:border-b-0"
+          onClick={handleOpenReportPanel}
+        >
+          <img src={reportIcon} alt="Report" className="w-5 h-5 mr-2" />
           Report this {type}
-        </PopupButton>
-      </Popup>
+        </button>
+      </div>
 
       {showReportPanel && (
         <ReportPanel
@@ -52,44 +66,10 @@ const ReportPopup: React.FC<ReportPopupProps> = ({ type, user_id, post_id, comme
           comment_id={type === 'Comment' ? comment_id : undefined}
         />
       )}
+      <DevModal visible={isModalVisible} onClose={handleClose} />
+
     </>
   );
 };
 
 export default ReportPopup;
-
-const Popup = styled.div`
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  padding: 8px;
-  min-width: 180px;
-`;
-
-const PopupButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  background: none;
-  border: none;
-  text-align: left;
-  padding: 8px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  white-space: nowrap;
-  border-bottom: 1px solid #e0e0e0;
-  &:hover {
-    background-color: #f0f0f0;
-  }
-  &:last-child {
-    border-bottom: none;
-  }
-`;

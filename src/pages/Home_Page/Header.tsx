@@ -105,7 +105,7 @@ const Header: React.FC = () => {
           type="text"
           autoComplete="off"
           className="w-full px-3 py-1.5 bg-gray-100 rounded-full focus:bg-white focus:ring-2 focus:ring-blue-300 focus:outline-none transition-all duration-300 ease-in-out text-sm xl:text-base xl:px-4 xl:py-2"
-          placeholder="Tìm kiếm..."
+          placeholder="Search user name..."
           value={searchQuery}
           onChange={handleSearchChange}
           onKeyDown={handleSearchSubmit}

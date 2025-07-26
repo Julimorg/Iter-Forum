@@ -1,304 +1,330 @@
-// import { useEffect, useRef, useState } from "react";
-// import authorizedAxiosInstance from "../../../services/Auth";
-// import { API_BE } from "../../../config/configApi";
-// import axios from "axios";
-// import IconButton from "../../../components/RoundButtonIcon/RoundButtonIcon";
-// import ButtonTextComponent from "../../../components/ButtonTextOnly/ButtonText";
-// import { fakeAvatar } from "../../../utils/utils";
-// import { FaXmark } from "react-icons/fa6";
 
-// interface UserDetail {
-//   user_id: string;
-//   user_name: string;
-//   email: string;
-//   ava_img_path: string | null;
-//   age: string | null;
-//   phone_num: string | null;
-// }
+import { useRef, useState } from "react";
+import { Modal, Button, Input, message } from "antd";
+import { InputRef } from "antd";
+import Cropper, { ReactCropperElement } from "react-cropper";
+import "cropperjs/dist/cropper.css";
+import { fakeAvatar } from "../../../utils/utils";
+import { IUpdateProfile, IUpdateProfileResponse } from "../../../interface/Users/IUpdateProfile";
+import { useUpdateProfile } from "../Hooks/useEditProfile";
 
-// interface ProfileResponse {
-//   data: UserDetail;
-// }
+interface UserProfileEditFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+  user_id: string;
+  profileData: IUpdateProfileResponse | null;
+}
 
-// interface PostItem {
-//   user_id: string;
-//   user_name: string;
-//   ava_img_path: string | null;
-//   post_id: string;
-//   post_content: string;
-//   img_url: string[];
-//   upvote: number;
-//   downvote: number;
-//   comments_num: number;
-//   post_title: string;
-//   tags: string[];
-//   date_updated: string;
-// }
+function UserProfileEditForm({ isOpen, onClose, user_id, profileData }: UserProfileEditFormProps) {
+  const [error, setError] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(profileData?.ava_img_path || null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [croppedFile, setCroppedFile] = useState<File | null>(null);
+  const cropperRef = useRef<ReactCropperElement>(null);
+  const userNameRef = useRef<InputRef>(null);
+  const userEmailRef = useRef<InputRef>(null);
+  const userPhoneRef = useRef<InputRef>(null);
+  const userAgeRef = useRef<InputRef>(null);
+  const firstNameRef = useRef<InputRef>(null);
+  const lastNameRef = useRef<InputRef>(null);
 
-// interface PostsResponse {
-//   data: PostItem[];
-// }
+  const { mutate: updateProfile, isPending } = useUpdateProfile(user_id, {
+    onSuccess: () => {
+      message.success("Profile updated successfully!");
+      onClose();
+      setIsSubmitting(false);
+    },
+    onError: (error) => {
+      setError(error.response?.data?.message || "Failed to update profile!");
+      setIsSubmitting(false);
+    },
+  });
+  // console.log("update profile: ", updateProfile);
 
-// interface UserProfile {
-//   user_name?: string;
-//   email?: string;
-//   ava_img_path?: string | null;
-//   phone_num?: string;
-//   age?: number;
-// }
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setImageToCrop(imageUrl);
+      setShowCropModal(true);
+    }
+  };
 
+  const handleCropComplete = () => {
+    if (cropperRef.current?.cropper) {
+      const croppedCanvas = cropperRef.current.cropper.getCroppedCanvas({
+        width: 128,
+        height: 128,
+      });
+      croppedCanvas.toBlob((blob) => {
+        if (blob) {
+          const croppedImageUrl = URL.createObjectURL(blob);
+          const file = new File([blob], "avatar.jpg", { type: "image/jpeg" });
+          setSelectedImage(croppedImageUrl);
+          setCroppedFile(file);
+          setShowCropModal(false);
+        }
+      }, "image/jpeg");
+    }
+  };
 
-//   function UserProfileEditForm({
-//     isOpen,
-//     onClose,
-//     // setFetchUser,
-//   }: {
-//     isOpen: boolean;
-//     onClose: () => void;
-//     // setFetchUser: React.Dispatch<React.SetStateAction<UserDetail | null>>;
-//   }) {
-//     const [error, setError] = useState<string | null>(null);
-//     const [selectedImage, setSelectedImage] = useState<string | null>(null);
-//     const [isSubmitting, setIsSubmitting] = useState(false);
-//     const userNameRef = useRef<HTMLInputElement>(null);
-//     const userEmailRef = useRef<HTMLInputElement>(null);
-//     const userPhoneRef = useRef<HTMLInputElement>(null);
-//     const userAgeRef = useRef<HTMLInputElement>(null);
-//     const accessToken = localStorage.getItem("accessToken");
+  const eventClickOpenFile = () => {
+    document.getElementById("avatarUpload")?.click();
+  };
 
-//     // Fetch dữ liệu khi form mở
-//     useEffect(() => {
-//       const fetchProfile = async () => {
-//         if (!isOpen || !accessToken) return;
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setCroppedFile(null);
+  };
 
-//         try {
-//           const response = await authorizedAxiosInstance.get<ProfileResponse>(
-//             `${API_BE}/api/v1/users/profile`,
-//             { headers: { Authorization: `Bearer ${accessToken}` } }
-//           );
-//           const userData = response.data.data;
-//           console.log("Fetched user data:", userData);
+  const handleSubmit = () => {
+    const userName = userNameRef.current?.input?.value;
+    const email = userEmailRef.current?.input?.value;
+    const phoneNum = userPhoneRef.current?.input?.value;
+    const age = userAgeRef.current?.input?.value;
+    const firstName = firstNameRef.current?.input?.value;
+    const lastName = lastNameRef.current?.input?.value;
 
-//           if (userNameRef.current && !userNameRef.current.value) userNameRef.current.value = userData.user_name || "";
-//           if (userEmailRef.current && !userEmailRef.current.value) userEmailRef.current.value = userData.email || "";
-//           if (userPhoneRef.current && !userPhoneRef.current.value) userPhoneRef.current.value = userData.phone_num || "";
-//           if (userAgeRef.current && !userAgeRef.current.value) userAgeRef.current.value = userData.age || "";
-//           if (userData.ava_img_path) setSelectedImage(userData.ava_img_path);
-//         } catch (error) {
-//           console.error("Fetch failed:", error);
-//           setError("Không thể tải thông tin hồ sơ");
-//         }
-//       };
+    // Check required fields
+    if (!userName) {
+      setError("Username is required");
+      return;
+    }
+    if (!email) {
+      setError("Email is required");
+      return;
+    }
+    if (userName.length > 20) {
+      setError("Username must be at most 20 characters");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Invalid email format");
+      return;
+    }
+    if (phoneNum && !/^\d{10,}$/.test(phoneNum)) {
+      setError("Invalid phone number");
+      return;
+    }
+    if (age && (parseInt(age) < 13 || parseInt(age) > 100)) {
+      setError("Age must be between 13 and 100");
+      return;
+    }
 
-//       fetchProfile();
-//     }, [isOpen, accessToken]);
+    const body: IUpdateProfile = {
+      user_name: userName,
+      email,
+      phone_num: phoneNum || undefined,
+      age: age ? parseInt(age) : undefined,
+      first_name: firstName || undefined,
+      last_name: lastName || undefined,
+      ava_img_path: croppedFile || null,
+    };
 
-//     //? Update profile
-//     useEffect(() => {
-//       const updateProfile = async () => {
-//         if (!isSubmitting || !accessToken) return;
+    setIsSubmitting(true);
+    updateProfile(body);
+  };
 
-//         try {
-//           const userName = userNameRef.current?.value || "";
-//           const email = userEmailRef.current?.value || "";
-//           const phoneNum = userPhoneRef.current?.value || "";
-//           const age = userAgeRef.current?.value ? parseInt(userAgeRef.current.value) : undefined;
+  return (
+    <>
+      <Modal
+        open={isOpen}
+        onCancel={onClose}
+        footer={null}
+        centered
+        width={550}
+        className="rounded-lg"
+        bodyStyle={{ padding: "24px", background: "#fff" }}
+      >
+        <div className="flex flex-col">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">Edit Profile</h2>
+          {error && <p className="text-red-500 text-sm mb-6 text-center">{error}</p>}
+          <div className="space-y-6">
+            {/* Avatar Section */}
+            <div className="flex items-center justify-center flex-col space-y-4">
+              <div className="relative">
+                <img
+                  src={selectedImage || profileData?.ava_img_path || fakeAvatar}
+                  alt="Avatar"
+                  className="w-32 h-32 rounded-full object-cover border-2 border-gray-200"
+                />
+              </div>
+              <div className="flex space-x-3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  id="avatarUpload"
+                  onChange={handleImageChange}
+                />
+                <Button
+                  onClick={eventClickOpenFile}
+                  className="h-10 bg-gray-200 hover:bg-blue-100 text-gray-700 hover:text-blue-600 border-none rounded-md"
+                >
+                  Upload Image
+                </Button>
+                {(selectedImage || profileData?.ava_img_path) && (
+                  <Button
+                    onClick={handleRemoveImage}
+                    className="h-10 bg-gray-200 hover:bg-red-100 text-gray-700 hover:text-red-600 border-none rounded-md"
+                  >
+                    Remove Image
+                  </Button>
+                )}
+              </div>
+            </div>
+            {/* Input Fields */}
+            <div className="space-y-4">
+              <div>
+                <label
+                  className={`block text-sm font-medium ${
+                    error?.includes("Username") ? "text-red-500" : "text-gray-700"
+                  }`}
+                >
+                  {error?.includes("Username") ? error : "Username *"}
+                </label>
+                <Input
+                  ref={userNameRef}
+                  defaultValue={profileData?.user_name || "unknown"}
+                  placeholder="Enter username..."
+                  className="mt-1 w-full rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label
+                  className={`block text-sm font-medium ${error?.includes("Email") ? "text-red-500" : "text-gray-700"}`}
+                >
+                  {error?.includes("Email") ? error : "Email *"}
+                </label>
+                <Input
+                  ref={userEmailRef}
+                  type="email"
+                  defaultValue={profileData?.email || "unknown"}
+                  placeholder="Enter email..."
+                  className="mt-1 w-full rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium ${error?.includes("First Name") ? "text-red-500" : "text-gray-700"}`}>
+                  First Name
+                </label>
+                <Input
+                  ref={firstNameRef}
+                  defaultValue={profileData?.first_name || ""}
+                  placeholder="Enter first name..."
+                  className="mt-1 w-full rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium ${error?.includes("Last Name") ? "text-red-500" : "text-gray-700"}`}>
+                  Last Name
+                </label>
+                <Input
+                  ref={lastNameRef}
+                  defaultValue={profileData?.last_name || ""}
+                  placeholder="Enter last name..."
+                  className="mt-1 w-full rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label
+                  className={`block text-sm font-medium ${error?.includes("Phone") ? "text-red-500" : "text-gray-700"}`}
+                >
+                  {error?.includes("Phone") ? "Invalid phone number" : "Phone Number"}
+                </label>
+                <Input
+                  ref={userPhoneRef}
+                  defaultValue={profileData?.phone_num || ""}
+                  placeholder="Enter phone number..."
+                  className="mt-1 w-full rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label
+                  className={`block text-sm font-medium ${error?.includes("Age") ? "text-red-500" : "text-gray-700"}`}
+                >
+                  {error?.includes("Age") ? "Age must be between 13 and 100" : "Age"}
+                </label>
+                <Input
+                  ref={userAgeRef}
+                  type="number"
+                  defaultValue={profileData?.age || ""}
+                  placeholder="Enter age..."
+                  className="mt-1 w-full rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+            {/* Buttons */}
+            <div className="flex justify-end space-x-3">
+              <Button
+                onClick={onClose}
+                className="h-10 bg-gray-200 hover:bg-gray-300 text-gray-700 border-none rounded-md"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                onClick={handleSubmit}
+                loading={isSubmitting || isPending}
+                className="h-10 bg-blue-500 hover:bg-blue-600 border-none rounded-md"
+              >
+                Confirm
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Modal>
 
-//           // Validation
-//           if (userName && userName.length > 20) {
-//             setError("Tên người dùng tối đa 20 ký tự");
-//             return;
-//           }
-//           if (email && !/^\S+@\S+\.\S+$/.test(email)) {
-//             setError("Email không hợp lệ");
-//             return;
-//           }
-//           if (phoneNum && !/^\d{10}$/.test(phoneNum)) {
-//             setError("Số điện thoại không hợp lệ");
-//             return;
-//           }
-//           if (age && (age < 13 || age > 100)) {
-//             setError("Tuổi phải từ 13 đến 100");
-//             return;
-//           }
+      {/* Crop Modal */}
+      {showCropModal && (
+        <Modal
+          open={showCropModal}
+          onCancel={() => setShowCropModal(false)}
+          footer={null}
+          centered
+          width={500}
+          className="rounded-lg"
+        >
+          <div className="flex flex-col items-center p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Adjust Image</h3>
+            <div className="relative w-full h-64 bg-gray-100 rounded-md overflow-hidden">
+              <Cropper
+                ref={cropperRef}
+                src={imageToCrop || ""}
+                aspectRatio={1}
+                guides={true}
+                zoomable={true}
+                zoomOnTouch={true}
+                zoomOnWheel={true}
+                cropBoxResizable={true}
+                cropBoxMovable={true}
+                dragMode="move"
+                minCropBoxWidth={100}
+                minCropBoxHeight={100}
+              />
+            </div>
+            <div className="flex justify-end space-x-3 mt-4">
+              <Button
+                onClick={() => setShowCropModal(false)}
+                className="h-10 bg-gray-200 hover:bg-gray-300 text-gray-700 border-none rounded-md"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                onClick={handleCropComplete}
+                className="h-10 bg-blue-500 hover:bg-blue-600 border-none rounded-md"
+              >
+                Confirm
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </>
+  );
+}
 
-//           const response = await authorizedAxiosInstance.get<ProfileResponse>(
-//             `${API_BE}/api/v1/users/profile`,
-//             { headers: { Authorization: `Bearer ${accessToken}` } }
-//           );
-//           const userData = response.data.data;
-
-//           const profileData: UserProfile = {
-//             user_name: userName || userData.user_name || "",
-//             email: email || userData.email || "",
-//             ava_img_path: selectedImage !== null ? selectedImage : userData.ava_img_path,
-//             phone_num: phoneNum || userData.phone_num || "",
-//             age: age !== undefined ? age : userData.age ? parseInt(userData.age) : undefined,
-//           };
-
-//           console.log("Sending PUT request with data:", profileData);
-
-//           const updateResponse = await authorizedAxiosInstance.put(
-//             `${API_BE}/api/v1/users/profile/${userData.user_id}`,
-//             profileData,
-//             { headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" } }
-//           );
-
-//           console.log("Profile updated successfully:", updateResponse.data);
-//           alert("Cập nhật hồ sơ thành công!");
-//           setError(null);
-//           setFetchUser(updateResponse.data.data);
-//           onClose();
-//         } catch (error) {
-//           console.error("Request failed:", error);
-//           if (axios.isAxiosError(error)) {
-//             setError(error.response?.data?.message || "Không thể xử lý yêu cầu");
-//             console.log("Error response:", error.response);
-//           } else {
-//             setError("Đã xảy ra lỗi không mong muốn");
-//           }
-//         } finally {
-//           setIsSubmitting(false);
-//         }
-//       };
-
-//       updateProfile();
-//     }, [isSubmitting, accessToken, onClose, setFetchUser]);
-
-//     const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-//       const file = event.target.files?.[0];
-//       if (file) {
-//         const imageUrl = URL.createObjectURL(file);
-//         setSelectedImage(imageUrl);
-//       }
-//     };
-
-//     const eventClickOpenFile = () => {
-//       document.getElementById("avatarUpload")?.click();
-//     };
-
-//     const handleRemoveImage = () => {
-//       setSelectedImage(null);
-//     };
-
-//     const handleSubmit = () => {
-//       if (!accessToken) {
-//         setError("Vui lòng đăng nhập trước");
-//         return;
-//       }
-//       setIsSubmitting(true);
-//     };
-
-//     if (!isOpen) return null;
-
-//     return (
-//       <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-//         <div className="bg-white rounded-lg p-8 w-full max-w-lg shadow-lg">
-//           <div className="flex justify-between items-center mb-6">
-//             <h2 className="text-2xl font-semibold text-gray-800">Chỉnh sửa hồ sơ</h2>
-//             <IconButton
-//               Icon={FaXmark}
-//               size={20}
-//               color="#4b5563"
-//               onClick={onClose}
-//               className="hover:bg-gray-100 rounded-full p-1 transition-colors"
-//             />
-//           </div>
-//           {error && <p className="text-red-500 text-sm mb-6 text-center">{error}</p>}
-//           <div className="space-y-5">
-//             <div>
-//               <label className={`block text-sm font-medium ${error?.includes("User name") ? "text-red-500" : "text-gray-700"}`}>
-//                 {error?.includes("User name") ? "Tên người dùng tối đa 20 ký tự" : "Tên người dùng"}
-//               </label>
-//               <input
-//                 ref={userNameRef}
-//                 type="text"
-//                 placeholder="Nhập tên người dùng..."
-//                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-//               />
-//             </div>
-//             <div>
-//               <label className={`block text-sm font-medium ${error?.includes("Email") ? "text-red-500" : "text-gray-700"}`}>
-//                 {error?.includes("Email") ? "Email không hợp lệ" : "Email"}
-//               </label>
-//               <input
-//                 ref={userEmailRef}
-//                 type="email"
-//                 placeholder="Nhập email..."
-//                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-//               />
-//             </div>
-//             <div>
-//               <label className={`block text-sm font-medium ${error?.includes("Phone") ? "text-red-500" : "text-gray-700"}`}>
-//                 {error?.includes("Phone") ? "Số điện thoại không hợp lệ" : "Số điện thoại"}
-//               </label>
-//               <input
-//                 ref={userPhoneRef}
-//                 type="text"
-//                 placeholder="Nhập số điện thoại..."
-//                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-//               />
-//             </div>
-//             <div>
-//               <label className={`block text-sm font-medium ${error?.includes("Age") ? "text-red-500" : "text-gray-700"}`}>
-//                 {error?.includes("Age") ? "Tuổi phải từ 13 đến 100" : "Tuổi"}
-//               </label>
-//               <input
-//                 ref={userAgeRef}
-//                 type="number"
-//                 placeholder="Nhập tuổi..."
-//                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-//               />
-//             </div>
-//             <div className="flex items-center space-x-4">
-//               <img
-//                 src={selectedImage || fakeAvatar}
-//                 alt="Avatar"
-//                 className="w-24 h-24 rounded-full object-cover border border-gray-200"
-//               />
-//               <div className="space-y-2">
-//                 <input
-//                   type="file"
-//                   accept="image/*"
-//                   style={{ display: "none" }}
-//                   id="avatarUpload"
-//                   onChange={handleImageChange}
-//                 />
-//                 <ButtonTextComponent
-//                   $backgroundColor="#e5e7eb"
-//                   $hoverBackgroundColor="#bfdbfe"
-//                   $hoverColor="#1e40af"
-//                   title="Tải ảnh lên"
-//                   onClick={eventClickOpenFile}
-//                   className="rounded-md px-4 py-2 text-sm font-medium"
-//                 />
-//                 {selectedImage && (
-//                   <ButtonTextComponent
-//                     $backgroundColor="#e5e7eb"
-//                     $hoverBackgroundColor="#fecaca"
-//                     $hoverColor="#b91c1c"
-//                     title="Xóa ảnh"
-//                     onClick={handleRemoveImage}
-//                     className="rounded-md px-4 py-2 text-sm font-medium"
-//                   />
-//                 )}
-//               </div>
-//             </div>
-//             <div className="flex justify-end">
-//               <ButtonTextComponent
-//                 $backgroundColor="#e5e7eb"
-//                 $hoverBackgroundColor="#bfdbfe"
-//                 $hoverColor="#1e40af"
-//                 title="Xác nhận"
-//                 $width="8rem"
-//                 onClick={handleSubmit}
-//                 className="rounded-md px-4 py-2 text-sm font-medium"
-//               />
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   export default UserProfileEditForm;
+export default UserProfileEditForm;

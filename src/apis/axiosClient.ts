@@ -41,6 +41,7 @@ axiosClient.interceptors.request.use(
 //? Config resposne từ server
 axiosClient.interceptors.response.use(
   (response) => response,
+  
   async (error) => {
     const originalRequest = error.config;
 
@@ -64,7 +65,7 @@ axiosClient.interceptors.response.use(
 
           if (!refreshToken) {
             // console.error('Không có refresh token để gửi yêu cầu');
-            throw new Error('Không có refresh token');
+            // throw new Error('Không có refresh token');
           }
 
           refreshTokenPromise = docApi

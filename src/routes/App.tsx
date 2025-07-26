@@ -21,11 +21,11 @@ import ResetPassword from '../pages/Login_Page/Reset_Password/ResetPassword';
 const AuthorizedRoute = () => {
   const access_token = useAuthStore((state) => state.access_token);
   if (!access_token) {
-    console.log(access_token);
-    console.log('No accessToken found, redirecting to /login');
+    // console.log(access_token);
+    // console.log('No accessToken found, redirecting to /login');
     return <Navigate to="/login" replace={true} />;
   }
-  console.log('AccessToken found, rendering Outlet');
+  // console.log('AccessToken found, rendering Outlet');
 
   return <Outlet />;
 };
@@ -33,8 +33,8 @@ const AuthorizedRoute = () => {
 const UnAuthorizedRoute = () => {
   const access_token = useAuthStore((state) => state.access_token);
   if (access_token) {
-    console.log(access_token);
-    console.log('AccessToken exists, redirecting to /home');
+    // console.log(access_token);
+    // console.log('AccessToken exists, redirecting to /home');
     return <Navigate to="/home" replace={true} />;
   }
   return <Outlet />;

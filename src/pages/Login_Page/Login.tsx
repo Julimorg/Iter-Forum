@@ -4,8 +4,10 @@ import TextField from '../../components/TextField_LoginSignUp/Textfield';
 import PasswordField from '../../components/Password_TextField/PasswordField';
 import { useLogin } from './Hooks/useLogin';
 import { toast } from 'react-toastify';
-import { LoginRequest } from '../../interface/Auth/Login';
 import LoadingBus from '../../components/Loader/LoadingBus';
+import { ILoginRequest } from '../../interface/Auth/Login';
+
+//TODO: Config thêm catch error message respsone từ BE
 
 const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -31,9 +33,8 @@ const Login: React.FC = () => {
           navigate('/home');
         },
         onError: (error: any) => {
+          toast.error(`${error}`);
           setIsLoading(false);
-          toast.error('Login failed');
-          console.error(error.message);
         },
       }
     );
@@ -47,8 +48,8 @@ const Login: React.FC = () => {
       return;
     }
     setPasswordError('');
-    console.log('Login successful with:', email);
-    const data: LoginRequest = { email, password };
+    // console.log('Login successful with:', email);
+    const data: ILoginRequest = { email, password };
     await submitLogin(data);
   };
 

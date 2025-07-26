@@ -1,6 +1,6 @@
 export type IGetProfile = {
     age: number,
-    avag_img_path: string | null,
+    ava_img_path: string | null,
     email: string,
     first_name: string,
     last_name: string,

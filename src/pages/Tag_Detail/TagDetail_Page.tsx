@@ -23,7 +23,7 @@ const Tag_Detail: React.FC = () => {
   const tag_detail = data?.data;
   const recommend_posts = data?.data.recommend_posts;
 
-  console.log("tag detail: ", data);
+  // console.log("tag detail: ", data);
 
   const handleBack = (): void => {
     if (window.history.length > 1) {

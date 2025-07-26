@@ -9,7 +9,7 @@ import { useGetPopular } from './Hooks/useGetPopular';
 
 const Popular = () => {
   const { data, isLoading, error } = useGetPopular();
-  console.log(data);
+  // console.log(data);
   
   const trendingTags = data?.data.trending_tags || [];
   const trendingPosts = data?.data.trending_posts || [];
