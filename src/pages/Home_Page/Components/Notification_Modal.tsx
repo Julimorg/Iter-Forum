@@ -4,7 +4,7 @@ import { useGetNotification } from '../Hooks/useGetNotification';
 import { List, Typography, Card, Skeleton, Badge } from 'antd';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NotificationData } from '../../../interface/Recommend/ISubscricedTag';
-import { formatRelativeTime, formatTimeAgo } from '../../../utils/utils';
+import { formatRelativeTime } from '../../../utils/utils';
 import { BellOutlined } from '@ant-design/icons';
 
 const { Text, Paragraph } = Typography;
