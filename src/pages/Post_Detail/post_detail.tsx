@@ -13,6 +13,7 @@ import { API_BE } from '../../config/configApi';
 import axiosClient from '../../apis/axiosClient';
 import EmojiPicker from 'emoji-picker-react';
 import { fakeAvatar } from '../../utils/utils';
+import DevModal from '../../components/ModalBox/OnDeveloped';
 
 interface PostData {
   user_id: string;
@@ -165,9 +166,21 @@ const PostDetail: React.FC = () => {
   const [newComment, setNewComment] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
   const [isSendingReply, setIsSendingReply] = useState<boolean>(false);
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  
 
   const socketRef = useRef<Socket | null>(null);
   const popupRefs = useRef<Array<React.RefObject<HTMLDivElement>>>([]);
+
+
+  const showModal = (): void => {
+    setIsModalVisible(true);
+  };
+
+  const handleClose = (): void => {
+    setIsModalVisible(false);
+  };
+
 
   const handleDisplayDetailCmts = useCallback((data: CommentDataFromBE) => {
     console.log('Received comment from BE:', data);
@@ -692,13 +705,13 @@ const PostDetail: React.FC = () => {
                     <div className="flex items-center space-x-6 text-sm text-gray-600">
                       <button
                         className="flex items-center space-x-1 hover:text-blue-600"
-                        onClick={() => {}}
+                        onClick={showModal}
                       >
                         <LikeOutlined /> <span>Thích ({item.likeCount})</span>
                       </button>
                       <button
                         className="flex items-center space-x-1 hover:text-red-600"
-                        onClick={() => {}}
+                        onClick={showModal}
                       >
                         <DislikeOutlined /> <span>Không thích ({item.dislikeCount})</span>
                       </button>
@@ -774,6 +787,8 @@ const PostDetail: React.FC = () => {
           </div>
         </div>
       </div>
+      <DevModal visible={isModalVisible} onClose={handleClose} />
+
     </div>
   );
 };
