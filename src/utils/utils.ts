@@ -1,5 +1,6 @@
 
-import { formatDistanceToNow, addHours } from "date-fns";
+import { formatDistanceToNow,  } from "date-fns";
+import { toZonedTime } from 'date-fns-tz';
 
 export const SOCKET_URL = import.meta.env.VITE_API_SOCKET
 export const API_URL = import.meta.env.VITE_API_URL;
@@ -23,22 +24,29 @@ export const formatTimeAgo = (date: Date): string => {
 
 
 export function formatRelativeTime(utcDate: string | null): string {
-
-  if (!utcDate || typeof utcDate !== "string") {
-    return "Unknown time";
+  if (!utcDate || typeof utcDate !== 'string') {
+    return 'Không xác định';
   }
 
   try {
     const date = new Date(utcDate);
 
     if (isNaN(date.getTime())) {
-      return "Unknown time";
+      return 'Không xác định';
     }
-    const vietnamDate = addHours(date, 7);
-   return formatDistanceToNow(vietnamDate, { addSuffix: true });
+
+    const vietnamDate = toZonedTime(date, 'Asia/Ho_Chi_Minh');
+    const now = new Date();
+    const diffInSeconds = (now.getTime() - vietnamDate.getTime()) / 1000;
+
+    if (diffInSeconds < 0 && Math.abs(diffInSeconds) < 24 * 60 * 60) {
+      return 'vừa mới';
+    }
+
+    return formatDistanceToNow(vietnamDate, { addSuffix: true});
   } catch (error) {
-    console.error("Error parsing date:", error);
-    return "Unknown time";
+    console.error('Error parsing date:', error);
+    return 'Không xác định';
   }
 }
 

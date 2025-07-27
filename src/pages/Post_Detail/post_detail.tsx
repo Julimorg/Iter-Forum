@@ -100,6 +100,8 @@ interface UserProfile {
   phone_num: string;
 }
 
+
+
 const buildCommentTree = (comments: CommentApiItem[]): CommentItem[] => {
   const commentsMap: { [key: string]: CommentItem } = {};
   const rootComments: CommentItem[] = [];
@@ -171,6 +173,8 @@ const PostDetail: React.FC = () => {
 
   const socketRef = useRef<Socket | null>(null);
   const popupRefs = useRef<Array<React.RefObject<HTMLDivElement>>>([]);
+
+
 
 
   const showModal = (): void => {
