@@ -1,10 +1,10 @@
 import axios from 'axios';
 import { useAuthStore } from '../hook/useAuthStore';
-
 import { docApi } from './docApi';
 import { toast } from 'react-toastify';
+import { API_URL } from '../utils/utils';
 
-const API_URL = import.meta.env.VITE_API_URL;
+
 
 const axiosClient = axios.create({
   baseURL: `${API_URL}`,

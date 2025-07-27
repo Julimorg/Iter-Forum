@@ -1,6 +1,8 @@
 
 import { formatDistanceToNow, addHours } from "date-fns";
 
+export const SOCKET_URL = import.meta.env.VITE_API_SOCKET
+export const API_URL = import.meta.env.VITE_API_URL;
 
 export const formatTimeAgo = (date: Date): string => {
   const now = Date.now();
@@ -18,7 +20,6 @@ export const formatTimeAgo = (date: Date): string => {
   if (diffMinutes === 1) return `1 phút trước`;
   return `Vừa xong`;
 };
-
 
 
 export function formatRelativeTime(utcDate: string | null): string {

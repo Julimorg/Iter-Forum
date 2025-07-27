@@ -1,22 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Avatar, Button, Card, Divider, Tag, Typography } from 'antd';
-import io, { Socket } from 'socket.io-client';
-import dislike from '../../assets/dislike.png';
-import like from '../../assets/like.png';
-import comment from '../../assets/comment.png';
-import dislikeFilled from '../../assets/dislike_filled.png';
-import likeFilled from '../../assets/like_filled.png';
+import { Avatar, Button, Card, Divider, Tag, Typography, message } from 'antd';
+import { LikeOutlined, DislikeOutlined, CommentOutlined } from '@ant-design/icons';
 import TagPost from '../../components/Tag_Post/Tag_post';
-import Trending from '../../assets/trending.png';
 import ReportPopup from '../Report_Popup/Report_popup';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination } from 'swiper/modules';
-import axiosClient from '../../apis/axiosClient';
+import { Navigation, Pagination, EffectFade, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import 'swiper/css/effect-fade';
 import { formatRelativeTime } from '../../utils/utils';
+import { useSocket } from '../../hook/useSocket';
+import { useAuthStore } from '../../hook/useAuthStore';
+import { usePostInteractionStore } from '../../hook/usePostInteractionStore';
 
 interface PostcardProps {
   post_id: string;
@@ -33,12 +30,6 @@ interface PostcardProps {
   images?: string[] | null;
   avatar?: string | null;
   date_updated?: string | null;
-}
-
-interface InteractData {
-  post_id: string;
-  like: number;
-  dislike: number;
 }
 
 const { Text, Title } = Typography;
@@ -58,74 +49,32 @@ const Postcard: React.FC<PostcardProps> = ({
   avatar,
   date_updated,
 }) => {
-  const [currentLikes, setCurrentLikes] = useState<number>(likes);
-  const [currentDislikes, setCurrentDislikes] = useState<number>(dislikes);
-  const [liked, setLiked] = useState<boolean>(false);
-  const [disliked, setDisliked] = useState<boolean>(false);
+  const { user_id: userId } = useAuthStore();
+  const { setInteraction, getInteraction } = usePostInteractionStore();
+  const {
+    isConnected,
+    currentLikes,
+    currentDislikes,
+    liked,
+    disliked,
+    setCurrentLikes,
+    setCurrentDislikes,
+    emitInteraction,
+    error,
+  } = useSocket(post_id, likes, dislikes);
   const [popupVisible, setPopupVisible] = useState<boolean>(false);
   const [imageCount, setImageCount] = useState<number>(0);
   const [imageErrors, setImageErrors] = useState<boolean[]>([]);
-  const [userId, setUserId] = useState<string | null>(null);
-
+  const [initialLikes, setInitialLikes] = useState<number>(likes);
+  const [initialDislikes, setInitialDislikes] = useState<number>(dislikes);
   const navigate = useNavigate();
   const popupRef = useRef<HTMLDivElement>(null);
-  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    const initializeSocket = async () => {
-      try {
-        const profileResponse = await axiosClient.get<{ data: { user_id: string } }>(
-          'https://it-er-forum.onrender.com/api/v1/users/profile'
-        );
-        const fetchedUserId = profileResponse.data.data.user_id;
-        setUserId(fetchedUserId);
-
-        socketRef.current = io('https://it-er-forum.onrender.com', { transports: ['websocket'] });
-
-        if (fetchedUserId && post_id) {
-          socketRef.current.emit('joinRoom', fetchedUserId);
-          socketRef.current.emit('joinRoomPost', post_id);
-        }
-
-        socketRef.current.on('connect', () => {
-          console.log('WebSocket connected in Postcard');
-        });
-
-        socketRef.current.on('updateInteractFromServer', (data: InteractData) => {
-          if (data.post_id === post_id) {
-            setCurrentLikes(data.like);
-            setCurrentDislikes(data.dislike);
-
-            const storedState = localStorage.getItem(`post_${post_id}_interaction`);
-            if (storedState) {
-              const { liked: storedLiked, disliked: storedDisliked } = JSON.parse(storedState);
-              setLiked(storedLiked);
-              setDisliked(storedDisliked);
-            }
-          }
-        });
-
-        const storedState = localStorage.getItem(`post_${post_id}_interaction`);
-        if (storedState) {
-          const { liked: storedLiked, disliked: storedDisliked } = JSON.parse(storedState);
-          setLiked(storedLiked);
-          setDisliked(storedDisliked);
-        }
-        setCurrentLikes(likes);
-        setCurrentDislikes(dislikes);
-
-        return () => {
-          if (socketRef.current) {
-            socketRef.current.disconnect();
-          }
-        };
-      } catch (err) {
-        console.error('Error initializing WebSocket in Postcard:', err);
-      }
-    };
-
-    initializeSocket();
-  }, [post_id, likes, dislikes]);
+    if (error) {
+      message.error(error, 3);
+    }
+  }, [error]);
 
   useEffect(() => {
     const count = Array.isArray(images) ? images.length : 0;
@@ -133,50 +82,111 @@ const Postcard: React.FC<PostcardProps> = ({
     setImageErrors(new Array(count).fill(false));
   }, [images]);
 
+  useEffect(() => {
+    // Khởi tạo trạng thái ban đầu từ usePostInteractionStore
+    const interaction = getInteraction(post_id);
+    if (interaction) {
+      setCurrentLikes(interaction.liked ? likes + 1 : likes);
+      setCurrentDislikes(interaction.disliked ? dislikes + 1 : dislikes);
+    }
+  }, [post_id, likes, dislikes, getInteraction, setCurrentLikes, setCurrentDislikes]);
+
   const togglePopup = () => setPopupVisible(!popupVisible);
 
   const handleLike = () => {
-    if (!socketRef.current || !post_id || !userId) return;
+    if (!userId) {
+      message.warning('Vui lòng đăng nhập để tương tác', 3);
+      return;
+    }
 
     const newLiked = !liked;
-    const newDisliked = newLiked ? false : disliked;
+    const newDisliked = false; // Chỉ cho phép chọn một trạng thái
 
-    socketRef.current.emit('newInteractFromClient', {
-      post_id,
-      user_post_id: userId,
-      is_upvote: true,
-      upvote: newLiked ? currentLikes + 1 : currentLikes - 1,
-      downvote: newDisliked
-        ? currentDislikes + 1
-        : disliked
-        ? currentDislikes - 1
-        : currentDislikes,
-    });
+    // Optimistic update
+    setInteraction(post_id, newLiked, newDisliked);
 
-    localStorage.setItem(
-      `post_${post_id}_interaction`,
-      JSON.stringify({ liked: newLiked, disliked: newDisliked })
-    );
+    // Cập nhật UI và số lượng
+    if (initialLikes === 0 && initialDislikes === 0) {
+      // Case 1: likes = 0, dislikes = 0
+      if (newLiked) {
+        setCurrentLikes(currentLikes + 1); // Like +1
+        setCurrentDislikes(0); // Dislike giữ nguyên 0
+      } else {
+        setCurrentLikes(0); // Like trở về 0
+        setCurrentDislikes(0); // Dislike giữ nguyên 0
+      }
+    } else {
+      // Case 2: likes > 1, dislikes > 1
+      if (newLiked) {
+        setCurrentLikes(currentLikes + 1); // Like +1
+        if (disliked) {
+          setCurrentDislikes(initialDislikes); // Dislike trở về giá trị ban đầu
+        }
+      } else {
+        setCurrentLikes(initialLikes); // Like trở về giá trị ban đầu
+        setCurrentDislikes(initialDislikes); // Dislike giữ nguyên hoặc về giá trị ban đầu
+      }
+    }
+
+    if (isConnected) {
+      emitInteraction({
+        post_id,
+        user_post_id: userId,
+        is_upvote: true,
+        upvote: newLiked ? currentLikes + 1 : initialLikes,
+        downvote: newDisliked ? currentDislikes : disliked ? initialDislikes : currentDislikes,
+      });
+    } else {
+      message.warning('Đang chờ kết nối, tương tác sẽ được đồng bộ sau', 3);
+    }
   };
 
   const handleDislike = () => {
-    if (!socketRef.current || !post_id || !userId) return;
+    if (!userId) {
+      message.warning('Vui lòng đăng nhập để tương tác', 3);
+      return;
+    }
 
     const newDisliked = !disliked;
-    const newLiked = newDisliked ? false : liked;
+    const newLiked = false; // Chỉ cho phép chọn một trạng thái
 
-    socketRef.current.emit('newInteractFromClient', {
-      post_id,
-      user_post_id: userId,
-      is_upvote: false,
-      upvote: newLiked ? currentLikes + 1 : liked ? currentLikes - 1 : currentLikes,
-      downvote: newDisliked ? currentDislikes + 1 : currentDislikes - 1,
-    });
+    // Optimistic update
+    setInteraction(post_id, newLiked, newDisliked);
 
-    localStorage.setItem(
-      `post_${post_id}_interaction`,
-      JSON.stringify({ liked: newLiked, disliked: newDisliked })
-    );
+    // Cập nhật UI và số lượng
+    if (initialLikes === 0 && initialDislikes === 0) {
+      // Case 1: likes = 0, dislikes = 0
+      if (newDisliked) {
+        setCurrentDislikes(currentDislikes + 1); // Dislike +1
+        setCurrentLikes(0); // Like giữ nguyên 0
+      } else {
+        setCurrentDislikes(0); // Dislike trở về 0
+        setCurrentLikes(0); // Like giữ nguyên 0
+      }
+    } else {
+      // Case 2: likes > 1, dislikes > 1
+      if (newDisliked) {
+        setCurrentDislikes(currentDislikes + 1); // Dislike +1
+        if (liked) {
+          setCurrentLikes(initialLikes); // Like trở về giá trị ban đầu
+        }
+      } else {
+        setCurrentDislikes(initialDislikes); // Dislike trở về giá trị ban đầu
+        setCurrentLikes(initialLikes); // Like giữ nguyên hoặc về giá trị ban đầu
+      }
+    }
+
+    if (isConnected) {
+      emitInteraction({
+        post_id,
+        user_post_id: userId,
+        is_upvote: false,
+        upvote: newLiked ? currentLikes : liked ? initialLikes : currentLikes,
+        downvote: newDisliked ? currentDislikes + 1 : initialDislikes,
+      });
+    } else {
+      message.warning('Đang chờ kết nối, tương tác sẽ được đồng bộ sau', 3);
+    }
   };
 
   const handlePostNavigation = () => {
@@ -201,33 +211,38 @@ const Postcard: React.FC<PostcardProps> = ({
 
   return (
     <Card
-      className="w-full max-w-[100vw] sm:max-w-[80vw] md:max-w-[60vw] lg:max-w-[60vw] xl:max-w-[60vw] mb-2 sm:mb-3 md:mb-4 xl:mb-5"
+      className="w-full max-w-[100vw] sm:max-w-[80vw] md:max-w-[60vw] lg:max-w-[60vw] xl:max-w-[60vw] mb-2 sm:mb-3 md:mb-4 xl:mb-5 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white rounded-xl"
       bodyStyle={{ padding: '0.75rem sm:1rem md:1.25rem xl:1.5rem' }}
     >
       <div className="flex items-center justify-between mb-1.5 sm:mb-2 md:mb-3">
-        <div className="flex items-center">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Avatar
             src={avatar}
-            className="mr-1 sm:mr-1.5 md:mr-2"
-            style={{ backgroundColor: avatar ? 'transparent' : '#ccc' }}
+            className="w-8 h-8 sm:w-10 sm:h-10"
+            style={{ backgroundColor: avatar ? 'transparent' : '#e2e8f0' }}
           />
           <div>
             <Text
               strong
-              className="cursor-pointer hover:underline text-xs sm:text-sm md:text-base xl:text-lg"
+              className="cursor-pointer hover:text-blue-600 transition-colors duration-200 text-xs sm:text-sm md:text-base xl:text-lg"
               onClick={handleUserNavigation}
             >
               {user}
             </Text>
-            <Text type="secondary" className="block text-[0.625rem] sm:text-xs md:text-sm">
+            <Text type="secondary" className="block text-[0.625rem] sm:text-xs md:text-sm text-gray-500">
               {formatRelativeTime(date_updated ?? '')}
             </Text>
           </div>
         </div>
         <div className="relative">
-          <Button type="text" icon={<span className="text-base sm:text-lg md:text-xl">⋮</span>} onClick={togglePopup} />
+          <Button
+            type="text"
+            icon={<span className="text-base sm:text-lg md:text-xl text-gray-600">⋮</span>}
+            onClick={togglePopup}
+            className="hover:bg-gray-100 rounded-full"
+          />
           {popupVisible && (
-            <div ref={popupRef} className="absolute right-0 z-10">
+            <div ref={popupRef} className="absolute right-0 z-10 mt-2">
               <ReportPopup type="Post" user_id={user_id} post_id={post_id} />
             </div>
           )}
@@ -236,27 +251,32 @@ const Postcard: React.FC<PostcardProps> = ({
 
       <Title
         level={4}
-        className="mb-1 cursor-pointer hover:underline text-sm sm:text-base md:text-lg xl:text-xl"
+        className="mb-1 cursor-pointer hover:text-blue-600 transition-colors duration-200 text-sm sm:text-base md:text-lg xl:text-xl font-semibold"
         onClick={handlePostNavigation}
       >
         {title}
       </Title>
-      <Text className="mb-1.5 cursor-pointer text-xs sm:text-sm md:text-base xl:text-lg" onClick={handlePostNavigation}>
+      <Text
+        className="mb-1.5 cursor-pointer text-xs sm:text-sm md:text-base xl:text-lg text-gray-700 leading-relaxed"
+        onClick={handlePostNavigation}
+      >
         {caption}
       </Text>
 
-      <div className="flex flex-wrap gap-1 mb-1.5 sm:gap-1.5 sm:mb-2 md:gap-2 md:mb-3">
+      <div className="flex flex-wrap gap-1 sm:gap-1.5 md:gap-2 mb-1.5 sm:mb-2 md:mb-3">
         {tags && tags.map((tag, index) => <TagPost key={index} tag={tag} />)}
         {isTrending && (
-          <Tag color="orange" className="flex items-center text-[0.625rem] sm:text-xs md:text-sm">
-            <img src={Trending} alt="Trending" className="w-2 h-2 mr-0.5 sm:w-3 sm:h-3 md:w-4 md:h-4" />
-            Trending
+          <Tag
+            color="orange"
+            className="flex items-center text-[0.625rem] sm:text-xs md:text-sm font-medium bg-orange-100 text-orange-600"
+          >
+            <span className="mr-1">🔥</span> Trending
           </Tag>
         )}
       </div>
 
       {imageCount > 0 && (
-        <Text type="secondary" className="mb-1 block text-[0.625rem] sm:text-xs md:text-sm">
+        <Text type="secondary" className="mb-1 block text-[0.625rem] sm:text-xs md:text-sm text-gray-500">
           {imageCount} hình ảnh
         </Text>
       )}
@@ -265,12 +285,14 @@ const Postcard: React.FC<PostcardProps> = ({
         (safeImages.length > 1 ? (
           <div className="mb-1.5 sm:mb-2 md:mb-3">
             <Swiper
-              modules={[Navigation, Pagination]}
+              modules={[Navigation, Pagination, EffectFade, Autoplay]}
               spaceBetween={4}
               slidesPerView={1}
               navigation
               pagination={{ clickable: true }}
-              className="rounded-lg"
+              effect="fade"
+              autoplay={{ delay: 3000, disableOnInteraction: true }}
+              className="rounded-lg overflow-hidden shadow-md"
             >
               {safeImages.map((image, index) => (
                 <SwiperSlide key={index} className="flex justify-center items-center">
@@ -282,7 +304,7 @@ const Postcard: React.FC<PostcardProps> = ({
                     <img
                       src={image}
                       alt={`Hình ảnh bài viết ${index + 1}`}
-                      className="w-full h-auto max-h-24 sm:max-h-32 md:max-h-40 xl:max-h-48 object-cover rounded-lg cursor-pointer"
+                      className="w-full h-24 sm:h-32 md:h-40 xl:h-48 object-cover rounded-lg cursor-pointer transition-transform duration-300 hover:scale-105"
                       onClick={handlePostNavigation}
                       onError={handleImageError(index)}
                       loading="lazy"
@@ -300,37 +322,39 @@ const Postcard: React.FC<PostcardProps> = ({
           <img
             src={safeImages[0]}
             alt="Hình ảnh bài viết"
-            className="w-full h-auto max-h-24 sm:max-h-32 md:max-h-40 xl:max-h-48 object-cover rounded-lg mb-1.5 sm:mb-2 md:mb-3 cursor-pointer"
+            className="w-full h-24 sm:h-32 md:h-40 xl:h-48 object-cover rounded-lg mb-1.5 sm:mb-2 md:mb-3 cursor-pointer transition-transform duration-300 hover:scale-105"
             onClick={handlePostNavigation}
             onError={handleImageError(0)}
             loading="lazy"
           />
         ))}
 
-      <Divider className="my-1 sm:my-1.5 md:my-2" />
-      <div className="flex gap-1 sm:gap-1.5 md:gap-2 xl:gap-3">
+      <Divider className="my-1 sm:my-1.5 md:my-2 border-gray-200" />
+      <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg">
         <Button
           type="text"
           onClick={handleLike}
-          icon={<img src={liked ? likeFilled : like} alt="Like" className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" />}
-          className="text-[0.625rem] sm:text-xs md:text-sm"
+          disabled={!userId}
+          className={`flex items-center gap-1 text-[0.625rem] sm:text-xs md:text-sm transition-colors duration-200 ${liked ? 'text-blue-600 bg-blue-100' : 'text-gray-600 hover:bg-gray-100'} rounded-md px-2 sm:px-3 py-1`}
         >
+          <LikeOutlined className={`text-base sm:text-lg md:text-xl ${liked ? 'text-blue-600' : ''}`} />
           {currentLikes}
         </Button>
         <Button
           type="text"
           onClick={handleDislike}
-          icon={<img src={disliked ? dislikeFilled : dislike} alt="Dislike" className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" />}
-          className="text-[0.625rem] sm:text-xs md:text-sm"
+          disabled={!userId}
+          className={`flex items-center gap-1 text-[0.625rem] sm:text-xs md:text-sm transition-colors duration-200 ${disliked ? 'text-red-600 bg-red-100' : 'text-gray-600 hover:bg-gray-100'} rounded-md px-2 sm:px-3 py-1`}
         >
+          <DislikeOutlined className={`text-base sm:text-lg md:text-xl ${disliked ? 'text-red-600' : ''}`} />
           {currentDislikes}
         </Button>
         <Button
           type="text"
           onClick={handlePostNavigation}
-          icon={<img src={comment} alt="Comment" className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" />}
-          className="text-[0.625rem] sm:text-xs md:text-sm"
+          className="flex items-center gap-1 text-[0.625rem] sm:text-xs md:text-sm text-gray-600 hover:bg-gray-100 rounded-md px-2 sm:px-3 py-1 transition-colors duration-200"
         >
+          <CommentOutlined className="text-base sm:text-lg md:text-xl" />
           {comments}
         </Button>
       </div>
