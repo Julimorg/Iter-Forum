@@ -73,6 +73,8 @@ const Postcard: React.FC<PostcardProps> = ({
   useEffect(() => {
     if (error) {
       message.error(error, 3);
+      console.log(setInitialLikes);
+      console.log(setInitialDislikes)
     }
   }, [error]);
 
