@@ -7,7 +7,7 @@ import { socketService } from '../services/socket-service';
 
 export const useSocket = (postId: string, initialLikes: number, initialDislikes: number): ISocketHookReturn => {
   const { user_id } = useAuthStore();
-  const { getInteraction, setInteraction } = usePostInteractionStore();
+  const { getInteraction } = usePostInteractionStore();
   const [isConnected, setIsConnected] = useState<boolean>(socketService.isConnected());
   const [currentLikes, setCurrentLikes] = useState<number>(initialLikes);
   const [currentDislikes, setCurrentDislikes] = useState<number>(initialDislikes);
