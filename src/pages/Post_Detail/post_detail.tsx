@@ -12,7 +12,7 @@ import ReportPopup from '../../components/Report_Popup/Report_popup';
 import { API_BE } from '../../config/configApi';
 import axiosClient from '../../apis/axiosClient';
 import EmojiPicker from 'emoji-picker-react';
-import { fakeAvatar, formatRelativeTime } from '../../utils/utils';
+import { formatRelativeTime } from '../../utils/utils';
 import DevModal from '../../components/ModalBox/OnDeveloped';
 
 interface PostData {
