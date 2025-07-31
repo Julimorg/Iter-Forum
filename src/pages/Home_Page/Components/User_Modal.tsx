@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../../hook/useAuthStore';
-import { fakeAvatar } from '../../../utils/utils';
+import { avatar_unknown } from '../../../utils/utils';
 import { useLogOut } from '../../../hook/useLogOut';
 import { toast } from 'react-toastify';
 import { AxiosError } from 'axios';
@@ -51,7 +51,7 @@ function UserModel({ isOpen }: { isOpen: boolean }) {
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center space-x-3">
           <img
-            src={ava_img || `${fakeAvatar}`}
+            src={ava_img || `${avatar_unknown}`}
             alt="User Avatar"
             className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
           />

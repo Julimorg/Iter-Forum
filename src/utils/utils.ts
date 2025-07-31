@@ -1,7 +1,8 @@
 
 import { formatDistanceToNow,  } from "date-fns";
 import { toZonedTime } from 'date-fns-tz';
-
+import { useAuthStore } from "../hook/useAuthStore";
+import ava_unknown from "../assets/ava_unknown.webp";
 export const SOCKET_URL = import.meta.env.VITE_API_SOCKET
 export const API_URL = import.meta.env.VITE_API_URL;
 
@@ -50,9 +51,12 @@ export function formatRelativeTime(utcDate: string | null): string {
   }
 }
 
+export const my_user_id = useAuthStore.getState().user_id; 
 
 
 export const fakeAvatar = "https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e303b9f80d10d582.jpg";
 
 
 export const WizardImg = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTt6MxzkYx8c_WfMcXQMng1xa70R37bSLgzLA&s";
+
+export const avatar_unknown = ava_unknown;

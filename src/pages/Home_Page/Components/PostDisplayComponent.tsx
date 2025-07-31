@@ -104,12 +104,13 @@ function PostDisplayComponent() {
                   post_id={post.post_id}
                   title={post.post_title}
                   comments={post.comments_num}
-                  image={post.img_url && post.img_url.length > 0 ? post.img_url[0] : undefined}
-                  likes={post.upvote}
-                  dislikes={post.downvote}
-                  tags={post.tags}
-                  images={post.img_url}
-                  isTrending={false}
+                  ava_img_path = {post.ava_img_path}
+                  // image={post.img_url && post.img_url.length > 0 ? post.img_url[0] : undefined}
+                  // likes={post.upvote}
+                  // dislikes={post.downvote}
+                  // tags={post.tags}
+                  // images={post.img_url}
+                  // isTrending={false}
                   date_updated={post.date_updated}
                 />
               ))

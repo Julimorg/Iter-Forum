@@ -1,9 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Avatar, Divider, Typography } from 'antd';
-import { formatRelativeTime } from '../../utils/utils';
+import { Avatar, Card, Space, Typography } from 'antd';
+import { formatRelativeTime, my_user_id } from '../../utils/utils';
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 interface RecentPostProps {
   user: string;
@@ -11,13 +11,8 @@ interface RecentPostProps {
   post_id: string;
   title: string;
   comments: number;
-  image?: string;
-  likes: number;
-  dislikes: number;
-  tags: string[];
-  images?: string[] | null;
-  isTrending?: boolean;
   date_updated: string;
+  ava_img_path: string;
 }
 
 const RecentPost: React.FC<RecentPostProps> = ({
@@ -26,9 +21,8 @@ const RecentPost: React.FC<RecentPostProps> = ({
   post_id,
   title,
   comments,
-  image,
-  images = [],
   date_updated,
+  ava_img_path
 }) => {
   const navigate = useNavigate();
 
@@ -36,61 +30,93 @@ const RecentPost: React.FC<RecentPostProps> = ({
     navigate(`/home/post-detail/${post_id}`);
   };
 
-  const handleUserNavigation = () => {
-    navigate(`/home/user-detail/${user_id}`);
+  const handleUserNavigation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    {
+      user_id == my_user_id ? navigate(`/home/profile`) : navigate(`/home/user-detail/${user_id}`)
+    }
   };
 
-
-  const safeImages = Array.isArray(images) ? images : [];
-  const additionalImages = safeImages.length > 1 ? safeImages.length - 1 : 0;
-
   return (
-    <>
-      <div
-        className="flex flex-row justify-between items-center p-2 bg-white rounded-lg gap-2 cursor-pointer hover:bg-gray-100 transition-colors duration-300 md:p-3 md:gap-3 xl:p-4 xl:gap-4 "
-        onClick={handlePostNavigation}
-      >
-        <div className="flex-1 flex flex-col gap-1 md:gap-1.5 xl:gap-2 min-w-0">
-          <div className="flex items-center gap-2 md:gap-3">
-            <Avatar
-              size={{ xs: 28, md: 32, xl: 36 }}
-              style={{ backgroundColor: '#ccc', flexShrink: 0 }}
-            />
-            <div className="min-w-0">
-              <Text
-                strong
-                className="text-xs truncate hover:underline md:text-sm xl:text-base"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleUserNavigation();
-                }}
-              >
-                {user}
-              </Text>
-              <Text type="secondary" className="block text-[0.65rem] md:text-xs xl:text-sm">
-                {formatRelativeTime(date_updated)}
-              </Text>
-            </div>
+    <Card
+      hoverable
+      style={{
+        borderRadius: 12,
+        marginBottom: 16,
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+        border: 'none',
+        transition: 'all 0.3s ease',
+      }}
+      bodyStyle={{
+        padding: '12px 16px',
+      }}
+      onClick={handlePostNavigation}
+    >
+      <Space direction="vertical" size={8} style={{ width: '100%' }}>
+        <Space align="center" size={12}>
+          <Avatar
+            size={{ xs: 36, md: 40, xl: 44 }}
+            src={ava_img_path}
+            style={{
+              backgroundColor: '#1890ff',
+              flexShrink: 0,
+              fontSize: 16,
+              fontWeight: 500,
+            }}
+          >
+            {user[0]?.toUpperCase() || 'U'}
+          </Avatar>
+          <div>
+            <Text
+              strong
+              style={{
+                fontSize: 16,
+                cursor: 'pointer',
+                color: '#1890ff',
+                transition: 'color 0.2s',
+              }}
+              onClick={handleUserNavigation}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#40a9ff')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#1890ff')}
+            >
+              {user}
+            </Text>
+            <Text
+              type="secondary"
+              style={{
+                display: 'block',
+                fontSize: 12,
+                color: '#8c8c8c',
+              }}
+            >
+              {formatRelativeTime(date_updated)}
+            </Text>
           </div>
-          <Text className="text-xs text-gray-600 truncate md:text-sm xl:text-base">{title}</Text>
-          <Text className="text-[0.65rem] text-gray-600 md:text-xs xl:text-sm">{comments} bình luận</Text>
-        </div>
-        {image && (
-          <div className="relative w-16 h-14 flex-shrink-0 md:w-20 md:h-16 xl:w-24 xl:h-20">
-            <div
-              className="w-full h-full bg-cover bg-center rounded-lg"
-              style={{ backgroundImage: image ? `url(${image})` : 'none', backgroundColor: !image ? '#ddd' : 'transparent' }}
-            />
-            {additionalImages > 0 && (
-              <div className="absolute bottom-0.5 right-0.5 bg-white/90 border border-gray-300 rounded px-1 py-0.5 text-[0.65rem] font-bold text-gray-800 md:text-xs xl:text-sm">
-                +{additionalImages}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-      <Divider className="my-1.5 md:my-2 xl:my-3" />
-    </>
+        </Space>
+        <Title
+          level={5}
+          style={{
+            margin: 0,
+            fontSize: 16,
+            color: '#1f1f1f',
+            lineHeight: '1.4',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {title}
+        </Title>
+        <Text
+          style={{
+            fontSize: 12,
+            color: '#595959',
+          }}
+        >
+          {comments} bình luận
+        </Text>
+      </Space>
+    </Card>
   );
 };
 

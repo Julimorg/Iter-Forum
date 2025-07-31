@@ -8,7 +8,7 @@ import IconButton from '../../components/RoundButtonIcon/RoundButtonIcon';
 import UserProfileButton from '../../components/UserProfileButton/UserProfileButton';
 import NotiModel from './Components/Notification_Modal';
 import UserModel from './Components/User_Modal';
-import { fakeAvatar } from '../../utils/utils';
+import { avatar_unknown } from '../../utils/utils';
 import SearchModal from './Components/Search_Modal';
 import axiosClient from '../../apis/axiosClient';
 import { useAuthStore } from '../../hook/useAuthStore';
@@ -125,7 +125,7 @@ const Header: React.FC = () => {
         </div>
         <div ref={userRef} className="relative">
           <UserProfileButton
-            buttonImg={ava_img || fakeAvatar}
+            buttonImg={ava_img || avatar_unknown}
             ImgName="#"
             onClick={() => setIstUserModelOpen(!isUserModel)}
           />

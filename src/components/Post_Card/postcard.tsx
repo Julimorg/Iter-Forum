@@ -110,24 +110,24 @@ const Postcard: React.FC<PostcardProps> = ({
 
     // Cập nhật UI và số lượng
     if (initialLikes === 0 && initialDislikes === 0) {
-      // Case 1: likes = 0, dislikes = 0
+      
       if (newLiked) {
-        setCurrentLikes(currentLikes + 1); // Like +1
-        setCurrentDislikes(0); // Dislike giữ nguyên 0
+        setCurrentLikes(currentLikes + 1);
+        setCurrentDislikes(0); 
       } else {
-        setCurrentLikes(0); // Like trở về 0
-        setCurrentDislikes(0); // Dislike giữ nguyên 0
+        setCurrentLikes(0);
+        setCurrentDislikes(0); 
       }
     } else {
-      // Case 2: likes > 1, dislikes > 1
+      
       if (newLiked) {
-        setCurrentLikes(currentLikes + 1); // Like +1
+        setCurrentLikes(currentLikes + 1); 
         if (disliked) {
-          setCurrentDislikes(initialDislikes); // Dislike trở về giá trị ban đầu
+          setCurrentDislikes(initialDislikes); 
         }
       } else {
-        setCurrentLikes(initialLikes); // Like trở về giá trị ban đầu
-        setCurrentDislikes(initialDislikes); // Dislike giữ nguyên hoặc về giá trị ban đầu
+        setCurrentLikes(initialLikes); 
+        setCurrentDislikes(initialDislikes); 
       }
     }
 

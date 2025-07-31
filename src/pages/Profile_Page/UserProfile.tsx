@@ -3,7 +3,7 @@ import ButtonIconLeft from '../../components/ButtonIconLeft/ButtonIconLeft';
 import { FaUserPen } from 'react-icons/fa6';
 import { useGetProfile } from './Hooks/useGetProfile';
 import DisplayPostComponent from './Components/DisplayPostComponent';
-import { fakeAvatar } from '../../utils/utils';
+import { avatar_unknown } from '../../utils/utils';
 import LoadingThreeDots from '../../components/Loader/LoadingThreeDots';
 import UserProfileEditForm from './Components/UserProfileEditForm';
 import { IUpdateProfileResponse } from '../../interface/Users/IUpdateProfile';
@@ -56,7 +56,7 @@ const UserProfile = () => {
         {/* Cover Photo Placeholder */}
         <div className="h-56 bg-gray-200 rounded-t-lg relative">
           <img
-            src={profileData.ava_img_path || fakeAvatar}
+            src={profileData.ava_img_path || avatar_unknown}
             alt={profileData.user_name || 'unknown'}
             className="w-40 h-40 rounded-full object-cover border-4 border-white absolute -bottom-20 left-8 shadow-md"
           />

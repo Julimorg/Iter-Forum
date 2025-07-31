@@ -152,7 +152,7 @@ const CreatePost: React.FC = () => {
         : plainTextLength < 300
         ? sanitizedContent
         : `${sanitizedContent.slice(0, 300)}...`
-      : 'Hãy viết nội dung bài viết của bạn...';
+      : 'Give us your thought !';
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex justify-center py-16 px-6">
@@ -306,7 +306,7 @@ const CreatePost: React.FC = () => {
           </h2>
           <div className="border border-[#D8DDE6] rounded-xl p-6 bg-white h-[50rem]">
             <h3 className="text-2xl font-semibold text-[#1A1F36] mb-4 font-['Inter',Roboto,sans-serif]">
-              {title || 'Bạn đang nghĩ gì?'}
+              {title || 'Hey! What ya doin?'}
             </h3>
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-4">
