@@ -69,12 +69,13 @@ const Postcard: React.FC<PostcardProps> = ({
   const [initialDislikes, setInitialDislikes] = useState<number>(dislikes);
   const navigate = useNavigate();
   const popupRef = useRef<HTMLDivElement>(null);
+  const my_user_id = useAuthStore.getState().user_id;
 
   useEffect(() => {
     if (error) {
       message.error(error, 3);
       console.log(setInitialLikes);
-      console.log(setInitialDislikes)
+      console.log(setInitialDislikes);
     }
   }, [error]);
 
@@ -231,24 +232,29 @@ const Postcard: React.FC<PostcardProps> = ({
             >
               {user}
             </Text>
-            <Text type="secondary" className="block text-[0.625rem] sm:text-xs md:text-sm text-gray-500">
+            <Text
+              type="secondary"
+              className="block text-[0.625rem] sm:text-xs md:text-sm text-gray-500"
+            >
               {formatRelativeTime(date_updated ?? '')}
             </Text>
           </div>
         </div>
-        <div className="relative">
-          <Button
-            type="text"
-            icon={<span className="text-base sm:text-lg md:text-xl text-gray-600">⋮</span>}
-            onClick={togglePopup}
-            className="hover:bg-gray-100 rounded-full"
-          />
-          {popupVisible && (
-            <div ref={popupRef} className="absolute right-0 z-10 mt-2">
-              <ReportPopup type="Post" user_id={user_id} post_id={post_id} />
-            </div>
-          )}
-        </div>
+        {user_id != my_user_id ? (
+          <div className="relative">
+            <Button
+              type="text"
+              icon={<span className="text-base sm:text-lg md:text-xl text-gray-600">⋮</span>}
+              onClick={togglePopup}
+              className="hover:bg-gray-100 rounded-full"
+            />
+            {popupVisible && (
+              <div ref={popupRef} className="absolute right-0 z-10 mt-2">
+                <ReportPopup type="Post" user_id={user_id} post_id={post_id} />
+              </div>
+            )}
+          </div>
+        ) : null}
       </div>
 
       <Title
@@ -278,7 +284,10 @@ const Postcard: React.FC<PostcardProps> = ({
       </div>
 
       {imageCount > 0 && (
-        <Text type="secondary" className="mb-1 block text-[0.625rem] sm:text-xs md:text-sm text-gray-500">
+        <Text
+          type="secondary"
+          className="mb-1 block text-[0.625rem] sm:text-xs md:text-sm text-gray-500"
+        >
           {imageCount} hình ảnh
         </Text>
       )}
@@ -337,18 +346,26 @@ const Postcard: React.FC<PostcardProps> = ({
           type="text"
           onClick={handleLike}
           disabled={!userId}
-          className={`flex items-center gap-1 text-[0.625rem] sm:text-xs md:text-sm transition-colors duration-200 ${liked ? 'text-blue-600 bg-blue-100' : 'text-gray-600 hover:bg-gray-100'} rounded-md px-2 sm:px-3 py-1`}
+          className={`flex items-center gap-1 text-[0.625rem] sm:text-xs md:text-sm transition-colors duration-200 ${
+            liked ? 'text-blue-600 bg-blue-100' : 'text-gray-600 hover:bg-gray-100'
+          } rounded-md px-2 sm:px-3 py-1`}
         >
-          <LikeOutlined className={`text-base sm:text-lg md:text-xl ${liked ? 'text-blue-600' : ''}`} />
+          <LikeOutlined
+            className={`text-base sm:text-lg md:text-xl ${liked ? 'text-blue-600' : ''}`}
+          />
           {currentLikes}
         </Button>
         <Button
           type="text"
           onClick={handleDislike}
           disabled={!userId}
-          className={`flex items-center gap-1 text-[0.625rem] sm:text-xs md:text-sm transition-colors duration-200 ${disliked ? 'text-red-600 bg-red-100' : 'text-gray-600 hover:bg-gray-100'} rounded-md px-2 sm:px-3 py-1`}
+          className={`flex items-center gap-1 text-[0.625rem] sm:text-xs md:text-sm transition-colors duration-200 ${
+            disliked ? 'text-red-600 bg-red-100' : 'text-gray-600 hover:bg-gray-100'
+          } rounded-md px-2 sm:px-3 py-1`}
         >
-          <DislikeOutlined className={`text-base sm:text-lg md:text-xl ${disliked ? 'text-red-600' : ''}`} />
+          <DislikeOutlined
+            className={`text-base sm:text-lg md:text-xl ${disliked ? 'text-red-600' : ''}`}
+          />
           {currentDislikes}
         </Button>
         <Button

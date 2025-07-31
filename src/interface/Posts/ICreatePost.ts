@@ -1,7 +1,7 @@
 export type ICreatePostRequest = {
     post_title: string;
     post_content: string;
-    img_file: string[];
+    img_file: File[];
     tags: string[];
 }
 

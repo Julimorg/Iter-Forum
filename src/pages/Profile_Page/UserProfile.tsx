@@ -76,7 +76,7 @@ const UserProfile = () => {
               Icon={FaUserPen}
               size={18}
               color="#1e40af"
-              title="Chỉnh sửa hồ sơ"
+              title="Edit Profile"
               onclick={() => setProfileEditModel(true)}
             />
           </div>

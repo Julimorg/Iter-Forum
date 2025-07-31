@@ -31,13 +31,12 @@ const ReportPopup: React.FC<ReportPopupProps> = ({ type, user_id, post_id, comme
     setShowReportPanel(false);
   };
 
-  // Debugging log
-  function show() {
-    console.log("user_id:", user_id);
-    console.log("post_id:", post_id);
-    console.log("comment_id:", comment_id);
-  }
-  show();
+  // function show() {
+  //   console.log("user_id:", user_id);
+  //   console.log("post_id:", post_id);
+  //   console.log("comment_id:", comment_id);
+  // }
+  // show();
 
   return (
     <>

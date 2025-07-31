@@ -653,7 +653,7 @@ const PostDetail: React.FC = () => {
               return (
                 <div key={item.comment_id} className="flex">
                   <div className="w-12 flex-shrink-0">
-                    <Avatar size={40} src={fakeAvatar} className="border-2 border-gray-200">
+                    <Avatar size={40} src={post.ava_img_path} className="border-2 border-gray-200">
                       {item.userName[0]}
                     </Avatar>
                     {/* {commentsList.length > 1 && index < commentsList.length - 1 && (
@@ -747,7 +747,7 @@ const PostDetail: React.FC = () => {
                         {item.replies.map((reply) => (
                           <div key={reply.comment_id} className="flex items-start">
                             <div className="w-8 flex-shrink-0">
-                              <Avatar size={32} src={fakeAvatar} className="border-2 border-gray-200">
+                              <Avatar size={32} src={post.ava_img_path} className="border-2 border-gray-200">
                                 {reply.userName[0]}
                               </Avatar>
                             </div>

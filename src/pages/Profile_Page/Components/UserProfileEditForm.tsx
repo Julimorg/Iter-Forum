@@ -120,7 +120,7 @@ function UserProfileEditForm({ isOpen, onClose, user_id, profileData }: UserProf
       age: age ? parseInt(age) : undefined,
       first_name: firstName || undefined,
       last_name: lastName || undefined,
-      ava_img_path: croppedFile || null,
+      avatar: croppedFile || null,
     };
 
     setIsSubmitting(true);
@@ -136,10 +136,10 @@ function UserProfileEditForm({ isOpen, onClose, user_id, profileData }: UserProf
         centered
         width={550}
         className="rounded-lg"
-        bodyStyle={{ padding: "24px", background: "#fff" }}
       >
         <div className="flex flex-col">
           <h2 className="text-2xl font-semibold text-gray-800 mb-6">Edit Profile</h2>
+          
           {error && <p className="text-red-500 text-sm mb-6 text-center">{error}</p>}
           <div className="space-y-6">
             {/* Avatar Section */}

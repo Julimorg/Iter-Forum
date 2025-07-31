@@ -35,6 +35,7 @@ const Header: React.FC = () => {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState<boolean>(false);
   const notiRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
+  const ava_img = useAuthStore.getState().ava_img;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -124,7 +125,7 @@ const Header: React.FC = () => {
         </div>
         <div ref={userRef} className="relative">
           <UserProfileButton
-            buttonImg={fakeAvatar}
+            buttonImg={ava_img || fakeAvatar}
             ImgName="#"
             onClick={() => setIstUserModelOpen(!isUserModel)}
           />

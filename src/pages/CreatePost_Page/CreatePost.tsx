@@ -38,8 +38,8 @@ const CreatePost: React.FC = () => {
   const TAG_MAX_LENGTH = 5;
   const [isChecked, setIsChecked] = useState(false);
   const [title, setTitle] = useState('');
-  const [img_files, setImages] = useState<string[]>([]);
-  // const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [textDescripLimit, setTextDescripLimit] = useState('');
   const [isTagModalVisible, setIsTagModalVisible] = useState(false);
@@ -51,8 +51,8 @@ const CreatePost: React.FC = () => {
       message.success('Post created successfully!');
       setTitle('');
       setTextDescripLimit('');
-      setImages([]);
-      // setImageFiles([]);
+      setImageFiles([]);
+      setImageUrls([]);
       setTags([]);
       setIsChecked(false);
       setIsExpanded(false);
@@ -62,7 +62,6 @@ const CreatePost: React.FC = () => {
     },
   });
 
-  //? config toolbar cho React Quill
   const quillModules = {
     toolbar: [
       ['bold', 'italic', 'underline'],
@@ -81,18 +80,14 @@ const CreatePost: React.FC = () => {
 
   const handleAddImage = (file: File) => {
     const newImageUrl = URL.createObjectURL(file);
-    // if (img_files.length >= 5) {
-    //   message.error('Only up to 5 images can be uploaded!');
-    //   return false;
-    // }
-    setImages((prevImages) => [...prevImages, newImageUrl]);
-    // setImageFiles((prevFiles) => [...prevFiles, file]);
-    return false;
+    setImageFiles((prevFiles) => [...prevFiles, file]); 
+    setImageUrls((prevUrls) => [...prevUrls, newImageUrl]); 
+    return false; 
   };
 
   const handleRemoveImage = (index: number) => {
-    setImages((prevImages) => prevImages.filter((_, i) => i !== index));
-    // setImageFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+    setImageFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+    setImageUrls((prevUrls) => prevUrls.filter((_, i) => i !== index));
   };
 
   const showTagModal = () => {
@@ -135,23 +130,20 @@ const CreatePost: React.FC = () => {
       return;
     }
 
-    //? Tạo FormData theo interface ICreatePostRequest
     const formData: ICreatePostRequest = {
       post_title: title,
       post_content: DOMPurify.sanitize(textDescripLimit)
         .replace(/<[^>]+>/g, '')
         .replace(/ /g, ' '),
-      img_file: img_files,
+      img_file: imageFiles, 
       tags,
     };
 
     mutate(formData);
   };
 
-  //? config plain text
   const plainTextLength = textDescripLimit.replace(/<[^>]+>/g, '').replace(/ /g, ' ').length;
 
-  // ? Làm sạch HTML và xử lý nội dung hiển thị
   const sanitizedContent = DOMPurify.sanitize(textDescripLimit);
   const displayContent =
     plainTextLength > 0
@@ -165,13 +157,10 @@ const CreatePost: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex justify-center py-16 px-6">
       <div className="w-full max-w-7xl flex gap-10">
-        {/* Form Nhập liệu */}
         <div className="w-1/2 bg-white rounded-2xl shadow-md p-10 transition-all duration-300 hover:shadow-lg">
           <h1 className="text-4xl font-semibold text-[#1A1F36] mb-10 font-['Inter',Roboto,sans-serif]">
             Create Post
           </h1>
-
-          {/* Tiêu đề */}
           <div className="mb-8">
             <Input
               placeholder="What's on your mind?"
@@ -182,8 +171,6 @@ const CreatePost: React.FC = () => {
               required
             />
           </div>
-
-          {/* Mô tả (React Quill) */}
           <div className="mb-8">
             <ReactQuill
               theme="snow"
@@ -197,8 +184,6 @@ const CreatePost: React.FC = () => {
               {plainTextLength} / {DESCRIP_MAX_LENGTH} ký tự
             </p>
           </div>
-
-          {/* Thêm hình ảnh */}
           <div className="mb-8">
             <label className="block text-[#1A1F36] font-medium mb-3 font-['Inter',Roboto,sans-serif]">
               Images
@@ -220,9 +205,9 @@ const CreatePost: React.FC = () => {
                 Upload
               </Button>
             </Upload.Dragger>
-            {img_files.length > 0 && (
+            {imageUrls.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-4 animate-fadeIn">
-                {img_files.map((image, index) => (
+                {imageUrls.map((image, index) => (
                   <div key={index} className="relative group">
                     <img
                       src={image}
@@ -241,8 +226,6 @@ const CreatePost: React.FC = () => {
               </div>
             )}
           </div>
-
-          {/* Thêm thẻ */}
           <div className="mb-8">
             <label className="block text-[#1A1F36] font-medium mb-3 font-['Inter',Roboto,sans-serif]">
               Tags
@@ -261,7 +244,7 @@ const CreatePost: React.FC = () => {
               onOk={handleTagModalOk}
               onCancel={handleTagModalCancel}
               okText="Confirm"
-              cancelText="Cancle"
+              cancelText="Cancel"
               className="font-['Inter',Roboto,sans-serif]"
             >
               <Checkbox.Group
@@ -286,8 +269,6 @@ const CreatePost: React.FC = () => {
               </div>
             )}
           </div>
-
-          {/* Điều khoản */}
           <div className="mb-8 flex items-center">
             <Checkbox
               checked={isChecked}
@@ -304,8 +285,6 @@ const CreatePost: React.FC = () => {
               </a>
             </Checkbox>
           </div>
-
-          {/* Nút đăng bài */}
           <Button
             type="primary"
             size="large"
@@ -321,8 +300,6 @@ const CreatePost: React.FC = () => {
             </p>
           )}
         </div>
-
-        {/* VIEW POST */}
         <div className="w-1/2 bg-white rounded-2xl shadow-md p-10 transition-all duration-300 hover:shadow-lg">
           <h2 className="text-3xl font-semibold text-[#1A1F36] mb-8 font-['Inter',Roboto,sans-serif]">
             View your post
@@ -356,11 +333,11 @@ const CreatePost: React.FC = () => {
                 {isExpanded ? 'Collapse' : 'Read more'}
               </Button>
             )}
-            {img_files.length > 0 && (
+            {imageUrls.length > 0 && (
               <div className="mt-20">
-                {img_files.length === 1 ? (
+                {imageUrls.length === 1 ? (
                   <img
-                    src={img_files[0]}
+                    src={imageUrls[0]}
                     alt="uploaded image"
                     className="w-full h-96 object-cover rounded-xl transition-transform duration-200 hover:scale-105"
                   />
@@ -376,7 +353,7 @@ const CreatePost: React.FC = () => {
                     pagination={{ clickable: true }}
                     className="w-full"
                   >
-                    {img_files.map((img, index) => (
+                    {imageUrls.map((img, index) => (
                       <SwiperSlide key={index}>
                         <img
                           src={img}

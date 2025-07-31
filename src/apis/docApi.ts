@@ -150,23 +150,23 @@ export const docApi = {
     user_id: string
   ): Promise<IResponse<IUpdateProfileResponse>> => {
     const url = `users/profile/${user_id}`;
-    // const formData = new FormData();
+    const formData = new FormData();
     
-    // if (body.first_name !== undefined) formData.append('first_name', body.first_name);
-    // if (body.last_name !== undefined) formData.append('last_name', body.last_name);
-    // if (body.user_name !== undefined) formData.append('user_name', body.user_name);
-    // if (body.email !== undefined) formData.append('email', body.email);
-    // if (body.phone_num !== undefined) formData.append('phone_num', body.phone_num);
-    // if (body.age !== undefined) formData.append('age', body.age.toString());
-    // if (body.ava_img_path instanceof File) formData.append('ava_img_path', body.ava_img_path);
+    if (body.first_name !== undefined) formData.append('first_name', body.first_name);
+    if (body.last_name !== undefined) formData.append('last_name', body.last_name);
+    if (body.user_name !== undefined) formData.append('user_name', body.user_name);
+    if (body.email !== undefined) formData.append('email', body.email);
+    if (body.phone_num !== undefined) formData.append('phone_num', body.phone_num);
+    if (body.age !== undefined) formData.append('age', body.age.toString());
+    if (body.avatar instanceof File) formData.append('avatar', body.avatar);
 
-    // const res = await axiosClient.put(url, formData, {
-    //   headers: {
-    //     'Content-Type': 'multipart/form-data',
-    //   },
-    // });
+    const res = await axiosClient.patch(url, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
 
-    const res = await axiosClient.patch(url, body);
+    // const res = await axiosClient.patch(url, body);
     return res.data;
   },
 };

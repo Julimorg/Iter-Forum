@@ -1,7 +1,7 @@
 export type IUpdateProfile = {
   user_name?: string ;
   email?: string;
-  ava_img_path?: File | null;
+  avatar?: File | null;
   phone_num?: string;
   age?: number;
   first_name?: string | undefined;
