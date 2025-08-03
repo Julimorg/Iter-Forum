@@ -2,6 +2,7 @@ export type IUpdateProfile = {
   user_name?: string ;
   email?: string;
   avatar?: File | null;
+  background_img?: File| null;
   phone_num?: string;
   age?: number;
   first_name?: string | undefined;
@@ -16,4 +17,5 @@ export type IUpdateProfileResponse = {
   age?: number | null;
   first_name?: string | null;
   last_name?: string | null;
+  background_img?: string | null;
 };

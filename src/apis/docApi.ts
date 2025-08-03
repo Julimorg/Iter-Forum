@@ -126,6 +126,12 @@ export const docApi = {
     const res = await axiosClient.get(url);
     return res.data;
   },
+
+  GetPostDetail:async(): Promise<void> => {
+    const url = `url`;
+    const res = await axiosClient.get(url);
+    return res.data;
+  },
   CreatePost: async (body: ICreatePostRequest): Promise<IResponse<ICreatePostResposne>> => {
     const url = `posts/`;
     const formData = new FormData();
@@ -159,6 +165,7 @@ export const docApi = {
     if (body.phone_num !== undefined) formData.append('phone_num', body.phone_num);
     if (body.age !== undefined) formData.append('age', body.age.toString());
     if (body.avatar instanceof File) formData.append('avatar', body.avatar);
+    if (body.background_img  instanceof File) formData.append('background_img', body.background_img);
 
     const res = await axiosClient.patch(url, formData, {
       headers: {
