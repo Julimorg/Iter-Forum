@@ -3,6 +3,7 @@ export type IGetUserDetail = {
     user_name: string;
     age: string;
     ava_img_path: string;
+    background_img: string;
     phone_num: string;
     email: string;
     first_name: string;

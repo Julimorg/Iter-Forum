@@ -9,6 +9,7 @@ import { userGetUserProfilePost } from './Hooks/useGetUserProfilePosts';
 import { useState } from 'react';
 import ReportPopup from '../../components/Report_Popup/Report_popup';
 import LoadingThreeDots from '../../components/Loader/LoadingThreeDots';
+import { avatar_unknown, defaultCover } from '../../utils/utils';
 
 const { Title, Text } = Typography;
 
@@ -17,10 +18,6 @@ const { Title, Text } = Typography;
 //TODO: ListView và GridView cho posts
 //TODO: Thêm color cho "status"
 
-const defaultAvatar: string =
-  'https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e303b9f80d10d582.jpg';
-const defaultCover: string =
-  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80';
 
 
 const ViewUserProfile = () => {
@@ -93,10 +90,10 @@ const ViewUserProfile = () => {
       <Card className="mb-8 bg-white rounded-lg shadow-sm" bodyStyle={{ padding: 0 }}>
         {/* Cover Photo */}
         <div className="h-56 bg-gray-200 rounded-t-lg relative">
-          <img src={defaultCover} alt="Cover" className="w-full h-full object-cover rounded-t-lg" />
+          <img src={userProfile.background_img || defaultCover} alt="Cover" className="w-full h-full object-cover rounded-t-lg" />
           <Avatar
-            src={userProfile.ava_img_path || defaultAvatar}
-            icon={!userProfile.ava_img_path && !defaultAvatar ? <UserOutlined /> : undefined}
+            src={userProfile.ava_img_path || avatar_unknown}
+            icon={!userProfile.ava_img_path && !avatar_unknown ? <UserOutlined /> : undefined}
             size={120}
             className="border-4 border-white absolute -bottom-16 left-8 shadow-md rounded-full"
           />

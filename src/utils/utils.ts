@@ -56,7 +56,9 @@ export const my_user_id = useAuthStore.getState().user_id;
 
 export const fakeAvatar = "https://i.pinimg.com/564x/eb/5f/b9/eb5fb972ef581dc0e303b9f80d10d582.jpg";
 
-
 export const WizardImg = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTt6MxzkYx8c_WfMcXQMng1xa70R37bSLgzLA&s";
+
+export const defaultCover: string =
+  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80';
 
 export const avatar_unknown = ava_unknown;
